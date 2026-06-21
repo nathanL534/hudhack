@@ -1,0 +1,357 @@
+{
+  "experiment": "stage6_base_vs_trained",
+  "game": "fighter",
+  "game_role": "teacher",
+  "backend": "local",
+  "is_smoke": false,
+  "base_handle": "offline",
+  "base_resolved_id": "offline:base",
+  "base_kind": "offline",
+  "trained_handle": "offline",
+  "trained_resolved_id": "offline:trained",
+  "trained_kind": "offline",
+  "config": {
+    "temperature": 0.8,
+    "ppo_episodes": 40,
+    "eval_seeds": 5,
+    "architecture": "mlp",
+    "arenas_per_model": 2,
+    "player_seeds": [
+      1
+    ],
+    "held_out_grid": "full",
+    "fingerprint": "017adf9e93b8"
+  },
+  "n_held_out_arenas": 15,
+  "held_out_arenas": [
+    {
+      "platform_width": 7.0,
+      "gravity": 0.6,
+      "knockback": 2.5,
+      "spawn_gap": 3.0,
+      "difficulty": 0.4
+    },
+    {
+      "platform_width": 7.0,
+      "gravity": 0.6,
+      "knockback": 2.5,
+      "spawn_gap": 3.0,
+      "difficulty": 0.6
+    },
+    {
+      "platform_width": 7.0,
+      "gravity": 0.6,
+      "knockback": 2.5,
+      "spawn_gap": 3.0,
+      "difficulty": 0.8
+    },
+    {
+      "platform_width": 16.0,
+      "gravity": 0.6,
+      "knockback": 2.0,
+      "spawn_gap": 6.0,
+      "difficulty": 0.4
+    },
+    {
+      "platform_width": 16.0,
+      "gravity": 0.6,
+      "knockback": 2.0,
+      "spawn_gap": 6.0,
+      "difficulty": 0.6
+    },
+    {
+      "platform_width": 16.0,
+      "gravity": 0.6,
+      "knockback": 2.0,
+      "spawn_gap": 6.0,
+      "difficulty": 0.8
+    },
+    {
+      "platform_width": 12.0,
+      "gravity": 0.35,
+      "knockback": 2.5,
+      "spawn_gap": 5.0,
+      "difficulty": 0.4
+    },
+    {
+      "platform_width": 12.0,
+      "gravity": 0.35,
+      "knockback": 2.5,
+      "spawn_gap": 5.0,
+      "difficulty": 0.6
+    },
+    {
+      "platform_width": 12.0,
+      "gravity": 0.35,
+      "knockback": 2.5,
+      "spawn_gap": 5.0,
+      "difficulty": 0.8
+    },
+    {
+      "platform_width": 12.0,
+      "gravity": 0.6,
+      "knockback": 4.0,
+      "spawn_gap": 5.0,
+      "difficulty": 0.4
+    },
+    {
+      "platform_width": 12.0,
+      "gravity": 0.6,
+      "knockback": 4.0,
+      "spawn_gap": 5.0,
+      "difficulty": 0.6
+    },
+    {
+      "platform_width": 12.0,
+      "gravity": 0.6,
+      "knockback": 4.0,
+      "spawn_gap": 5.0,
+      "difficulty": 0.8
+    },
+    {
+      "platform_width": 9.0,
+      "gravity": 0.8,
+      "knockback": 1.6,
+      "spawn_gap": 4.5,
+      "difficulty": 0.4
+    },
+    {
+      "platform_width": 9.0,
+      "gravity": 0.8,
+      "knockback": 1.6,
+      "spawn_gap": 4.5,
+      "difficulty": 0.6
+    },
+    {
+      "platform_width": 9.0,
+      "gravity": 0.8,
+      "knockback": 1.6,
+      "spawn_gap": 4.5,
+      "difficulty": 0.8
+    }
+  ],
+  "n_jobs": 4,
+  "wall_clock_s": 13.32,
+  "estimated_cost_usd": 0.04,
+  "per_model": [
+    {
+      "model": "base",
+      "resolved_id": "offline:base",
+      "kind": "offline",
+      "mean_transfer": 0.12,
+      "std_transfer": 0.0,
+      "ci": {
+        "mean": 0.12,
+        "low": 0.12,
+        "high": 0.12,
+        "half_width": 0.0,
+        "std": 0.0,
+        "n": 2,
+        "confidence": 0.95
+      },
+      "n_jobs": 2,
+      "arenas": [
+        {
+          "difficulty": 0.5,
+          "platform_width": 12.0,
+          "gravity": 0.6,
+          "knockback": 2.5,
+          "spawn_gap": 4.0
+        },
+        {
+          "difficulty": 0.5,
+          "platform_width": 12.0,
+          "gravity": 0.6,
+          "knockback": 2.5,
+          "spawn_gap": 4.0
+        }
+      ],
+      "diversity": {
+        "n_arenas": 2,
+        "n_unique": 1,
+        "unique_fraction": 0.5,
+        "per_param_std": {
+          "difficulty": 0.0,
+          "platform_width": 0.0,
+          "gravity": 0.0,
+          "knockback": 0.0,
+          "spawn_gap": 0.0
+        },
+        "mean_param_std": 0.0,
+        "collapsed": true
+      },
+      "generation": {
+        "total": 2,
+        "invalid": 0,
+        "clamped": 0
+      },
+      "per_job": [
+        {
+          "arena_index": 0,
+          "seed": 1,
+          "held_out_improvement": 0.12,
+          "before": 0.1067,
+          "after": 0.2267,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 1,
+          "seed": 1,
+          "held_out_improvement": 0.12,
+          "before": 0.1067,
+          "after": 0.2267,
+          "train_arena_winrate": 0.0
+        }
+      ]
+    },
+    {
+      "model": "trained",
+      "resolved_id": "offline:trained",
+      "kind": "offline",
+      "mean_transfer": 0.12,
+      "std_transfer": 0.0,
+      "ci": {
+        "mean": 0.12,
+        "low": 0.12,
+        "high": 0.12,
+        "half_width": 0.0,
+        "std": 0.0,
+        "n": 2,
+        "confidence": 0.95
+      },
+      "n_jobs": 2,
+      "arenas": [
+        {
+          "difficulty": 0.6,
+          "platform_width": 14.0,
+          "gravity": 0.7,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 14.0,
+          "gravity": 0.7,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        }
+      ],
+      "diversity": {
+        "n_arenas": 2,
+        "n_unique": 1,
+        "unique_fraction": 0.5,
+        "per_param_std": {
+          "difficulty": 0.0,
+          "platform_width": 0.0,
+          "gravity": 0.0,
+          "knockback": 0.0,
+          "spawn_gap": 0.0
+        },
+        "mean_param_std": 0.0,
+        "collapsed": true
+      },
+      "generation": {
+        "total": 2,
+        "invalid": 0,
+        "clamped": 0
+      },
+      "per_job": [
+        {
+          "arena_index": 0,
+          "seed": 1,
+          "held_out_improvement": 0.12,
+          "before": 0.1067,
+          "after": 0.2267,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 1,
+          "seed": 1,
+          "held_out_improvement": 0.12,
+          "before": 0.1067,
+          "after": 0.2267,
+          "train_arena_winrate": 0.0
+        }
+      ]
+    }
+  ],
+  "per_game": [
+    {
+      "game": "fighter",
+      "role": "teacher",
+      "base_mean": 0.12,
+      "trained_mean": 0.12,
+      "delta": 0.0
+    }
+  ],
+  "json_validation": {
+    "total": 4,
+    "clamped": 0,
+    "clamp_fraction": 0.0
+  },
+  "base_mean_transfer": 0.12,
+  "trained_mean_transfer": 0.12,
+  "trained_beats_base": false,
+  "delta": 0.0,
+  "anti_gaming": {
+    "passed": false,
+    "any_failed": true,
+    "checks": [
+      {
+        "name": "reward_up_but_no_transfer",
+        "passed": false,
+        "severity": "fail",
+        "value": 0.0,
+        "threshold": 0.0,
+        "detail": "held-out transfer trained(+0.1200) <= base(+0.1200)"
+      },
+      {
+        "name": "arena_collapse",
+        "passed": false,
+        "severity": "fail",
+        "value": 1.0,
+        "threshold": 2.0,
+        "detail": "trained Teacher emitted 1/2 unique arena configs (COLLAPSED to one config)"
+      },
+      {
+        "name": "excessive_clamping",
+        "passed": true,
+        "severity": "fail",
+        "value": 0.0,
+        "threshold": 0.1,
+        "detail": "invalid/clamped JSON fraction 0.0% (limit 10%)"
+      },
+      {
+        "name": "seed_noise_dominates",
+        "passed": true,
+        "severity": "fail",
+        "value": 0.0,
+        "threshold": 0.0,
+        "detail": "seed std 0.0000 <= |mean improvement| 0.0000"
+      },
+      {
+        "name": "train_game_only",
+        "passed": true,
+        "severity": "skip",
+        "value": null,
+        "threshold": null,
+        "detail": "no held-out probe games were run (check skipped)"
+      },
+      {
+        "name": "same_model",
+        "passed": true,
+        "severity": "fail",
+        "value": 0.0,
+        "threshold": 0.0,
+        "detail": "base and trained resolved to distinct models: base=offline:base trained=offline:trained"
+      }
+    ],
+    "failed": [
+      "reward_up_but_no_transfer",
+      "arena_collapse"
+    ]
+  },
+  "overall_pass": false,
+  "hud_traces": [],
+  "replays": []
+}

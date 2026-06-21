@@ -175,6 +175,162 @@ def check_distinct_models(
     )
 
 
+# ---------------------------------------------------------------------------
+# PRIMARY-metric (Student-vs-Student head-to-head) anti-circularity checks
+# ---------------------------------------------------------------------------
+#
+# The held-out-transfer checks above gate the SECONDARY diagnostic. The PRIMARY
+# metric — two frozen Students fighting head-to-head — has its OWN failure modes,
+# the ways a "trained beats base" head-to-head number can be a lie:
+#
+#   H1 ci_lower_above_zero  — the 95% CI lower bound on the paired advantage must
+#      be > 0 (mean advantage alone is not significance; a tiny smoke must NOT
+#      claim a win).
+#   H2 no_side_bias         — the trained Student must win from BOTH sides; if it
+#      only wins as P0 (or only as P1) the evaluator/sim has a position bias and
+#      the result is an artefact, not skill.
+#   H3 multi_arena_benefit  — the advantage must hold across >1 arena family, not
+#      come from a single lucky arena geometry.
+#   H4 distinct_students    — the two Students' policy checksums must differ in a
+#      real run (a Student cannot fight a byte-identical copy of itself).
+#   H5 disjoint_held_out    — the held-out arenas must be disjoint from BOTH
+#      Teachers' curricula (no training-on-the-test).
+#   H6 enough_replicates    — significance requires >1 INDEPENDENT curriculum
+#      replicate; a single replicate is a smoke, never a verdict.
+
+# A position bias this large (|trained P0 win-rate - trained P1 win-rate|) flags a
+# side-dependent evaluator: a real skill edge is side-symmetric.
+SIDE_BIAS_LIMIT = 0.25
+
+
+def check_ci_lower_above_zero(advantage_mean: float, ci_low: float) -> GamingCheck:
+    """H1: the curriculum-level 95% CI lower bound on paired advantage must be >0."""
+    passed = ci_low > 0.0
+    return GamingCheck(
+        "ci_lower_above_zero", passed,
+        f"paired-advantage mean {advantage_mean:+.4f}, 95% CI lower bound "
+        f"{ci_low:+.4f} {'>' if passed else '<='} 0",
+        value=round(ci_low, 6), threshold=0.0,
+    )
+
+
+def check_no_side_bias(trained_p0_winrate: float, trained_p1_winrate: float) -> GamingCheck:
+    """H2: the trained Student must win from BOTH sides (no position dependency)."""
+    gap = abs(trained_p0_winrate - trained_p1_winrate)
+    both_sides_positive = trained_p0_winrate > 0.0 and trained_p1_winrate > 0.0
+    passed = gap <= SIDE_BIAS_LIMIT and both_sides_positive
+    return GamingCheck(
+        "no_side_bias", passed,
+        f"trained win-rate P0={trained_p0_winrate:.4f} P1={trained_p1_winrate:.4f} "
+        f"(gap {gap:.4f}, limit {SIDE_BIAS_LIMIT})"
+        + ("" if passed else " — side-position dependency detected"),
+        value=round(gap, 6), threshold=SIDE_BIAS_LIMIT,
+    )
+
+
+def check_multi_arena_benefit(per_arena_advantages: list[float]) -> GamingCheck:
+    """H3: the advantage must hold across MORE than one arena family."""
+    n_positive = sum(1 for a in per_arena_advantages if a > 0)
+    passed = n_positive > 1
+    return GamingCheck(
+        "multi_arena_benefit", passed,
+        f"trained Student ahead on {n_positive}/{len(per_arena_advantages)} arena families "
+        f"(need >1)",
+        value=float(n_positive), threshold=2.0,
+    )
+
+
+def check_distinct_students(base_checksum: str, trained_checksum: str, *, is_smoke: bool) -> GamingCheck:
+    """H4: the two Students' policy weights must differ in a real run."""
+    same = base_checksum == trained_checksum
+    if is_smoke:
+        return GamingCheck(
+            "distinct_students", True,
+            f"smoke mode: identical-checksum Students tolerated ({base_checksum})",
+            value=1.0 if same else 0.0, threshold=None, severity="skip",
+        )
+    return GamingCheck(
+        "distinct_students", not same,
+        ("base and trained Students have IDENTICAL policy weights: " if same else
+         "base and trained Students have distinct policy weights: ")
+        + f"base={base_checksum} trained={trained_checksum}",
+        value=1.0 if same else 0.0, threshold=0.0,
+    )
+
+
+def check_disjoint_held_out(overlap_count: int) -> GamingCheck:
+    """H5: held-out arenas must not overlap either Teacher's curricula."""
+    passed = overlap_count == 0
+    return GamingCheck(
+        "disjoint_held_out", passed,
+        f"{overlap_count} held-out arena(s) overlap a Teacher's curriculum "
+        f"(must be 0 — no training-on-the-test)",
+        value=float(overlap_count), threshold=0.0,
+    )
+
+
+def check_enough_replicates(n_replicates: int, *, is_smoke: bool) -> GamingCheck:
+    """H6: significance requires >1 independent curriculum replicate."""
+    passed = n_replicates > 1
+    sev = "warn" if is_smoke else "fail"
+    return GamingCheck(
+        "enough_replicates", passed,
+        f"{n_replicates} independent curriculum replicate(s) "
+        + ("(smoke: single replicate is a smoke, not a verdict)" if is_smoke
+           else "(need >1 for a curriculum-level CI)"),
+        value=float(n_replicates), threshold=2.0, severity=sev,
+    )
+
+
+@dataclass(frozen=True)
+class HeadToHeadGaming:
+    """The PRIMARY-metric anti-circularity bundle (separate from the secondary)."""
+
+    checks: list[GamingCheck] = field(default_factory=list)
+
+    @property
+    def any_failed(self) -> bool:
+        return any((not c.passed) and c.severity == "fail" for c in self.checks)
+
+    @property
+    def passed(self) -> bool:
+        return not self.any_failed
+
+    def as_dict(self) -> dict:
+        return {
+            "passed": self.passed,
+            "any_failed": self.any_failed,
+            "checks": [c.as_dict() for c in self.checks],
+            "failed": [c.name for c in self.checks if (not c.passed) and c.severity == "fail"],
+            "warnings": [c.name for c in self.checks if (not c.passed) and c.severity == "warn"],
+        }
+
+
+def run_head_to_head_checks(
+    *,
+    advantage_mean: float,
+    ci_low: float,
+    trained_p0_winrate: float,
+    trained_p1_winrate: float,
+    per_arena_advantages: list[float],
+    base_checksum: str,
+    trained_checksum: str,
+    held_out_overlap_count: int,
+    n_replicates: int,
+    is_smoke: bool,
+) -> HeadToHeadGaming:
+    """Run every PRIMARY-metric anti-circularity check and bundle the verdict."""
+    checks = [
+        check_ci_lower_above_zero(advantage_mean, ci_low),
+        check_no_side_bias(trained_p0_winrate, trained_p1_winrate),
+        check_multi_arena_benefit(per_arena_advantages),
+        check_distinct_students(base_checksum, trained_checksum, is_smoke=is_smoke),
+        check_disjoint_held_out(held_out_overlap_count),
+        check_enough_replicates(n_replicates, is_smoke=is_smoke),
+    ]
+    return HeadToHeadGaming(checks=checks)
+
+
 @dataclass(frozen=True)
 class GamingReport:
     checks: list[GamingCheck] = field(default_factory=list)

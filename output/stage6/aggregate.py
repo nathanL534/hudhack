@@ -92,6 +92,60 @@ def mean_confidence_interval(xs: list[float], confidence: float = 0.95) -> Confi
                               std=s, n=n, confidence=confidence)
 
 
+def bootstrap_ci(
+    xs: list[float], *, confidence: float = 0.95, n_boot: int = 2000, seed: int = 0,
+) -> ConfidenceInterval:
+    """Percentile bootstrap CI on the mean — robust for small replicate counts.
+
+    Resamples ``xs`` with replacement ``n_boot`` times, takes the mean of each
+    resample, and reads the percentile interval. For n<2 it collapses to the point
+    estimate (you cannot bootstrap a single sample). Used at the curriculum-
+    replicate level where the t-CI's normality assumption is shakiest.
+    """
+    import random
+
+    n = len(xs)
+    m = mean(xs)
+    if n < 2:
+        return ConfidenceInterval(mean=m, low=m, high=m, half_width=0.0, std=0.0,
+                                  n=n, confidence=confidence)
+    rng = random.Random(seed)
+    means = []
+    for _ in range(n_boot):
+        sample = [xs[rng.randrange(n)] for _ in range(n)]
+        means.append(sum(sample) / n)
+    means.sort()
+    alpha = 1.0 - confidence
+    lo = means[int((alpha / 2.0) * n_boot)]
+    hi = means[min(n_boot - 1, int((1.0 - alpha / 2.0) * n_boot))]
+    half = (hi - lo) / 2.0
+    return ConfidenceInterval(mean=m, low=lo, high=hi, half_width=half,
+                              std=sample_std(xs), n=n, confidence=confidence)
+
+
+def paired_advantage(trained_wins: int, base_wins: int, draws: int) -> dict:
+    """Win/loss/draw rates + the paired win-rate advantage for ONE match population.
+
+    ``advantage`` = trained_win_rate - base_win_rate. Draws count toward neither
+    win rate (so the three rates sum to 1.0); the advantage is the head-to-head
+    edge after draws are removed from both sides equally.
+    """
+    total = trained_wins + base_wins + draws
+    if total == 0:
+        return {"trained_win_rate": 0.0, "base_win_rate": 0.0, "draw_rate": 0.0,
+                "advantage": 0.0, "n": 0}
+    tw = trained_wins / total
+    bw = base_wins / total
+    dr = draws / total
+    return {
+        "trained_win_rate": round(tw, 6),
+        "base_win_rate": round(bw, 6),
+        "draw_rate": round(dr, 6),
+        "advantage": round(tw - bw, 6),
+        "n": total,
+    }
+
+
 def parameter_diversity(arenas: list[dict], param_keys) -> dict:
     """Quantify how varied a Teacher's generated arenas are.
 

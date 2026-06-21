@@ -1,0 +1,82 @@
+{
+  "experiment": "stage6_student_vs_student",
+  "count": 4,
+  "replays": [
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 3,
+      "side": "trained_as_P0",
+      "outcome": "trained_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_trained_win_trained_as_P0.json"
+    },
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 1,
+      "side": "trained_as_P0",
+      "outcome": "base_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_base_win_trained_as_P0.json"
+    },
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 0,
+      "side": "trained_as_P0",
+      "outcome": "draw",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P0.json"
+    },
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 0,
+      "side": "trained_as_P1",
+      "outcome": "draw",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P1.json"
+    }
+  ]
+}

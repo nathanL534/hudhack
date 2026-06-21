@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crucible — Agents That Build Better Training Grounds</title>
+<style>
+  :root {
+    --bg:#070910; --panel:#111521; --panel2:#171c2b; --line:#293047;
+    --ink:#f5f7ff; --muted:#8f9ab5; --cyan:#55dff7; --blue:#6d8cff;
+    --violet:#a77cff; --green:#59e391; --orange:#ff9d62; --red:#ff667d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--ink);font:14px/1.35 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;
+    background:
+      radial-gradient(900px 500px at 15% -10%,#182252 0%,transparent 62%),
+      radial-gradient(800px 500px at 90% 0%,#321944 0%,transparent 58%),var(--bg)}
+  button,select{font:inherit}
+  .shell{max-width:1480px;margin:auto;padding:20px 24px 42px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .mark{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:900;
+    background:linear-gradient(135deg,var(--cyan),var(--violet));box-shadow:0 0 32px #6d8cff55;color:#080a12}
+  h1{font-size:18px;margin:0}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan)}
+  .top-actions{display:flex;align-items:center;gap:10px}
+  .pill,.btn,select{border:1px solid var(--line);background:#141a28;color:var(--ink);border-radius:10px;padding:9px 12px}
+  .pill{color:var(--muted);font-size:12px}.pill b{color:var(--green)}
+  .btn{cursor:pointer;font-weight:700}.btn.primary{border:0;background:linear-gradient(135deg,var(--blue),var(--violet));
+    box-shadow:0 8px 28px #6d8cff44}.btn:hover{filter:brightness(1.12)}
+  .hero{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-bottom:16px}
+  .card{background:linear-gradient(180deg,#141927ee,#0f131fee);border:1px solid var(--line);
+    border-radius:16px;box-shadow:0 18px 55px #0007;overflow:hidden}
+  .pitch{padding:25px 28px;position:relative}
+  .pitch:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-145px;
+    background:#795cff22;filter:blur(6px)}
+  .pitch h2{font-size:32px;line-height:1.08;max-width:770px;margin:8px 0 10px;letter-spacing:-.035em}
+  .pitch p{font-size:15px;color:#b8c0d7;margin:0;max-width:750px}
+  .score{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;padding:22px}
+  .metric{padding:6px 16px;border-right:1px solid var(--line)}.metric:last-child{border:0}
+  .metric small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.09em}
+  .metric strong{display:block;font-size:29px;margin-top:4px;font-variant-numeric:tabular-nums}
+  .metric.base strong{color:#b7bfd3}.metric.trained strong{color:var(--cyan)}.metric.delta strong{color:var(--green)}
+  .pipeline{padding:15px;display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:16px}
+  .stage{position:relative;padding:12px 12px 11px;border:1px solid var(--line);border-radius:12px;background:#0c101a}
+  .stage:not(:last-child):after{content:"›";position:absolute;right:-8px;top:25px;color:#69738d;font-size:22px;z-index:2}
+  .stage .num{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#242b3e;color:#98a4be;font-size:11px}
+  .stage b{display:block;margin:7px 0 2px;font-size:13px}.stage span{color:var(--muted);font-size:11px}
+  .stage.active{border-color:#647fff;background:#111832;box-shadow:inset 0 0 25px #5276ff20}
+  .stage.active .num{background:var(--blue);color:white}.stage.done{border-color:#296544}.stage.done .num{background:#23633e;color:#baffd3}
+  .main-grid{display:grid;grid-template-columns:1.55fr .75fr;gap:16px}
+  .battle-card{padding:15px}.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .card-head h3{margin:0;font-size:14px}.subtle{color:var(--muted);font-size:12px}
+  .arenas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .arena{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#090c14}
+  .arena-title{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;border-bottom:1px solid var(--line)}
+  .arena-title b{font-size:12px}.tag{font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:4px 7px;border-radius:7px;background:#252b3c;color:#b3bdd4}
+  .tag.win{background:#163c2b;color:#78f0aa}.arena canvas{width:100%;height:258px;display:block;background:#080a12}
+  .arena-foot{padding:9px 11px;display:flex;justify-content:space-between;color:var(--muted);font-size:11px}
+  .side{display:grid;gap:16px;align-content:start}.knobs,.proof,.games{padding:15px}
+  .knob{display:grid;grid-template-columns:90px 1fr 42px;gap:9px;align-items:center;margin:10px 0}
+  .knob label{color:#aeb7cc;font-size:12px}.track{height:7px;border-radius:9px;background:#252b3d;overflow:hidden}
+  .fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+  .knob output{text-align:right;font-size:11px;color:#cdd4e6;font-variant-numeric:tabular-nums}
+  .proof-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .proof-item{padding:10px;border-radius:10px;background:#0b101a;border:1px solid #222a3c}
+  .proof-item span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+  .proof-item b{display:block;margin-top:4px;font-size:12px}.ok{color:var(--green)}
+  .game-tabs{display:flex;gap:7px}.game{flex:1;padding:9px 7px;border-radius:9px;border:1px solid var(--line);background:#0d111b;color:#aeb7cc;text-align:center;font-size:11px}
+  .game.selected{border-color:#667fff;background:#151c39;color:white}.game.held{border-color:#5e3e78;color:#d8b7ff}
+  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;color:#6f7a95;font-size:11px}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);margin-right:6px}
+  .toast{position:fixed;right:24px;bottom:24px;padding:12px 15px;border-radius:11px;background:#182035;border:1px solid #35405b;
+    box-shadow:0 18px 45px #0008;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+  .toast.show{opacity:1;transform:none}
+  @media(max-width:1000px){.hero,.main-grid{grid-template-columns:1fr}.pipeline{grid-template-columns:1fr 1fr 1fr}.pitch h2{font-size:27px}}
+  @media(max-width:680px){.shell{padding:14px}.arenas,.score,.pipeline{grid-template-columns:1fr}.metric{border-right:0;border-bottom:1px solid var(--line)}header{align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand"><div class="mark">C</div><div><div class="eyebrow">Crucible</div><h1>Autonomous Environment Factory</h1></div></div>
+    <div class="top-actions">
+      <span class="pill"><span class="status-dot"></span><b id="modeLabel">Demo ready</b></span>
+      <select id="mode"><option value="demo">Demo replay</option><option value="live">Live artifacts</option></select>
+      <button class="btn primary" id="runBtn">Run Teacher Challenge</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="card pitch">
+      <div class="eyebrow">Base Teacher's Student VS Trained Teacher's Student</div>
+      <h2>The proof is a head-to-head fight, not a self-graded score.</h2>
+      <p>One Student trains on the BASE Teacher's curricula, another on the TRAINED Teacher's. We freeze both and fight them on unseen arenas — side-swapped, many fresh seeds. The trained Teacher wins only if ITS Student beats the base Student with a curriculum-level CI above zero.</p>
+    </div>
+    <div class="card score">
+      <div class="metric base"><small>Base Student win-rate</small><strong id="baseScore">Awaiting evaluation</strong></div>
+      <div class="metric trained"><small>Trained Student win-rate</small><strong id="trainedScore">Awaiting evaluation</strong></div>
+      <div class="metric delta"><small>Paired advantage (95% CI)</small><strong id="liftScore">Awaiting evaluation</strong></div>
+    </div>
+  </section>
+
+  <section class="card pipeline" id="pipeline">
+    <div class="stage"><i class="num">1</i><b>Teacher</b><span>Qwen proposes arena parameters</span></div>
+    <div class="stage"><i class="num">2</i><b>Environment</b><span>Bounded, executable game instance</span></div>
+    <div class="stage"><i class="num">3</i><b>Students</b><span>Two fresh PPO Students, one per Teacher's curricula</span></div>
+    <div class="stage"><i class="num">4</i><b>Head-to-head</b><span>Frozen Students fight on unseen arenas, side-swapped</span></div>
+    <div class="stage"><i class="num">5</i><b>Verdict</b><span>Trained Student wins with CI lower bound &gt; 0</span></div>
+  </section>
+
+  <section class="main-grid">
+    <div class="card battle-card">
+      <div class="card-head"><div><h3>Student vs Student — head-to-head on held-out arenas</h3><div class="subtle">Same PPO budget · same architecture · side-swapped · only the Teacher's curricula differ</div></div>
+        <button class="btn" id="playBtn">Pause replays</button></div>
+      <div class="arenas">
+        <div class="arena">
+          <div class="arena-title"><b>Base Teacher's Student</b><span class="tag">trained on base curricula</span></div>
+          <canvas id="baseCanvas" width="660" height="330"></canvas>
+          <div class="arena-foot"><span>Head-to-head win-rate</span><b id="baseArenaScore">Awaiting evaluation</b></div>
+        </div>
+        <div class="arena">
+          <div class="arena-title"><b>Trained Teacher's Student</b><span class="tag win">trained on trained curricula</span></div>
+          <canvas id="trainedCanvas" width="660" height="330"></canvas>
+          <div class="arena-foot"><span>Head-to-head win-rate</span><b id="trainedArenaScore">Awaiting evaluation</b></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="card knobs">
+        <div class="card-head"><div><h3>Generated environment</h3><div class="subtle">Validated before execution</div></div><span class="tag win">0 clamped</span></div>
+        <div id="knobs"></div>
+      </div>
+      <div class="card games">
+        <div class="card-head"><div><h3>Game families</h3><div class="subtle">Train across mechanics, test transfer</div></div></div>
+        <div class="game-tabs"><div class="game selected">Ring-Out<br><b>Train</b></div><div class="game">Target Knockback<br><b>Train</b></div><div class="game held">King of the Hill<br><b>Held out</b></div></div>
+      </div>
+      <div class="card proof">
+        <div class="card-head"><div><h3>Why this isn't circular</h3><div class="subtle">Student vs Student, not a self-graded score</div></div></div>
+        <div class="proof-grid">
+          <div class="proof-item"><span>Headline</span><b>Student vs Student</b></div>
+          <div class="proof-item"><span>Side swap</span><b id="proofSide">Awaiting evaluation</b></div>
+          <div class="proof-item"><span>CI lower bound</span><b id="proofCI">Awaiting evaluation</b></div>
+          <div class="proof-item"><span>Replicates</span><b id="proofReps">Awaiting evaluation</b></div>
+          <div class="proof-item"><span>Anti-circularity</span><b id="proofAnti">Awaiting evaluation</b></div>
+          <div class="proof-item"><span>Cross-game (KOTH)</span><b id="proofKoth">Awaiting evaluation</b></div>
+        </div>
+      </div>
+    </aside>
+  </section>
+  <div class="footer"><span>Headline = the Student trained on the trained Teacher's curricula beats the base Teacher's Student, head-to-head, CI lower bound &gt; 0</span><span id="artifactStatus">Using deterministic demo artifacts</span></div>
+</div>
+<div class="toast" id="toast">Challenge started</div>
+
+<script>
+// NO fabricated metrics. Until a real eval JSON exists, every value reads
+// "Awaiting evaluation". The dashboard consumes output/.../dashboard.json (written
+// by report.generate_report) for the PRIMARY Student-vs-Student headline, and the
+// captured head-to-head replays for the visual.
+const AWAIT = "Awaiting evaluation";
+const REPLAY_CANDIDATES = {
+  // Real captured head-to-head replays (written by the eval); base-win and
+  // trained-win matches. Fall back to whatever exists.
+  base: ["/replays/h2h_fighter_base_win_trained_as_P0.json"],
+  trained: ["/replays/h2h_fighter_trained_win_trained_as_P0.json",
+            "/replays/h2h_fighter_draw_trained_as_P0.json"]
+};
+const bounds={difficulty:[0,1],platform_width:[8,30],gravity:[.2,1.2],knockback:[.5,6],spawn_gap:[1,12]};
+const labels={difficulty:"Opponent",platform_width:"Platform",gravity:"Gravity",knockback:"Knockback",spawn_gap:"Spawn gap"};
+let data=null, playing=true, frame=0, timer=null, baseReplay=null, trainedReplay=null;
+const $=id=>document.getElementById(id);
+const pct3=v=>(v==null?AWAIT:Number(v).toFixed(3));
+
+function renderMetrics(){
+  const d=data;
+  if(!d){
+    ["baseScore","trainedScore","liftScore","baseArenaScore","trainedArenaScore",
+     "proofSide","proofCI","proofReps","proofAnti","proofKoth"].forEach(id=>$(id).textContent=AWAIT);
+    $("knobs").innerHTML="";
+    return;
+  }
+  $("baseScore").textContent=pct3(d.base_student_win_rate);
+  $("trainedScore").textContent=pct3(d.trained_student_win_rate);
+  $("baseArenaScore").textContent=pct3(d.base_student_win_rate);
+  $("trainedArenaScore").textContent=pct3(d.trained_student_win_rate);
+  const adv=d.mean_paired_advantage, lo=d.ci_low, hi=d.ci_high;
+  $("liftScore").textContent=(adv==null)?AWAIT:`${adv>=0?"+":""}${adv.toFixed(3)}  [${lo?.toFixed(3)}, ${hi?.toFixed(3)}]`;
+  // Proof panel.
+  $("proofSide").textContent=(d.trained_win_rate_as_p0==null)?AWAIT:
+    `P0 ${d.trained_win_rate_as_p0.toFixed(2)} / P1 ${d.trained_win_rate_as_p1.toFixed(2)}`;
+  $("proofCI").textContent=(lo==null)?AWAIT:`${lo>=0?"+":""}${lo.toFixed(3)}`;
+  $("proofReps").textContent=(d.n_replicates==null)?AWAIT:String(d.n_replicates);
+  $("proofAnti").textContent=(d.anti_circularity_passed==null)?AWAIT:(d.anti_circularity_passed?"Passed ✓":"FAILED");
+  $("proofAnti").className=d.anti_circularity_passed?"ok":"";
+  const cg=d.cross_game_koth;
+  $("proofKoth").textContent=!cg?AWAIT:(cg.supported?
+    (cg.mean_paired_advantage==null?"Supported":`adv ${cg.mean_paired_advantage>=0?"+":""}${Number(cg.mean_paired_advantage).toFixed(3)}`):
+    "Unsupported");
+  // Knobs: show the first held-out arena family advantages if present.
+  const fam=d.per_arena_family_advantage||{};
+  $("knobs").innerHTML=Object.entries(fam).map(([k,v])=>{
+    const pos=v>=0, w=Math.min(100,Math.abs(v)*180+6);
+    return `<div class="knob"><label>${k}</label><div class="track"><div class="fill" style="width:${w}%;background:${pos?'linear-gradient(90deg,var(--cyan),var(--green))':'var(--red)'}"></div></div><output>${v>=0?"+":""}${Number(v).toFixed(3)}</output></div>`;
+  }).join("") || `<div class="subtle">${AWAIT}</div>`;
+}
+async function loadJSON(path){const r=await fetch(path,{cache:"no-store"});if(!r.ok)throw Error(r.status);return r.json()}
+async function firstReplay(cands){for(const p of cands){try{return await loadJSON(p)}catch(_){}}return null}
+async function loadArtifacts(){
+  data=null;
+  if($("mode").value==="live"){
+    try{
+      data=await loadJSON("/output/stage6_report/dashboard.json");
+      $("artifactStatus").textContent="Loaded stage6_report/dashboard.json";
+      $("modeLabel").textContent="Live artifacts";
+    }catch(e){
+      try{ // fall back to the full result JSON's primary block
+        const full=await loadJSON("/output/eval_base_vs_trained.json");
+        const p=full.primary||full;
+        data={base_student_win_rate:p.base_student_win_rate,trained_student_win_rate:p.trained_student_win_rate,
+              mean_paired_advantage:p.mean_paired_advantage,ci_low:p.ci_t?.low,ci_high:p.ci_t?.high,
+              n_replicates:p.n_replicates,trained_win_rate_as_p0:p.trained_win_rate_as_p0,
+              trained_win_rate_as_p1:p.trained_win_rate_as_p1,anti_circularity_passed:p.anti_circularity?.passed,
+              per_arena_family_advantage:p.per_arena_family_advantage,cross_game_koth:full.cross_game_koth};
+        $("artifactStatus").textContent="Loaded eval_base_vs_trained.json (primary block)";
+        $("modeLabel").textContent="Live artifacts";
+      }catch(_){data=null;$("artifactStatus").textContent="No eval artifact yet — Awaiting evaluation";$("modeLabel").textContent="Awaiting eval"}
+    }
+  }else{$("artifactStatus").textContent="Demo mode — no fabricated metrics, run an eval for numbers";$("modeLabel").textContent="Awaiting eval"}
+  baseReplay=await firstReplay(REPLAY_CANDIDATES.base);
+  trainedReplay=await firstReplay(REPLAY_CANDIDATES.trained);
+  renderMetrics(); drawBoth();
+}
+function drawArena(canvas,replay,accent,label){
+  const c=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
+  const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,"#111a39");g.addColorStop(.65,"#182038");g.addColorStop(1,"#080b12");c.fillStyle=g;c.fillRect(0,0,W,H);
+  for(let i=0;i<38;i++){const x=(i*83)%W,y=(i*47)%180;c.fillStyle=i%4?"#ffffff24":"#8feaff66";c.fillRect(x,y,1.5,1.5)}
+  const fr=replay?.frames?.[frame%replay.frames.length],p=replay?.platform||{x_left:0,x_right:12,y:0};
+  const left=54,right=W-54,ground=H-67;c.fillStyle="#262e44";c.fillRect(left,ground,right-left,25);c.fillStyle="#6b7ba7";c.fillRect(left,ground,right-left,5);
+  c.fillStyle="#0b0e18";c.fillRect(0,ground+25,W,H-ground-25);
+  const sx=x=>left+(x-p.x_left)/Math.max(1,p.x_right-p.x_left)*(right-left), sy=y=>ground-y*35;
+  const fallback=[{x:p.x_left+(p.x_right-p.x_left)*.34,y:0,action:"right"},{x:p.x_left+(p.x_right-p.x_left)*.66,y:0,action:"left"}];
+  [fr?.p1||fallback[0],fr?.p2||fallback[1]].forEach((b,i)=>{
+    const x=sx(b.x),y=sy(b.y),col=i? "#ff8e58":accent;c.save();c.translate(x,y);
+    c.shadowBlur=18;c.shadowColor=col;c.fillStyle=col;c.beginPath();c.arc(0,-28,19,0,Math.PI*2);c.fill();
+    c.fillStyle="#eaf3ff";c.beginPath();c.arc((b.facing||1)*8,-32,3.5,0,Math.PI*2);c.fill();
+    if(b.action==="punch"){c.strokeStyle="#fff";c.lineWidth=8;c.beginPath();c.moveTo((b.facing||1)*12,-27);c.lineTo((b.facing||1)*35,-27);c.stroke()}
+    c.restore();
+  });
+  c.fillStyle="#dbe5ff";c.font="700 13px system-ui";c.fillText(label,18,25);
+  c.fillStyle="#8290ad";c.font="11px system-ui";c.fillText(fr?`frame ${frame%replay.frames.length} · ${fr.p1.action} vs ${fr.p2.action}`:"saved replay loads in live server mode",18,43);
+}
+function drawBoth(){drawArena($("baseCanvas"),baseReplay,"#8fa1c8","BASE TEACHER'S STUDENT");drawArena($("trainedCanvas"),trainedReplay,"#56e5ff","TRAINED TEACHER'S STUDENT")}
+function animate(){clearInterval(timer);if(playing)timer=setInterval(()=>{frame++;drawBoth()},95)}
+function runChallenge(){
+  const stages=[...document.querySelectorAll(".stage")];stages.forEach(x=>x.className="stage");let i=0;
+  const tick=()=>{if(i)stages[i-1].className="stage done";if(i<stages.length){stages[i].className="stage active";i++;setTimeout(tick,i===3?900:560)}else{showToast("Challenge complete · Student-vs-Student head-to-head")}};tick();
+}
+function showToast(t){$("toast").textContent=t;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
+$("playBtn").onclick=()=>{playing=!playing;$("playBtn").textContent=playing?"Pause replays":"Play replays";animate()};
+$("runBtn").onclick=runChallenge;$("mode").onchange=loadArtifacts;
+renderMetrics();loadArtifacts();animate();
+</script>
+</body>
+</html>

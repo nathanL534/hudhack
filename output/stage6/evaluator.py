@@ -165,6 +165,10 @@ class EvalRequest:
     # a ``modal:``/``local:`` adapter loads ``Qwen/Qwen3-4B`` (the adapter's target),
     # not the Fireworks id. ``None`` -> each backend's own default.
     base_model: str | None = None
+    # Run the SECONDARY fixed-bot transfer diagnostic too. The PRIMARY metric
+    # (Student-vs-Student) is always run by ``run_full_eval``; the secondary is
+    # extra evidence and can be skipped for a cheap primary-only run.
+    run_secondary: bool = True
 
 
 def run_eval(req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs) -> dict:
@@ -393,3 +397,111 @@ def write_result(summary: dict, path: Path) -> Path:
     path = Path(path)
     path.write_text(json.dumps(summary, indent=2))
     return path
+
+
+# ---------------------------------------------------------------------------
+# The FULL decider: PRIMARY (Student-vs-Student) headline + SECONDARY diagnostic
+# ---------------------------------------------------------------------------
+
+
+def run_full_eval(
+    req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs,
+    run_train=None, run_h2h=None,
+) -> dict:
+    """The Stage-6 decider whose HEADLINE is the Student-vs-Student head-to-head.
+
+    Runs:
+      * the PRIMARY metric — two fresh Students (one per Teacher's curricula) fought
+        head-to-head on unseen arenas, side-swapped, with a curriculum-level 95% CI.
+        This ALONE decides the headline verdict.
+      * the SECONDARY metric (when ``req.run_secondary``) — the legacy fixed-bot
+        before->after held-out transfer diagnostic, kept as extra evidence under a
+        clearly-labeled "Secondary transfer diagnostic" section. It does NOT affect
+        the headline.
+
+    The injected ``run_train`` / ``run_h2h`` thread through to the head-to-head so
+    tests can stub the two primary fan-outs; ``resolve`` / ``run_jobs`` stub the
+    secondary path exactly as ``run_eval`` already supports.
+    """
+    from output.stage6 import head_to_head as h2h_mod
+
+    cfg = req.config
+    game = get_game(req.game)
+    if not game.installed:
+        raise GameNotInstalled(f"game {req.game!r} is not installed: {game.not_installed_reason}")
+    if game.role != "teacher":
+        raise ValueError(
+            f"game {req.game!r} has role {game.role!r}; only role='teacher' games can train a Teacher"
+        )
+
+    resolve_kw = {"base_model": req.base_model} if req.base_model else {}
+    base = resolve("base", req.base_handle, **resolve_kw)
+    trained = resolve(
+        "trained" if not req.is_smoke else "base(smoke)", req.trained_handle, **resolve_kw
+    )
+
+    # --- PRIMARY: Student-vs-Student head-to-head (the headline) ---
+    h2h_req = h2h_mod.HeadToHeadRequest(
+        base=base, trained=trained, game=game, config=cfg,
+        backend=req.backend, is_smoke=req.is_smoke, verbose=req.verbose,
+    )
+    h2h_kwargs = {}
+    if run_train is not None:
+        h2h_kwargs["run_train"] = run_train
+    if run_h2h is not None:
+        h2h_kwargs["run_h2h"] = run_h2h
+    primary = h2h_mod.run_head_to_head(h2h_req, **h2h_kwargs)
+
+    # --- SECONDARY: fixed-bot before->after transfer diagnostic (extra evidence) ---
+    secondary = None
+    if req.run_secondary:
+        if req.verbose:
+            print("\n--- Secondary transfer diagnostic (fixed-bot before->after) ---")
+        secondary = run_eval(req, resolve=resolve, run_jobs=run_jobs)
+
+    # The HEADLINE verdict uses ONLY the primary.
+    overall_pass = bool(primary["primary_pass"])
+
+    summary = {
+        "experiment": "stage6_student_vs_student",
+        "game": game.name,
+        "backend": req.backend,
+        "is_smoke": req.is_smoke,
+        "base_handle": base.handle,
+        "base_resolved_id": base.resolved_id,
+        "base_kind": base.kind,
+        "trained_handle": trained.handle,
+        "trained_resolved_id": trained.resolved_id,
+        "trained_kind": trained.kind,
+        "config": cfg.as_dict(),
+        # --- the headline ---
+        "headline_metric": "primary_student_vs_student_head_to_head",
+        "primary": primary,
+        "overall_pass": overall_pass,
+        # --- secondary evidence (never sets the headline) ---
+        "secondary_transfer_diagnostic": secondary,
+        # Convenience top-level mirrors of the headline numbers (for the dashboard).
+        "trained_student_win_rate": primary["trained_student_win_rate"],
+        "base_student_win_rate": primary["base_student_win_rate"],
+        "mean_paired_advantage": primary["mean_paired_advantage"],
+        "ci_lower_bound": primary["ci_lower_bound"],
+        "replays": primary.get("replays", []),
+    }
+    if req.verbose:
+        _print_full_verdict(summary)
+    return summary
+
+
+def _print_full_verdict(summary: dict) -> None:
+    p = summary["primary"]
+    print("\n    ===================== STAGE 6 HEADLINE =====================")
+    print(f"    PRIMARY (Student vs Student): trained beats base = "
+          f"{p['mean_paired_advantage'] > 0} (advantage {p['mean_paired_advantage']:+.4f})")
+    print(f"    curriculum-level 95% CI lower bound = {p['ci_lower_bound']:+.4f} "
+          f"(must be > 0)")
+    print(f"    anti-circularity = {'PASS' if p['anti_circularity']['passed'] else 'FAIL'}")
+    print(f"    OVERALL HEADLINE PASS = {summary['overall_pass']}")
+    if summary.get("secondary_transfer_diagnostic"):
+        s = summary["secondary_transfer_diagnostic"]
+        print(f"    [secondary diagnostic] fixed-bot transfer delta = {s.get('delta'):+.4f} "
+              f"(evidence only, not the headline)")

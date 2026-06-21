@@ -38,6 +38,18 @@ class EvalConfig:
     arenas_per_model: int = 5
     player_seeds: tuple[int, ...] = (1, 2, 3, 4, 5)
     held_out_grid: str = "full"  # "full" (15 arenas) | "diagonal" (5)
+    # -- PRIMARY metric (Student-vs-Student head-to-head) shape ---------------
+    # INDEPENDENT curriculum replicates: each generates fresh curricula from BOTH
+    # Teachers, trains one Student per Teacher, freezes, fights. The CI is over
+    # THESE replicates (not frames / duplicate matches), so >1 is required for a
+    # real verdict.
+    n_replicates: int = 4
+    # Arenas the Teacher generates per curriculum (the Student trains on the SET).
+    curriculum_arenas: int = 4
+    # Match seeds played per held-out arena per side (paired across the side swap).
+    match_seeds_per_arena: int = 12
+    # Held-out grid for the head-to-head (its own disjoint population).
+    head_to_head_grid: str = "full"
 
     def fingerprint(self) -> str:
         """A short stable hash of the invariant (recorded to prove fairness)."""
@@ -85,4 +97,29 @@ def smoke_config() -> EvalConfig:
         arenas_per_model=2,
         player_seeds=(1, 2),
         held_out_grid="full",
+        n_replicates=2,
+        curriculum_arenas=2,
+        match_seeds_per_arena=4,
+        head_to_head_grid="diagonal",
+    )
+
+
+def head_to_head_smoke_config() -> EvalConfig:
+    """The CHEAPEST head-to-head config — minimal PPO, 2 replicates, small grid.
+
+    Just enough to exercise the full primary path (generate -> train 2 Students ->
+    freeze -> side-swapped head-to-head -> curriculum-level CI) without a full
+    Gate-4 budget. NOT a verdict (2 replicates / tiny budget is a smoke).
+    """
+    return EvalConfig(
+        temperature=0.8,
+        ppo_episodes=150,
+        eval_seeds=8,
+        arenas_per_model=2,
+        player_seeds=(1,),
+        held_out_grid="diagonal",
+        n_replicates=2,
+        curriculum_arenas=2,
+        match_seeds_per_arena=6,
+        head_to_head_grid="diagonal",
     )
