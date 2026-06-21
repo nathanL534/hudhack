@@ -1,0 +1,337 @@
+{
+  "seed": 10009,
+  "curriculum_id": "leagueB256-behavior-audit",
+  "arena_scores": [
+    0.6746666666666666
+  ],
+  "mean_score": 0.6746666666666666,
+  "before_winrate": 0.0013333333333333333,
+  "after_winrate": 0.6746666666666666,
+  "held_out_improvement": 0.6733333333333333,
+  "improvement": 0.6733333333333333,
+  "held_out_difficulties": [
+    0.4,
+    0.6,
+    0.8,
+    0.4,
+    0.6,
+    0.8,
+    0.4,
+    0.6,
+    0.8,
+    0.4,
+    0.6,
+    0.8,
+    0.4,
+    0.6,
+    0.8
+  ],
+  "held_out_before_per_arena": [
+    0.02,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "held_out_after_per_arena": [
+    0.72,
+    0.56,
+    0.68,
+    0.96,
+    0.46,
+    0.02,
+    1.0,
+    0.84,
+    0.16,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.68,
+    0.04
+  ],
+  "train_arena_winrate": 1.0,
+  "difficulty": 0.7,
+  "status": "ppo_transfer",
+  "inner_net_arch": [
+    256,
+    256
+  ],
+  "inner_opponent_league_enabled": true,
+  "inner_decisive_reward": true,
+  "inner_opponent_episode_counts": {
+    "aggressive": 829,
+    "prior_student": 389
+  },
+  "replay": {
+    "replay_id": "leagueB256_behavior_audit_seed10009",
+    "data": {
+      "meta": {
+        "game": "ring-out-duel",
+        "config": "d0.4",
+        "winner": "p1",
+        "frames": 15,
+        "p1_policy": "modal_trained_ppo",
+        "p2_policy": "parametric",
+        "seed": 10009,
+        "schema": 1
+      },
+      "platform": {
+        "x_left": 0.0,
+        "x_right": 7.0,
+        "y": 0.0
+      },
+      "frames": [
+        {
+          "p1": {
+            "x": 4.8691,
+            "y": 0.0,
+            "facing": 1,
+            "action": "idle"
+          },
+          "p2": {
+            "x": 2.5856,
+            "y": 0.0,
+            "facing": -1,
+            "action": "idle"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 4.8691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "punch"
+          },
+          "p2": {
+            "x": 2.9356,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": [
+            "p1_punch"
+          ]
+        },
+        {
+          "p1": {
+            "x": 4.5191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 2.5856,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 4.5191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "punch"
+          },
+          "p2": {
+            "x": 2.2356,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "events": [
+            "p1_punch"
+          ]
+        },
+        {
+          "p1": {
+            "x": 4.5191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "punch"
+          },
+          "p2": {
+            "x": 1.8856,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "events": [
+            "p1_punch"
+          ]
+        },
+        {
+          "p1": {
+            "x": 4.1691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 2.2356,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 3.8191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 2.5856,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 3.8191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "punch"
+          },
+          "p2": {
+            "x": 0.0856,
+            "y": 0.0,
+            "facing": 1,
+            "action": "punch"
+          },
+          "events": [
+            "p1_punch",
+            "p2_punch"
+          ]
+        },
+        {
+          "p1": {
+            "x": 3.4691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 0.4356,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 3.1191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 0.0856,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 2.7691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 0.4356,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 2.4191,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 0.7856,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 2.0691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "p2": {
+            "x": 0.4356,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "events": []
+        },
+        {
+          "p1": {
+            "x": 2.0691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "punch"
+          },
+          "p2": {
+            "x": 0.0856,
+            "y": 0.0,
+            "facing": -1,
+            "action": "left"
+          },
+          "events": [
+            "p1_punch"
+          ]
+        },
+        {
+          "p1": {
+            "x": 2.0691,
+            "y": 0.0,
+            "facing": -1,
+            "action": "punch"
+          },
+          "p2": {
+            "x": -2.0644,
+            "y": 0.0,
+            "facing": 1,
+            "action": "right"
+          },
+          "events": [
+            "p1_punch",
+            "p2_ringout"
+          ]
+        }
+      ]
+    }
+  }
+}

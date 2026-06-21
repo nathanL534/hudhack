@@ -426,6 +426,59 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
 
     held_out_improvement = after_winrate - before_winrate
 
+    # BEHAVIOR PROBE (gated; default OFF). The anti-collapse Teacher run grades each
+    # arena on the trained Student's BEHAVIOR, not just held-out win-rate: a Student
+    # that camps (never moves) or punch-spams (always punches) or only "wins" by
+    # timeout/tiebreak gets its behavior_gated_improvement zeroed on the host. To gate
+    # that the host needs three fractions measured on the TRAINED Student here:
+    #   * movement_fraction       — fraction of steps the Student chose LEFT/RIGHT/JUMP.
+    #   * punch_fraction          — fraction of steps the Student chose PUNCH.
+    #   * real_ringout_win_rate   — wins that ended by an actual RING-OUT (NOT timeout /
+    #                               tiebreak), over all probe matches.
+    # The probe is read-only (``play_match_trace``): it traces the trained policy vs the
+    # AGGRESSIVE scripted opponent on the held-out arenas, so it never feeds training and
+    # the held-out improvement above is byte-identical. Only runs when the inner
+    # ``student_cfg`` opts in (``behavior_probe``: true); the default reward path is
+    # unchanged.
+    if student_cfg and student_cfg.get("behavior_probe"):
+        from games.fighter import Action, play_match_trace, scripted_fighter
+
+        tot_steps = 0
+        tot_move = 0
+        tot_punch = 0
+        real_ringout_wins = 0
+        n_probe_matches = 0
+        # A small, fixed probe: one match per held-out arena, trained Student (ego 0) vs
+        # the fully-aggressive scripted opponent (ego 1). Deterministic in the row seed.
+        for hi, h_arena in enumerate(held_out_arenas):
+            opp = scripted_fighter(h_arena, ego=1)
+            tr = play_match_trace(
+                h_arena, job.policy, opp, seed=20_000 + int(seed) + hi, ego=0
+            )
+            n_probe_matches += 1
+            tot_steps += int(tr["steps"])
+            tot_move += int(tr["move_steps"])
+            tot_punch += int(tr["action_counts"][int(Action.PUNCH)])
+            # A REAL ring-out win: the trained Student (ego 0) won AND the match ended by
+            # a ring-out (timeout/tiebreak wins do NOT count — those are camping wins).
+            if tr["winner"] == 0 and tr["ended_by"] == "ringout":
+                real_ringout_wins += 1
+        movement_fraction = (tot_move / tot_steps) if tot_steps else 0.0
+        punch_fraction = (tot_punch / tot_steps) if tot_steps else 0.0
+        real_ringout_win_rate = (
+            real_ringout_wins / n_probe_matches if n_probe_matches else 0.0
+        )
+        behavior_diag = {
+            "movement_fraction": float(movement_fraction),
+            "punch_fraction": float(punch_fraction),
+            "real_ringout_win_rate": float(real_ringout_win_rate),
+            "real_ringout_wins": int(real_ringout_wins),
+            "n_probe_matches": int(n_probe_matches),
+            "probe_total_steps": int(tot_steps),
+        }
+    else:
+        behavior_diag = None
+
     result = {
         "seed": int(seed),
         "curriculum_id": cid,
@@ -455,6 +508,11 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
         "inner_opponent_league_enabled": trainer_kwargs.get("opponent_league") is not None,
         "inner_decisive_reward": bool(trainer_kwargs.get("decisive_reward", False)),
         "inner_opponent_episode_counts": dict(getattr(job, "opp_counts", {}) or {}),
+        # Behavior diagnostics for the anti-collapse gate (None unless the inner
+        # student_cfg opted into the probe). Carries movement_fraction / punch_fraction
+        # / real_ringout_win_rate so the host can zero a camping/punch-spamming/
+        # timeout-only Student's behavior_gated_improvement.
+        "behavior_diag": behavior_diag,
     }
 
     # Optional replay capture: roll out ONE held-out match of the trained Player

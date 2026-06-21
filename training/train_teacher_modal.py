@@ -209,6 +209,18 @@ def _assert_registry_parity() -> None:
     assert dict(RING_OUT.bounds) == RING_OUT_BOUNDS, "ring_out bounds drifted from registry"
     assert dict(TARGET_KNOCKBACK.bounds) == TK_BOUNDS, "tk bounds drifted from registry"
 
+    # The anti-collapse module pins its OWN copy of the 5 Ring-Out knob bounds (so it
+    # stays import-light). Assert it matches RING_OUT_BOUNDS so the host's normalized
+    # diversity distances + the worker's arena always agree on the same knob space.
+    from training.anti_collapse import KNOB_BOUNDS as _AC_BOUNDS
+    from training.anti_collapse import KNOB_ORDER as _AC_ORDER
+
+    assert tuple(_AC_ORDER) == tuple(RING_OUT_BOUNDS.keys()), (
+        f"anti_collapse KNOB_ORDER {_AC_ORDER} != RING_OUT_BOUNDS keys "
+        f"{tuple(RING_OUT_BOUNDS.keys())}"
+    )
+    assert dict(_AC_BOUNDS) == RING_OUT_BOUNDS, "anti_collapse KNOB_BOUNDS drifted from RING_OUT_BOUNDS"
+
 
 # Default Teacher base = the model size Fireworks is gating. Fall back to a smaller
 # model with --model if the GPU is too tight/slow (the point is to prove the LOOP).
@@ -471,7 +483,39 @@ class TeacherTrainer:
         return completions
 
     @modal.method()
-    def update_multi(self, advantages_by_game: dict, lr_scale: float = 1.0) -> dict:
+    def select_sequences(self, game: str, indices: list[int]) -> int:
+        """Subset this game's cached sampled sequences to ``indices`` (anti-collapse).
+
+        The anti-collapse path OVERSAMPLES (e.g. 16 candidates) then SELECTS a diverse
+        subset (e.g. 8) on the host. The GRPO update must run over ONLY the selected
+        sequences, so the host calls this to replace ``self._last_sequences[game]`` with
+        the rows at ``indices`` (in the host's selected order). ``update_multi`` then sees
+        exactly the selected group, and the per-game advantages the host passes line up
+        row-for-row. Returns the new row count (== len(indices)) for a host-side assert.
+        """
+        assert game in self._last_sequences, f"sample({game!r}) not called before select_sequences"
+        seqs = self._last_sequences[game]
+        n = seqs.shape[0]
+        assert all(0 <= i < n for i in indices), f"index out of range for {n} sampled rows: {indices}"
+        idx = self.torch.tensor(list(indices), dtype=self.torch.long, device=seqs.device)
+        self._last_sequences[game] = seqs.index_select(0, idx)
+        return int(self._last_sequences[game].shape[0])
+
+    def _base_completion_logprobs(self, sequences, prompt_len: int):
+        """Completion logprobs under the BASE policy (LoRA adapter DISABLED), no grad.
+
+        Used for the optional KL-to-base anchor: ``disable_adapter()`` zeroes the LoRA
+        delta so the forward is the frozen base model. Returns a detached (B,) tensor —
+        the anchor pulls the adapted policy back toward this reference. PEFT restores the
+        adapter automatically when the context manager exits.
+        """
+        torch = self.torch
+        with torch.no_grad(), self.model.disable_adapter():
+            return self._completion_logprobs(sequences, prompt_len).detach()
+
+    @modal.method()
+    def update_multi(self, advantages_by_game: dict, lr_scale: float = 1.0,
+                     kl_coef: float = 0.0) -> dict:
         """ONE GRPO step over BOTH games' last sampled groups, given PER-GAME advantages.
 
         The host has already computed each game's group-relative advantages
@@ -519,6 +563,8 @@ class TeacherTrainer:
         self.optimizer.zero_grad()
         total_loss = 0.0
         n_completions = 0
+        kl_coef = float(kl_coef)
+        kl_accum = 0.0  # mean per-completion KL-to-base (reported; 0 when kl_coef==0)
         for game in GAME_KEYS:
             if game not in advantages_by_game:
                 continue
@@ -534,6 +580,17 @@ class TeacherTrainer:
             # .mean() over the concatenated batch. backward() frees this game's logits
             # graph before the next game's forward -> peak memory is one game, not both.
             game_loss = -(adv * lp).sum() / n_total
+            # OPTIONAL KL-to-base anchor (default kl_coef=0.0 => byte-identical legacy):
+            # add kl_coef * mean( (lp_policy - lp_base)^2 ) as a soft pull back toward the
+            # frozen base policy, so the LR doesn't let the adapter drift into a degenerate
+            # corner. A squared-difference surrogate on the summed completion logprob (the
+            # quantity the GRPO loss already moves) — cheap, one extra adapter-disabled
+            # forward per game, no second graph kept.
+            if kl_coef > 0.0:
+                base_lp = self._base_completion_logprobs(seqs, self._prompt_len[game])
+                kl_term = ((lp - base_lp) ** 2).sum() / n_total
+                game_loss = game_loss + kl_coef * kl_term
+                kl_accum += float(((lp.detach() - base_lp) ** 2).mean().cpu())
             game_loss.backward()
             total_loss += float(game_loss.detach().cpu())
             per_game_logp_mean[game] = float(lp.detach().mean().cpu())
@@ -551,6 +608,8 @@ class TeacherTrainer:
             "n_completions": n_completions,
             "lr_scale": round(float(lr_scale), 6),
             "effective_lr": effective_lr,
+            "kl_coef": round(kl_coef, 6),
+            "kl_to_base": round(kl_accum / max(1, len(used_games)), 6) if kl_coef > 0.0 else None,
             "mean_completion_logprob_by_game": {
                 g: round(v, 4) for g, v in per_game_logp_mean.items()
             },
@@ -646,6 +705,91 @@ def _score_ring_out(answer: str, *, seeds, episodes, eval_seeds,
         reward_kwargs["student_cfg"] = student_cfg
     reward = teacher_reward(spec, **reward_kwargs)
     return float(max(0.0, min(1.0, reward))), params, "ok"
+
+
+def _score_ring_out_anti(
+    answer: str, *, seeds, episodes, eval_seeds, held_out, student_cfg: dict | None
+) -> tuple[float, dict | None, str, dict | None]:
+    """Anti-collapse Ring-Out scorer: SIGNED improvement + the behavior diag.
+
+    Same parse + ``teacher_reward`` call as ``_score_ring_out``, but:
+      * returns the RAW SIGNED mean held-out improvement (NOT [0,1]-clamped) — GRPO's
+        per-group advantage norm is shift-invariant, and a negative-transfer arena
+        SHOULD push the Teacher away rather than collapse to the 0.0 floor.
+      * surfaces the per-arena ``behavior_diag`` (movement / punch / real-ring-out
+        fractions) that the gated student_cfg's behavior probe emitted, so the host's
+        BEHAVIOR GATE can zero a camping / punch-spamming / timeout-only Student.
+    Returns ``(signed_improvement, params, status, behavior_diag)``. Invalid completion
+    -> ``(0.0, None, "invalid:...", None)``.
+    """
+    from output.nested_reward import teacher_reward
+    from training.hud_teacher_env import (
+        fighter_geometry_override,
+        params_to_curriculum,
+        parse_teacher_params,
+    )
+
+    try:
+        params = parse_teacher_params(answer, RING_OUT_BOUNDS)
+    except Exception as exc:
+        return 0.0, None, f"invalid:{type(exc).__name__}", None
+
+    spec = params_to_curriculum(params, curriculum_id="behavior-diverse-rft")
+    sink: dict = {}
+    reward_kwargs = dict(
+        backend="modal",
+        seeds=seeds,
+        episodes=episodes,
+        eval_seeds=eval_seeds,
+        held_out_arenas=held_out,
+        geometry_override=fighter_geometry_override(params),
+        _detail_sink=sink,
+    )
+    if student_cfg is not None:
+        reward_kwargs["student_cfg"] = student_cfg
+    _ = teacher_reward(spec, **reward_kwargs)
+
+    # Pull the SIGNED mean held-out improvement + behavior diag out of the detail sink.
+    # The sink's ``arenas`` is a list (one per curriculum arena; the anti-collapse spec is
+    # single-arena), each with ``mean_held_out_improvement`` (signed) and ``rows`` (per
+    # PPO seed). The behavior diag is identical across seeds for the same arena/student;
+    # we average movement/punch/ringout across the seeds' rows for a stable signal.
+    arenas = sink.get("arenas") or []
+    if not arenas:
+        return 0.0, params, "ok", None
+    signed = float(arenas[0].get("mean_held_out_improvement", 0.0))
+
+    rows = arenas[0].get("rows") or []
+    diags = [r.get("behavior_diag") for r in rows if r.get("behavior_diag")]
+    # Opponent-mix audit: sum the per-seed inner opponent episode counts so the smoke gate
+    # can confirm the inner Student actually trained on ~70/30 aggressive/prior_student
+    # (NOT a silent 100%-aggressive fallback when prior_student failed to load). Read off
+    # ``inner_opponent_episode_counts`` / ``inner_opponent_league_enabled`` (already on
+    # every transfer row). Summed across PPO seeds.
+    opp_counts: dict = {}
+    league_enabled = False
+    for r in rows:
+        league_enabled = league_enabled or bool(r.get("inner_opponent_league_enabled"))
+        for k, v in (r.get("inner_opponent_episode_counts") or {}).items():
+            opp_counts[k] = opp_counts.get(k, 0) + int(v)
+    total_opp = sum(opp_counts.values()) or 1
+    opp_fracs = {k: round(v / total_opp, 4) for k, v in opp_counts.items()}
+
+    if diags:
+        def _avg(key):
+            return sum(float(d.get(key, 0.0)) for d in diags) / len(diags)
+        behavior_diag = {
+            "movement_fraction": _avg("movement_fraction"),
+            "punch_fraction": _avg("punch_fraction"),
+            "real_ringout_win_rate": _avg("real_ringout_win_rate"),
+            "n_seeds_probed": len(diags),
+            "inner_opponent_league_enabled": league_enabled,
+            "inner_opponent_episode_counts": opp_counts,
+            "inner_opponent_fractions": opp_fracs,
+        }
+    else:
+        behavior_diag = None
+    return signed, params, "ok", behavior_diag
 
 
 def _score_tk(answer: str, *, seeds, episodes, eval_seeds) -> tuple[float, dict | None, str]:
@@ -746,6 +890,101 @@ def _score_all_games(
         for game, i, scored in ex.map(_one, tasks):
             results[game][i] = scored
     return results
+
+
+def _score_ring_out_group_anti(
+    completions: list[str], *, seeds, episodes, eval_seeds, held_out,
+    student_cfg: dict | None, max_workers: int,
+) -> list[tuple]:
+    """Score a SELECTED group of Ring-Out completions in parallel (anti-collapse path).
+
+    Each completion fans its PPO seeds onto crucible-player via ``_score_ring_out_anti``
+    (signed improvement + behavior diag). Returns a list of
+    ``(signed_improvement, params, status, behavior_diag)`` in the SAME order as the
+    input completions, so the host's adjusted-reward + advantage alignment is row-for-row
+    with the GPU's selected sequences.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _one(i: int):
+        return i, _score_ring_out_anti(
+            completions[i], seeds=seeds, episodes=episodes, eval_seeds=eval_seeds,
+            held_out=held_out, student_cfg=student_cfg,
+        )
+
+    out: list = [None] * len(completions)
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        for i, scored in ex.map(_one, range(len(completions))):
+            out[i] = scored
+    return out
+
+
+def _oversample_and_select_ring_out(
+    trainer, *, oversample: int, target: int, min_unique: int, max_retries: int,
+    temperature: float, max_new_tokens: int, base_seed: int,
+) -> tuple[list[str] | None, list[int] | None, list[dict | None] | None,
+           list[tuple | None] | None, dict]:
+    """OVERSAMPLE -> canonicalize -> greedy-farthest SELECT, with retry/skip.
+
+    Generates ``oversample`` Ring-Out candidates from the CURRENT policy, canonicalizes
+    each 5-knob tuple, and greedily selects ``target`` by maximum pairwise parameter
+    distance REQUIRING >= ``min_unique`` distinct arenas. If the candidate pool can't
+    supply ``min_unique`` distinct valid arenas, it RESAMPLES (a fresh seed) up to
+    ``max_retries`` times; if still short, it returns a SKIP signal (the caller skips the
+    optimizer update for this group rather than take a collapsed step).
+
+    Returns ``(sel_completions, sel_indices, sel_params, sel_canon, diag)``:
+      * On success: the selected completions (in greedy order), their indices INTO THE
+        LAST generation's candidate list (so the GPU subsets the right cached rows),
+        their parsed params, their canonical tuples, and a diag dict.
+      * On skip: ``(None, None, None, None, diag)`` with ``diag["skipped"] = True``.
+    The GPU's ``self._last_sequences['ring_out']`` holds the LAST generation's candidates
+    after this returns, so ``select_sequences('ring_out', sel_indices)`` lines up.
+    """
+    from training.anti_collapse import canonical_tuple, greedy_farthest_select, normalize_knobs
+    from training.hud_teacher_env import parse_teacher_params
+
+    attempts: list[dict] = []
+    for attempt in range(max_retries + 1):
+        gseed = base_seed + attempt * 97  # distinct RNG stream per retry
+        completions = trainer.sample.remote(
+            game="ring_out", group_size=oversample, temperature=temperature,
+            max_new_tokens=max_new_tokens, seed=gseed,
+        )
+        params_list = []
+        for c in completions:
+            try:
+                params_list.append(parse_teacher_params(c, RING_OUT_BOUNDS))
+            except Exception:
+                params_list.append(None)
+        canon = [canonical_tuple(p) for p in params_list]
+        norm = [normalize_knobs(p) if p else [0.0] * 5 for p in params_list]
+        sel_idx, n_unique = greedy_farthest_select(
+            norm, canon, target=target, min_unique=min_unique
+        )
+        n_valid = sum(1 for c in canon if c is not None)
+        attempts.append({
+            "attempt": attempt, "seed": gseed, "n_candidates": len(completions),
+            "n_valid_parsed": n_valid, "n_distinct_in_pool": len({c for c in canon if c}),
+            "selected": sel_idx is not None,
+            "n_unique_selected": n_unique,
+        })
+        if sel_idx is not None:
+            sel_completions = [completions[i] for i in sel_idx]
+            sel_params = [params_list[i] for i in sel_idx]
+            sel_canon = [canon[i] for i in sel_idx]
+            diag = {
+                "skipped": False, "attempts": attempts,
+                "n_selected": len(sel_idx), "n_unique_selected": n_unique,
+                "winning_attempt": attempt,
+            }
+            return sel_completions, sel_idx, sel_params, sel_canon, diag
+
+    diag = {
+        "skipped": True, "attempts": attempts,
+        "reason": f"fewer than {min_unique} unique arenas after {max_retries} retries",
+    }
+    return None, None, None, None, diag
 
 
 def _build_held_out() -> list[dict]:
@@ -904,6 +1143,25 @@ STUDENT_CFG_PRESETS: dict[str, dict] = {
         "ent_coef": 0.03,
         "prior_student_path": "/root/prior_student.json",
     },
+    # focused256_anti: IDENTICAL focused256 population (2x256 MLP, 70/30 aggressive/
+    # prior_student league, decisive reward, ent_coef 0.03) but with the BEHAVIOR PROBE
+    # turned ON. The probe traces the trained inner Student vs the aggressive opponent on
+    # the held-out arenas and emits movement_fraction / punch_fraction /
+    # real_ringout_win_rate in the reward row, so the host's anti-collapse BEHAVIOR GATE
+    # can zero a camping / punch-spamming / timeout-only Student's gated improvement.
+    # Used by the behavior-diverse anti-collapse run (--anti-collapse).
+    "focused256_anti": {
+        "arch": [256, 256],
+        "opponent_league_enabled": True,
+        "opponent_league": [
+            {"id": "aggressive", "weight": 0.7},
+            {"id": "prior_student", "weight": 0.3},
+        ],
+        "decisive_reward": True,
+        "ent_coef": 0.03,
+        "prior_student_path": "/root/prior_student.json",
+        "behavior_probe": True,
+    },
 }
 
 
@@ -940,6 +1198,244 @@ def _lr_scale_for(update_index: int, updates: int, decay: bool) -> float:
 # ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
+
+
+def run_train_anti_collapse(args) -> int:
+    """RING-OUT-ONLY Teacher RFT with the STRONG ANTI-COLLAPSE mechanism (gated).
+
+    Distinct from the legacy ``run_train``: each update OVERSAMPLES candidate arenas,
+    SELECTS a diverse subset by farthest-point param distance (>= min_unique, else SKIP),
+    ZEROS exact duplicates, adds a per-arena NOVELTY bonus, and ZEROS the gated
+    improvement of any Student that camps / punch-spams / only wins by timeout. The
+    GRPO advantages are computed over the ADJUSTED rewards of the SELECTED group.
+
+    The legacy multi-game ``run_train`` is untouched; this path runs ONLY when
+    ``--anti-collapse`` is set and ``--games ring_out``.
+    """
+    from training.anti_collapse import adjusted_group_rewards
+
+    assert args.games == ["ring_out"], (
+        f"--anti-collapse is Ring-Out-only; pass --games ring_out (got {args.games})"
+    )
+    _assert_registry_parity()
+
+    # Seed pools (Ring-Out only): rotated training + reserved disjoint validation.
+    n_seeds = {"ring_out": args.ring_n_seeds}
+    val_seeds = {"ring_out": list(args.val_seeds)}
+    train_union = _all_training_seeds(
+        "ring_out", args.updates, n_seeds["ring_out"], args.seed_base, args.seed_rotation
+    )
+    _assert_seed_pools_disjoint("ring_out", train_union, val_seeds["ring_out"])
+
+    ring_held_out = _build_held_out()
+    ring_student_cfg = _build_student_cfg(args.student_cfg_preset)
+    assert ring_student_cfg is not None and ring_student_cfg.get("behavior_probe"), (
+        "--anti-collapse requires a --student-cfg-preset whose cfg has behavior_probe=True "
+        "(e.g. focused256_anti) so the behavior gate has movement/punch/ring-out diagnostics"
+    )
+    lr_decay = bool(args.lr_decay)
+
+    out_subdir = f"contingency_{RUN_ID}" if RUN_ID else "contingency_anti_collapse"
+    out_dir = _REPO_ROOT / "output" / out_subdir
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    print("=== BEHAVIOR-DIVERSE Teacher-RFT (anti-collapse, Ring-Out) ===", flush=True)
+    print(f"    run_id={RUN_ID or '(none)'}  app={APP_NAME}  gpu={GPU_SPEC}", flush=True)
+    print(f"    adapter_volume_path={ADAPTER_RUN_DIR}  output_dir={out_dir}", flush=True)
+    print(f"    model={args.model}  updates={args.updates}", flush=True)
+    print(f"    ANTI-COLLAPSE: oversample={args.ac_oversample} -> select={args.ac_target} "
+          f"(min_unique={args.ac_min_unique}, max_retries={args.ac_max_retries})  "
+          f"novelty_weight={args.ac_novelty_weight}", flush=True)
+    print(f"    temperature={args.temperature}  lr={args.lr} "
+          f"{'(LINEAR DECAY)' if lr_decay else '(constant)'}  "
+          f"lora_r={args.lora_r}/alpha={args.lora_alpha}  kl_coef={args.kl_coef}", flush=True)
+    print(f"    student_cfg={json.dumps(ring_student_cfg)}", flush=True)
+    print(f"    ring_out reward: teacher_reward (crucible-player) | "
+          f"val_seeds={val_seeds['ring_out']} episodes={args.episodes} "
+          f"eval_seeds={args.eval_seeds} | held_out={len(ring_held_out)} arenas", flush=True)
+    print("    SIGNED held-out improvement (NOT clamped); GRPO norm shift-invariant", flush=True)
+    print(flush=True)
+
+    history: list = []
+    t_run = time.time()
+    last_saved_tag: str | None = None
+
+    with app.run():
+        trainer = TeacherTrainer(model_name=args.model, lr_str=str(args.lr),
+                                 lora_r=args.lora_r, lora_alpha=args.lora_alpha)
+
+        for step in range(1, args.updates + 1):
+            tag = f"update{step}"
+            base_seed = 1000 + step * 10
+            seed_update_idx = step if args.seed_rotation else 1
+            step_ring_seeds = tuple(_train_seeds_for(
+                "ring_out", seed_update_idx, n_seeds["ring_out"], args.seed_base))
+
+            # --- 1) OVERSAMPLE + SELECT (retry/skip) ---
+            print(f"[{tag}] oversampling {args.ac_oversample} -> selecting {args.ac_target} "
+                  f"(>= {args.ac_min_unique} unique; up to {args.ac_max_retries} retries) ...",
+                  flush=True)
+            sel_completions, sel_idx, sel_params, sel_canon, sel_diag = \
+                _oversample_and_select_ring_out(
+                    trainer, oversample=args.ac_oversample, target=args.ac_target,
+                    min_unique=args.ac_min_unique, max_retries=args.ac_max_retries,
+                    temperature=args.temperature, max_new_tokens=args.max_new_tokens,
+                    base_seed=base_seed,
+                )
+            for a in sel_diag["attempts"]:
+                print(f"[{tag}]   attempt {a['attempt']}: {a['n_valid_parsed']}/{a['n_candidates']} "
+                      f"parsed, {a['n_distinct_in_pool']} distinct in pool -> "
+                      f"selected={a['selected']} ({a['n_unique_selected']} unique)", flush=True)
+
+            if sel_completions is None:
+                # SKIP this update entirely — no diverse group could be assembled.
+                print(f"[{tag}] SKIP UPDATE: {sel_diag['reason']}\n", flush=True)
+                history.append({"step": step, "tag": tag, "skipped": True,
+                                "select_diag": sel_diag,
+                                "train_seeds": list(step_ring_seeds)})
+                (out_dir / "history.json").write_text(json.dumps(history, indent=2))
+                continue
+
+            # Subset the GPU's cached candidate sequences down to the SELECTED rows so the
+            # GRPO step trains over exactly the diverse group (advantages line up).
+            n_kept = trainer.select_sequences.remote("ring_out", list(sel_idx))
+            assert n_kept == len(sel_idx), f"select_sequences kept {n_kept} != {len(sel_idx)}"
+
+            # --- 2+3) score the SELECTED group: SIGNED improvement + behavior diag ---
+            t_score = time.time()
+            print(f"[{tag}] scoring {len(sel_completions)} selected arenas (parallel) | "
+                  f"train seeds={list(step_ring_seeds)} ...", flush=True)
+            scored = _score_ring_out_group_anti(
+                sel_completions, seeds=step_ring_seeds, episodes=args.episodes,
+                eval_seeds=args.eval_seeds, held_out=ring_held_out,
+                student_cfg=ring_student_cfg, max_workers=len(sel_completions),
+            )
+            score_wall = time.time() - t_score
+
+            improvements = [s[0] for s in scored]
+            statuses = [s[2] for s in scored]
+            behavior = [s[3] for s in scored]
+
+            # --- 4) ADJUSTED rewards: dup-zero + behavior-gate + novelty bonus ---
+            adjusted, reward_diags = adjusted_group_rewards(
+                sel_params, sel_canon, improvements, behavior,
+                novelty_weight=args.ac_novelty_weight,
+            )
+            advantages = _per_game_advantages(adjusted)
+
+            # Behavior-gate headline counts (for the smoke gate).
+            n_behavior_pass = sum(1 for d in reward_diags if d["behavior_pass"])
+            n_dup = sum(1 for d in reward_diags if d["is_exact_duplicate"])
+            mv = [b["movement_fraction"] for b in behavior if b]
+            pf = [b["punch_fraction"] for b in behavior if b]
+            ro = [b["real_ringout_win_rate"] for b in behavior if b]
+
+            print(f"[{tag}] signed_improvements={[round(x,4) for x in improvements]}", flush=True)
+            print(f"[{tag}] adjusted_rewards={[round(x,4) for x in adjusted]}  "
+                  f"(behavior_pass={n_behavior_pass}/{len(scored)}, dups_zeroed={n_dup})", flush=True)
+            print(f"[{tag}] behavior: movement={[round(x,3) for x in mv]} "
+                  f"punch={[round(x,3) for x in pf]} real_ringout={[round(x,3) for x in ro]}", flush=True)
+            print(f"[{tag}] advantages={[round(a,4) for a in advantages]}  "
+                  f"reward_std={_std(adjusted):.4f}  scored in {score_wall:.0f}s", flush=True)
+
+            # --- 5) ONE GRPO step over the SELECTED group's adjusted advantages ---
+            lr_scale = _lr_scale_for(step, args.updates, lr_decay)
+            stats = trainer.update_multi.remote(
+                {"ring_out": advantages}, lr_scale=lr_scale, kl_coef=args.kl_coef,
+            )
+            adapter_path = trainer.save_adapter.remote(tag)
+            last_saved_tag = tag
+            print(f"[{tag}] GRPO step over {stats['n_completions']} arenas: "
+                  f"loss={stats['loss']:.4f} grad_norm={stats['grad_norm']:.3f} "
+                  f"kl={stats.get('kl_to_base')} effective_lr={stats.get('effective_lr'):.2e} "
+                  f"-> saved {adapter_path}\n", flush=True)
+
+            rec = {
+                "step": step, "tag": tag, "skipped": False,
+                "select_diag": sel_diag,
+                "n_unique_selected": sel_diag["n_unique_selected"],
+                "signed_improvements": [round(x, 4) for x in improvements],
+                "statuses": statuses,
+                "adjusted_rewards": [round(x, 4) for x in adjusted],
+                "advantages": [round(a, 4) for a in advantages],
+                "reward_std": round(_std(adjusted), 4),
+                "reward_diags": reward_diags,
+                "behavior_summary": {
+                    "n_behavior_pass": n_behavior_pass,
+                    "n_dups_zeroed": n_dup,
+                    "movement_fraction": [round(x, 4) for x in mv],
+                    "punch_fraction": [round(x, 4) for x in pf],
+                    "real_ringout_win_rate": [round(x, 4) for x in ro],
+                },
+                "params": sel_params,
+                "arena_diversity": _arena_diversity(sel_params),
+                "completions_preview": [c[:200] for c in sel_completions],
+                "update_stats": stats,
+                "adapter_path": adapter_path,
+                "train_seeds": list(step_ring_seeds),
+                "score_wall_s": round(score_wall, 1),
+            }
+            history.append(rec)
+            (out_dir / "history.json").write_text(json.dumps(history, indent=2))
+
+    summary = {
+        "experiment": "behavior_diverse_anti_collapse_ring_out",
+        "run_id": RUN_ID or None,
+        "app_name": APP_NAME,
+        "adapter_volume_path": ADAPTER_RUN_DIR,
+        "output_dir": str(out_dir),
+        "model": args.model,
+        "gpu": GPU_SPEC,
+        "anti_collapse": {
+            "oversample": args.ac_oversample, "target": args.ac_target,
+            "min_unique": args.ac_min_unique, "max_retries": args.ac_max_retries,
+            "novelty_weight": args.ac_novelty_weight,
+            "behavior_gate": "movement>=0.10 AND punch<=0.90 AND real_ringout_win_rate>=0.20",
+            "duplicate_reward": 0.0,
+        },
+        "updates": args.updates,
+        "temperature": args.temperature,
+        "lr": args.lr,
+        "lr_schedule": "linear_decay" if lr_decay else "constant",
+        "kl_coef": args.kl_coef,
+        "lora_r": args.lora_r, "lora_alpha": args.lora_alpha,
+        "student_cfg_preset": args.student_cfg_preset,
+        "student_cfg": ring_student_cfg,
+        "seed_scheme": {
+            "seed_rotation": args.seed_rotation, "seed_base": args.seed_base,
+            "validation_seeds": val_seeds["ring_out"],
+        },
+        "ring_out": {
+            "n_reward_seeds": args.ring_n_seeds, "ppo_episodes": args.episodes,
+            "eval_seeds": args.eval_seeds, "n_held_out_arenas": len(ring_held_out),
+        },
+        "n_updates_skipped": sum(1 for h in history if h.get("skipped")),
+        "last_saved_adapter": last_saved_tag,
+        "grad_norms": [
+            h.get("update_stats", {}).get("grad_norm") for h in history
+            if "update_stats" in h
+        ],
+        "total_wall_s": round(time.time() - t_run, 1),
+        "adapter_volume": VOLUME_NAME,
+        "history": history,
+    }
+    (out_dir / "summary.json").write_text(json.dumps(summary, indent=2))
+
+    print("    === ANTI-COLLAPSE SUMMARY ===", flush=True)
+    for h in history:
+        if h.get("skipped"):
+            print(f"    [{h['tag']}] SKIPPED ({h['select_diag'].get('reason')})", flush=True)
+        else:
+            bs = h["behavior_summary"]
+            print(f"    [{h['tag']}] unique={h['n_unique_selected']}  "
+                  f"reward_std={h['reward_std']:.4f}  "
+                  f"behavior_pass={bs['n_behavior_pass']}/{len(h['adjusted_rewards'])}  "
+                  f"dups_zeroed={bs['n_dups_zeroed']}  "
+                  f"grad_norm={h.get('update_stats',{}).get('grad_norm')}", flush=True)
+    print(f"    grad_norms: {[round(g,3) for g in summary['grad_norms'] if g is not None]}", flush=True)
+    print(f"    wrote {out_dir / 'summary.json'}", flush=True)
+    print(f"    adapters on Modal Volume '{VOLUME_NAME}' under '{ADAPTER_RUN_DIR}'", flush=True)
+    return 0
 
 
 def run_gpu_smoke(args) -> int:
@@ -1433,6 +1929,29 @@ def main(argv: list[str] | None = None) -> int:
                         "is pinned at import). Set CRUCIBLE_GPU=<gpu> to change it.")
     p.add_argument("--gpu-smoke", dest="gpu_smoke", action="store_true",
                    help="GPU-only check: load+sample(both games)+fake-update+save, NO reward compute")
+    # --- STRONG ANTI-COLLAPSE mechanism (gated; Ring-Out only) -------------------
+    # When --anti-collapse is set the trainer uses run_train_anti_collapse: per update
+    # OVERSAMPLE candidate arenas -> greedy-farthest SELECT a diverse subset (>= min_unique
+    # or SKIP) -> duplicate-zero -> behavior-gate -> novelty bonus -> GRPO over the
+    # adjusted rewards. Default OFF = the legacy run_train path is byte-identical.
+    p.add_argument("--anti-collapse", dest="anti_collapse", action="store_true", default=False,
+                   help="Ring-Out-only behavior-diverse anti-collapse run (oversample/select/"
+                        "dup-zero/novelty/behavior-gate). Requires --games ring_out and a "
+                        "behavior-probe student_cfg preset (e.g. focused256_anti).")
+    p.add_argument("--ac-oversample", dest="ac_oversample", type=int, default=16,
+                   help="anti-collapse: candidate arenas generated per group (default 16)")
+    p.add_argument("--ac-target", dest="ac_target", type=int, default=8,
+                   help="anti-collapse: arenas SELECTED per group by farthest-point (default 8)")
+    p.add_argument("--ac-min-unique", dest="ac_min_unique", type=int, default=4,
+                   help="anti-collapse: minimum DISTINCT arenas required in a group, else skip (default 4)")
+    p.add_argument("--ac-max-retries", dest="ac_max_retries", type=int, default=2,
+                   help="anti-collapse: resample attempts before SKIPPING the update (default 2)")
+    p.add_argument("--ac-novelty-weight", dest="ac_novelty_weight", type=float, default=0.10,
+                   help="anti-collapse: novelty bonus weight on normalized mean group distance (default 0.10)")
+    p.add_argument("--kl-coef", dest="kl_coef", type=float, default=0.0,
+                   help="optional KL-to-base anchor coefficient in the GRPO loss "
+                        "(default 0.0 = off; a small value e.g. 0.01 softly pulls the adapter "
+                        "back toward the frozen base policy)")
     args = p.parse_args(argv)
 
     # The Modal App name + GPU decorator are import-time globals (they MUST be, to name
@@ -1464,6 +1983,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.gpu_smoke:
         return run_gpu_smoke(args)
+    if args.anti_collapse:
+        return run_train_anti_collapse(args)
     return run_train(args)
 
 
