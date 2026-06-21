@@ -1,0 +1,385 @@
+"""output/stage6/evaluator.py — the Stage-6 base-vs-trained orchestrator.
+
+This is the decider. It glues the pieces together while keeping the FAIRNESS
+INVARIANT structural: one ``EvalConfig`` builds EVERY payload for BOTH models, and
+the only thing that differs between base and trained is the resolved Teacher.
+
+Pipeline (mirrors the validated reward path; preserves the single-fan-out design):
+
+  1. Resolve base + trained HANDLES -> Teachers (Fireworks id OR local LoRA adapter).
+  2. Each Teacher generates ``arenas_per_model`` arenas with IDENTICAL prompt +
+     sampling (clamp/validation counts tracked for the anti-gaming check).
+  3. Flatten EVERY (model x arena x seed) job and dispatch them in ONE concurrent
+     fan-out (Modal ``fn.map`` remotely, or a sequential local fallback).
+  4. Aggregate per-model mean/std/CI held-out transfer + parameter diversity.
+  5. Run the anti-gaming checks; the verdict is "trained beats base on held-out
+     transfer AND all anti-gaming checks pass".
+  6. Write ONE structured result JSON (handles, arenas, validation counts, per-seed
+     before/after, CI, diversity, latency/cost, HUD trace ids, replay paths).
+
+The orchestrator never assumes a specific model family — Qwen-specific defaults
+were removed; everything flows from the handle + game registry + config.
+"""
+
+from __future__ import annotations
+
+import json
+import time
+from dataclasses import dataclass
+from pathlib import Path
+
+from output.stage6 import aggregate, anti_gaming
+from output.stage6.config import EvalConfig
+from output.stage6.games import GameEntry, GameNotInstalled, get_game
+from output.stage6.handles import ResolvedTeacher, resolve_handle
+
+OUTPUT_DIR = Path(__file__).resolve().parents[1]
+
+MODAL_APP = "crucible-player"
+MODAL_FN = "train_player_transfer"
+
+# Rough per-job cost model (PPO container-seconds). Tunable; recorded as an
+# ESTIMATE only. Modal A-class CPU ~ $0.000038/s; a transfer job ~ wall/ n_parallel.
+COST_PER_JOB_USD_DEFAULT = 0.01
+
+
+# ---------------------------------------------------------------------------
+# Generation with clamp/validation tracking
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class GenerationResult:
+    arenas: list[dict]
+    total: int
+    invalid: int     # generations that failed strict validation (retried/raised)
+    clamped: int     # generations where clamping moved at least one value
+
+
+def _clamp_count(raw_params: dict, clamped: dict, schema: dict) -> bool:
+    """True iff clamping moved any value (the raw value was out of range)."""
+    for k, (low, high) in schema.items():
+        if k in raw_params:
+            try:
+                v = float(raw_params[k])
+            except (TypeError, ValueError):
+                return True
+            if v < low or v > high:
+                return True
+    return False
+
+
+def generate_arenas(teacher, game: GameEntry, *, n: int, label: str,
+                    verbose: bool = True) -> GenerationResult:
+    """Generate ``n`` validated+clamped arenas, tracking invalid/clamped counts.
+
+    Uses the Teacher's ``generate`` (identical prompt/sampling for base + trained).
+    To measure clamping we wrap the Teacher's transport so we can inspect the RAW
+    completion before clamping; if no transport is exposed we still count invalid
+    generations (those that make ``generate`` raise) and treat clamped=0.
+    """
+    teacher_game = game.teacher_game()
+    schema = teacher_game.param_schema
+    arenas: list[dict] = []
+    invalid = 0
+    clamped = 0
+
+    raw_capture: dict = {}
+    orig_transport = getattr(teacher, "_transport", None)
+
+    if callable(orig_transport):
+        def _wrap(payload):
+            resp = orig_transport(payload)
+            try:
+                content = resp["choices"][0]["message"]["content"]
+                raw_capture["last"] = json.loads(content) if isinstance(content, str) else content
+            except Exception:
+                raw_capture["last"] = None
+            return resp
+        teacher._transport = _wrap  # type: ignore[attr-defined]
+
+    try:
+        for i in range(n):
+            raw_capture["last"] = None
+            try:
+                params = teacher.generate(teacher_game)
+            except Exception as exc:  # invalid JSON exhausted retries
+                invalid += 1
+                if verbose:
+                    print(f"    [{label}] arena {i}: INVALID ({exc})")
+                continue
+            params = {k: float(params[k]) for k in schema if k in params}
+            raw = raw_capture.get("last")
+            if isinstance(raw, dict) and _clamp_count(raw, params, schema):
+                clamped += 1
+            arenas.append(params)
+            if verbose:
+                print(f"    [{label}] arena {i}: {json.dumps(params, sort_keys=True)}")
+    finally:
+        if callable(orig_transport):
+            teacher._transport = orig_transport  # type: ignore[attr-defined]
+
+    return GenerationResult(arenas=arenas, total=n, invalid=invalid, clamped=clamped)
+
+
+# ---------------------------------------------------------------------------
+# Fan-out
+# ---------------------------------------------------------------------------
+
+
+def run_all_jobs(payloads: list[dict], seeds: list[int], *, backend: str) -> list[dict]:
+    """Dispatch EVERY job at once and return rows IN ORDER.
+
+    Modal: ONE ``fn.map`` over all payloads -> fully concurrent remote PPO. Local:
+    sequential in-process (no credits; correctness fallback)."""
+    if backend == "modal":
+        import modal
+
+        fn = modal.Function.from_name(MODAL_APP, MODAL_FN)
+        return list(fn.map(payloads, seeds))
+    if backend == "local":
+        from modal_player import local_transfer_worker
+
+        return [local_transfer_worker(p, s) for p, s in zip(payloads, seeds)]
+    raise ValueError(f"unknown backend {backend!r} (use 'modal' or 'local')")
+
+
+# ---------------------------------------------------------------------------
+# The evaluator
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class EvalRequest:
+    base_handle: str
+    trained_handle: str
+    game: str = "fighter"
+    backend: str = "modal"
+    config: EvalConfig = EvalConfig()
+    is_smoke: bool = False
+    cost_per_job_usd: float = COST_PER_JOB_USD_DEFAULT
+    enable_hud_traces: bool = False
+    verbose: bool = True
+
+
+def run_eval(req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs) -> dict:
+    """Run the full base-vs-trained decider and return the structured result dict.
+
+    ``resolve`` and ``run_jobs`` are injectable so unit tests can drive the whole
+    orchestration with stub Teachers and a stub worker (no Modal, no Fireworks).
+    """
+    cfg = req.config
+    game = get_game(req.game)
+    if not game.installed:
+        raise GameNotInstalled(
+            f"game {req.game!r} is not installed: {game.not_installed_reason}"
+        )
+    if game.role != "teacher":
+        raise ValueError(
+            f"game {req.game!r} has role {game.role!r}; only role='teacher' games can "
+            f"train a Teacher (use it as a probe instead)"
+        )
+
+    # --- 0. resolve handles (Fireworks id OR local adapter), record verbatim ---
+    base = resolve("base", req.base_handle)
+    trained = resolve("trained" if not req.is_smoke else "base(smoke)", req.trained_handle)
+
+    # --- the held-out yardstick: IDENTICAL for both models (fairness invariant) ---
+    eval_arenas = game.build_held_out(grid=cfg.held_out_grid)
+    game.disjoint_guard(eval_arenas, [a["difficulty"] for a in eval_arenas])
+    held_out = game.payload_arenas(eval_arenas)
+
+    if req.verbose:
+        print("=== Stage 6: BASE vs TRAINED Teacher — held-out transfer decider ===")
+        print(f"    game={game.name}  backend={req.backend}  smoke={req.is_smoke}")
+        print(f"    base    handle: {base.handle} -> {base.resolved_id} [{base.kind}]")
+        print(f"    trained handle: {trained.handle} -> {trained.resolved_id} [{trained.kind}]")
+        print(f"    config fingerprint: {cfg.fingerprint()}")
+        print(f"    arenas/model={cfg.arenas_per_model}  seeds/arena={len(cfg.player_seeds)}  "
+              f"ppo_episodes={cfg.ppo_episodes}  eval_seeds={cfg.eval_seeds}")
+        print(f"    held-out population: {len(eval_arenas)} arenas (grid={cfg.held_out_grid})\n")
+
+    # --- 1. each model generates its arenas (IDENTICAL prompt/sampling) ---
+    if req.verbose:
+        print("[1/3] Generating curricula from each Teacher (identical prompt/sampling) ...")
+    models: list[tuple[str, ResolvedTeacher]] = [("base", base), (trained.label, trained)]
+    gen_by_model: dict[str, GenerationResult] = {}
+    for label, resolved in models:
+        teacher = resolved.build()
+        gen_by_model[label] = generate_arenas(
+            teacher, game, n=cfg.arenas_per_model, label=label, verbose=req.verbose,
+        )
+
+    # --- optional: capture HUD traces of the generated curricula (best-effort) ---
+    hud_traces: list[dict] = []
+    if req.enable_hud_traces:
+        from output.stage6 import hud_traces as hud_mod
+
+        teacher_game = game.teacher_game()
+        hud_traces = hud_mod.capture_traces(
+            {label: gen_by_model[label].arenas for label, _ in models},
+            teacher_game.param_schema, enabled=True,
+        )
+
+    # --- 2. flatten EVERY (model x arena x seed) job; ONE config builds them all ---
+    flat: list[tuple[str, int, int, dict]] = []
+    for label, _ in models:
+        for ai, params in enumerate(gen_by_model[label].arenas):
+            for s in cfg.player_seeds:
+                cid = f"{label}-a{ai}-s{s}"
+                flat.append((label, ai, s, cfg.train_payload(
+                    params, held_out, param_keys=game.param_keys, curriculum_id=cid,
+                )))
+
+    n_jobs = len(flat)
+    if not n_jobs:
+        raise RuntimeError("no jobs to run (every generation was invalid?)")
+    if req.verbose:
+        print(f"\n[2/3] Dispatching ALL {n_jobs} (model x arena x seed) PPO jobs "
+              f"in ONE concurrent fan-out ...")
+    t0 = time.time()
+    rows = run_jobs([p for _, _, _, p in flat], [s for _, _, s, _ in flat], backend=req.backend)
+    wall = time.time() - t0
+    for (label, ai, s, _), r in zip(flat, rows):
+        assert r.get("status") == "ppo_transfer", f"non-transfer result: {r!r}"
+    if req.verbose:
+        print(f"    parallel wall-clock for {n_jobs} jobs: {wall:.1f}s")
+
+    # --- 3. aggregate ---
+    if req.verbose:
+        print("\n[3/3] Aggregating held-out transfer per model ...")
+    by_model: dict[str, list[float]] = {label: [] for label, _ in models}
+    detail_by_model: dict[str, list[dict]] = {label: [] for label, _ in models}
+    replays: list[str] = []
+    for (label, ai, s, _), r in zip(flat, rows):
+        impr = float(r["held_out_improvement"])
+        by_model[label].append(impr)
+        detail_by_model[label].append({
+            "arena_index": ai, "seed": s,
+            "held_out_improvement": round(impr, 4),
+            "before": round(float(r["before_winrate"]), 4),
+            "after": round(float(r["after_winrate"]), 4),
+            "train_arena_winrate": round(float(r["train_arena_winrate"]), 4),
+        })
+
+    per_model = []
+    for label, resolved in models:
+        imps = by_model[label]
+        ci = aggregate.mean_confidence_interval(imps)
+        div = aggregate.parameter_diversity(gen_by_model[label].arenas, game.param_keys)
+        per_model.append({
+            "model": label,
+            "resolved_id": resolved.resolved_id,
+            "kind": resolved.kind,
+            "mean_transfer": round(aggregate.mean(imps), 4),
+            "std_transfer": round(aggregate.sample_std(imps), 4),
+            "ci": ci.as_dict(),
+            "n_jobs": len(imps),
+            "arenas": [dict(a) for a in gen_by_model[label].arenas],
+            "diversity": div,
+            "generation": {
+                "total": gen_by_model[label].total,
+                "invalid": gen_by_model[label].invalid,
+                "clamped": gen_by_model[label].clamped,
+            },
+            "per_job": detail_by_model[label],
+        })
+
+    base_row = next(m for m in per_model if m["model"] == "base")
+    trained_row = next(m for m in per_model if m["model"] != "base")
+    base_mean = base_row["mean_transfer"]
+    trained_mean = trained_row["mean_transfer"]
+    trained_beats_base = trained_mean > base_mean
+
+    # JSON validation / clamping across BOTH models (the clamp-fraction check).
+    total_gen = sum(m["generation"]["total"] for m in per_model)
+    total_clamped = sum(m["generation"]["clamped"] + m["generation"]["invalid"] for m in per_model)
+    clamp_fraction = (total_clamped / total_gen) if total_gen else 0.0
+
+    # --- anti-gaming ---
+    gaming = anti_gaming.run_all(
+        base_mean=base_mean,
+        trained_mean=trained_mean,
+        trained_diversity=trained_row["diversity"],
+        clamp_fraction=clamp_fraction,
+        seed_std=trained_row["std_transfer"],
+        base_resolved_id=base.resolved_id,
+        trained_resolved_id=trained.resolved_id,
+        is_smoke=req.is_smoke,
+        train_signal_rose=None,
+        probe_deltas=None,  # populated by the optional KOTH probe (out of band)
+    )
+
+    overall_pass = bool(trained_beats_base) and gaming.passed
+
+    estimated_cost = round(n_jobs * req.cost_per_job_usd, 4)
+
+    # Collect any replay paths the rows produced (worker returns dicts; the local
+    # driver is responsible for writing them — recorded here when present).
+    for (label, ai, s, _), r in zip(flat, rows):
+        rep = r.get("replay")
+        if isinstance(rep, dict) and rep.get("path"):
+            replays.append(str(rep["path"]))
+
+    summary = {
+        "experiment": "stage6_base_vs_trained",
+        "game": game.name,
+        "game_role": game.role,
+        "backend": req.backend,
+        "is_smoke": req.is_smoke,
+        "base_handle": base.handle,
+        "base_resolved_id": base.resolved_id,
+        "base_kind": base.kind,
+        "trained_handle": trained.handle,
+        "trained_resolved_id": trained.resolved_id,
+        "trained_kind": trained.kind,
+        "config": cfg.as_dict(),
+        "n_held_out_arenas": len(eval_arenas),
+        "held_out_arenas": held_out,
+        "n_jobs": n_jobs,
+        "wall_clock_s": round(wall, 2),
+        "estimated_cost_usd": estimated_cost,
+        "per_model": per_model,
+        "per_game": [{
+            "game": game.name, "role": game.role,
+            "base_mean": base_mean, "trained_mean": trained_mean,
+            "delta": round(trained_mean - base_mean, 4),
+        }],
+        "json_validation": {
+            "total": total_gen, "clamped": total_clamped,
+            "clamp_fraction": round(clamp_fraction, 4),
+        },
+        "base_mean_transfer": base_mean,
+        "trained_mean_transfer": trained_mean,
+        "trained_beats_base": trained_beats_base,
+        "delta": round(trained_mean - base_mean, 4),
+        "anti_gaming": gaming.as_dict(),
+        "overall_pass": overall_pass,
+        "hud_traces": hud_traces,   # populated when --hud-traces is enabled
+        "replays": replays,
+    }
+
+    if req.verbose:
+        _print_verdict(summary)
+    return summary
+
+
+def _print_verdict(summary: dict) -> None:
+    print("\n    === BASE vs TRAINED VERDICT ===")
+    print(f"    {'model':>14} {'mean':>10} {'std':>8} {'95% CI':>22} {'n':>4}")
+    for m in summary["per_model"]:
+        ci = m["ci"]
+        print(f"    {m['model']:>14} {m['mean_transfer']:>+10.4f} {m['std_transfer']:>8.4f} "
+              f"  [{ci['low']:+.4f},{ci['high']:+.4f}] {m['n_jobs']:>4}")
+    print(f"\n    base    mean transfer = {summary['base_mean_transfer']:+.4f}")
+    print(f"    trained mean transfer = {summary['trained_mean_transfer']:+.4f}")
+    print(f"    delta = {summary['delta']:+.4f}  TRAINED BEATS BASE: {summary['trained_beats_base']}")
+    print(f"    anti-gaming passed: {summary['anti_gaming']['passed']}  "
+          f"(failed: {summary['anti_gaming']['failed']})")
+    print(f"    OVERALL PASS (transfer + anti-gaming): {summary['overall_pass']}")
+
+
+def write_result(summary: dict, path: Path) -> Path:
+    path = Path(path)
+    path.write_text(json.dumps(summary, indent=2))
+    return path
