@@ -61,9 +61,61 @@ def clamp_reward(value: float) -> float:
     return min(1.0, max(0.0, float(value)))
 
 
+def _extract_json_payload(answer: str) -> str:
+    """Return the JSON payload from a (possibly reasoning-model) Teacher answer.
+
+    Qwen3-4B is a reasoning model: it emits a ``<think>...</think>`` block before
+    the answer, so a raw ``json.loads`` fails with "Expecting value: line 1 column
+    1". This strips any thinking block and a ```` ```json ```` fence, then returns
+    the substring from the first ``{`` to its matching ``}`` (brace-balanced, so a
+    trailing prose sentence after the object is ignored). If no object delimiters
+    are present the answer is returned unchanged, so a bare ``[1,2,3]`` still
+    reaches ``json.loads`` and is rejected as a non-object by the caller (the
+    existing strict-validation tests stay green).
+    """
+    import re
+
+    text = re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL).strip()
+    # Drop a leading code fence if present (```json ... ``` or ``` ... ```).
+    fence = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, flags=re.DOTALL)
+    if fence:
+        text = fence.group(1).strip()
+    start = text.find("{")
+    if start == -1:
+        return text  # no object -> let json.loads reject it as the caller expects
+    depth = 0
+    in_str = False
+    escape = False
+    for i in range(start, len(text)):
+        ch = text[i]
+        if in_str:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    return text[start:]  # unbalanced -> json.loads raises a clear error
+
+
 def parse_teacher_params(answer: str, bounds: dict[str, tuple[float, float]]) -> dict[str, float]:
-    """Parse strict JSON and clamp every declared parameter to its safe range."""
-    raw = json.loads(answer)
+    """Parse strict JSON and clamp every declared parameter to its safe range.
+
+    Tolerant of reasoning-model output: a leading ``<think>`` block or a code fence
+    is stripped and the JSON object is extracted before strict parsing. The output
+    must still be a JSON OBJECT carrying every declared key — a list, a bare scalar,
+    or a missing key is rejected, never silently defaulted.
+    """
+    raw = json.loads(_extract_json_payload(answer))
     if not isinstance(raw, dict):
         raise ValueError("Teacher output must be a JSON object")
 
