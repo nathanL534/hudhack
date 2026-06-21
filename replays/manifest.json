@@ -1,7 +1,12 @@
 [
+  "baseline_qwen_arena1_seed1.json",
   "dryrun_dryrun-1782024404_seed1.json",
   "dryrun_dryrun-1782024404_seed2.json",
   "dryrun_dryrun-1782024404_seed3.json",
+  "h2h_fighter_base_win_trained_as_P0.json",
+  "h2h_fighter_draw_trained_as_P0.json",
+  "h2h_fighter_draw_trained_as_P1.json",
+  "h2h_fighter_trained_win_trained_as_P0.json",
   "modal_trained_arena-d0.1-m10_a0.json",
   "modal_trained_arena-d0.25-m10_a0.json",
   "modal_trained_arena-d0.5-m10_a0.json",
