@@ -1,0 +1,111 @@
+{
+  "description": "Difficulty -> win-rate sweep (jump_turtle archetype). strong=scripted_expert, weak=random; both vs the difficulty-scaled parametric opponent. n=100 seeds/difficulty, default geometry (w=10,knock=2.5).",
+  "levers": {
+    "EPS_MAX": 0.85,
+    "WEAK_ZERO": 0.6,
+    "STRONG_START": 0.45,
+    "DODGE_SPREAD": 0.7
+  },
+  "n_seeds_per_difficulty": 100,
+  "curve": [
+    {
+      "difficulty": 0.0,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.93,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.1,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.85,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.2,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.71,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.3,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.38,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.4,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.06,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.5,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.02,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.6,
+      "strong_winrate": 1.0,
+      "weak_winrate": 0.01,
+      "strong_drawrate": 0.0,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.7,
+      "strong_winrate": 0.97,
+      "weak_winrate": 0.01,
+      "strong_drawrate": 0.03,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.8,
+      "strong_winrate": 0.85,
+      "weak_winrate": 0.0,
+      "strong_drawrate": 0.15,
+      "in_band": false
+    },
+    {
+      "difficulty": 0.85,
+      "strong_winrate": 0.63,
+      "weak_winrate": 0.0,
+      "strong_drawrate": 0.37,
+      "in_band": true
+    },
+    {
+      "difficulty": 0.9,
+      "strong_winrate": 0.38,
+      "weak_winrate": 0.0,
+      "strong_drawrate": 0.62,
+      "in_band": true
+    },
+    {
+      "difficulty": 0.95,
+      "strong_winrate": 0.14,
+      "weak_winrate": 0.0,
+      "strong_drawrate": 0.86,
+      "in_band": false
+    },
+    {
+      "difficulty": 1.0,
+      "strong_winrate": 0.01,
+      "weak_winrate": 0.0,
+      "strong_drawrate": 0.99,
+      "in_band": false
+    }
+  ],
+  "in_band_difficulties": [
+    0.85,
+    0.9
+  ],
+  "n_in_band": 2,
+  "strong_monotonic_nonincreasing": true,
+  "strong_top": 1.0,
+  "strong_bottom": 0.01
+}
