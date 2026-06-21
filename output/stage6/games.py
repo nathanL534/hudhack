@@ -254,6 +254,42 @@ def _tk_teacher_game() -> object:  # pragma: no cover - TK not installed here
     )
 
 
+# TK held-out population — structurally diverse Target-Knockback arenas (the full
+# 7-knob schema) spanning the validated learnable band (d~0.45-0.65) x zone
+# geometry x physics, mirroring the fighter's broad held-out set. Fresh TK
+# Students are trained on each Teacher's TK curricula and fight head-to-head here.
+_TK_HELD_OUT_VARIANTS = (
+    # platform_width, gravity, knockback, spawn_gap, zone_half, zone_center_frac
+    (12.0, 0.6, 2.5, 4.0, 1.5, 0.50),   # baseline
+    (18.0, 0.8, 3.0, 6.0, 2.0, 0.50),   # wide / heavy
+    (10.0, 0.5, 2.0, 3.0, 1.0, 0.40),   # narrow / tight off-center zone
+    (20.0, 0.7, 3.5, 5.0, 1.2, 0.60),   # wide / small off-center zone
+    (14.0, 0.9, 2.5, 4.0, 1.8, 0.50),   # high gravity
+)
+
+
+def _tk_held_out(*, grid: str = "full") -> list[dict]:
+    arenas: list[dict] = []
+    if grid == "full":
+        for pw, g, kb, sg, zh, zcf in _TK_HELD_OUT_VARIANTS:
+            for d in (0.45, 0.55, 0.65):
+                arenas.append(dict(difficulty=d, platform_width=pw, gravity=g,
+                                   knockback=kb, spawn_gap=sg, zone_half=zh,
+                                   zone_center_frac=zcf))
+    else:  # diagonal: one difficulty per variant
+        for (pw, g, kb, sg, zh, zcf), d in zip(
+            _TK_HELD_OUT_VARIANTS, (0.45, 0.55, 0.55, 0.65, 0.55)
+        ):
+            arenas.append(dict(difficulty=d, platform_width=pw, gravity=g,
+                               knockback=kb, spawn_gap=sg, zone_half=zh,
+                               zone_center_frac=zcf))
+    return arenas
+
+
+def _tk_payload_arenas(arenas: list[dict]) -> list[dict]:
+    return [dict(a) for a in arenas]
+
+
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -306,6 +342,8 @@ def _build_registry() -> dict[str, GameEntry]:
             if tk_ok
             else "games.target_knockback + harness.target_knockback_adapter import failed",
             _teacher_game=_tk_teacher_game,
+            _build_held_out=_tk_held_out,
+            _payload_arenas=_tk_payload_arenas,
         ),
     }
 
