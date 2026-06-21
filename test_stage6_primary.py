@@ -210,7 +210,8 @@ def _stub_resolver(base_arenas, trained_arenas):
     def _resolve(label, handle, **kw):
         arenas = base_arenas if label.startswith("base") else trained_arenas
         return ResolvedTeacher(label=label, handle=handle, resolved_id=f"stub::{handle}",
-                               kind="fireworks", _build=lambda: _StubTeacher(arenas))
+                               kind="fireworks",
+                               _build=lambda *, gen_seed=None: _StubTeacher(arenas))
     return _resolve
 
 
@@ -425,9 +426,9 @@ def test_koth_cross_game_with_stubs():
     from output.stage6.koth_cross_game import run_koth_cross_game
 
     base = ResolvedTeacher("base", "b", "stub::b", "fireworks",
-                           _build=lambda: _StubTeacher([{"difficulty": 0.3, "platform_width": 12.0}]))
+                           _build=lambda *, gen_seed=None: _StubTeacher([{"difficulty": 0.3, "platform_width": 12.0}]))
     trained = ResolvedTeacher("trained", "t", "stub::t", "fireworks",
-                              _build=lambda: _StubTeacher([{"difficulty": 0.7, "platform_width": 12.0}]))
+                              _build=lambda *, gen_seed=None: _StubTeacher([{"difficulty": 0.7, "platform_width": 12.0}]))
     cfg = head_to_head_smoke_config()
     res = run_koth_cross_game(base, trained, config=cfg, backend="local", is_smoke=True,
                               verbose=False, run_train=_stub_train({}),

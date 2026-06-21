@@ -46,7 +46,10 @@ from pathlib import Path
 from typing import Callable, Optional
 
 # A Teacher is anything with ``.generate(game) -> dict`` (see training/teacher.py).
-TeacherFactory = Callable[[], "object"]
+# ``build`` takes an optional ``gen_seed`` so each Stage-6 replicate can request a
+# DIFFERENT Teacher-generation seed (so replicates sample different curricula); a
+# backend for which a client-side seed is meaningless simply ignores it.
+TeacherFactory = Callable[..., "object"]
 
 FIREWORKS_DEFAULT_MODEL = "accounts/fireworks/models/qwen3-4b"
 FIREWORKS_BASE_URL = "https://api.fireworks.ai/inference/v1"
@@ -61,6 +64,39 @@ HF_DEFAULT_MODEL = "Qwen/Qwen3-4B"
 MODAL_GEN_APP = "crucible-teacher-gen"
 MODAL_GEN_CLS = "TeacherGenerator"
 
+# Stage-6 game names -> games_registry discriminators. The Stage-6 ``engine.games.Game``
+# the Teacher is prompted with is named ``"fighter"`` for the Ring-Out duel, but the
+# trainer's prompt for that game is registered under ``"ring_out"`` — so the two names
+# must be bridged to reach the right training prompt. ``target_knockback`` matches
+# verbatim. KOTH's cross-game path prompts the Teacher with the FIGHTER game (its
+# ``_MappingTeacher`` calls ``generate(fighter_game)``), so it never reaches here under
+# a "koth" name; the fighter mapping below covers it correctly.
+_STAGE6_GAME_TO_REGISTRY = {
+    "fighter": "ring_out",
+    "ring_out": "ring_out",
+    "target_knockback": "target_knockback",
+}
+
+
+def _training_prompt_for_game(game) -> str:
+    """Return the EXACT training prompt for ``game`` from the single source of truth.
+
+    Sources the prompt from ``games_registry`` (the same module the GRPO trainer
+    mirrors + parity-asserts), so Stage-6 generation conditions the Teacher on the
+    identical string it was trained on — making the base-vs-trained comparison a
+    clean evaluation on the training task, not a prompt-generalization test.
+    """
+    from games_registry import get as _registry_get
+
+    name = getattr(game, "name", "")
+    key = _STAGE6_GAME_TO_REGISTRY.get(name)
+    if key is None:
+        raise KeyError(
+            f"no training prompt registered for Stage-6 game {name!r}; "
+            f"known: {sorted(_STAGE6_GAME_TO_REGISTRY)}"
+        )
+    return _registry_get(key).prompt
+
 
 @dataclass(frozen=True)
 class ResolvedTeacher:
@@ -72,9 +108,17 @@ class ResolvedTeacher:
     kind: str           # "fireworks" | "local"
     _build: TeacherFactory
 
-    def build(self) -> object:
-        """Construct the live Teacher (may raise for an uninstalled local backend)."""
-        return self._build()
+    def build(self, *, gen_seed: Optional[int] = None) -> object:
+        """Construct the live Teacher (may raise for an uninstalled local backend).
+
+        ``gen_seed`` lets a caller request a SPECIFIC Teacher-generation seed so that
+        independent Stage-6 replicates sample DIFFERENT curricula from the same
+        Teacher (otherwise every replicate would emit identical arenas, making the
+        curriculum-level CI capture only Student-training noise). The seed is applied
+        identically to base and trained for a given replicate, so the fairness
+        invariant holds; backends without a client-side seed ignore it.
+        """
+        return self._build(gen_seed=gen_seed)
 
 
 def _looks_like_fireworks(handle: str) -> bool:
@@ -166,7 +210,9 @@ def resolve_fireworks(
         account, api_key = _resolve_fireworks_account_and_key()
     inference_handle = _fireworks_inference_handle(token, account, base_model)
 
-    def _build() -> object:
+    def _build(*, gen_seed: Optional[int] = None) -> object:
+        # Fireworks generation is server-side stochastic (no client seed knob), so a
+        # per-replicate ``gen_seed`` is accepted for interface uniformity but unused.
         from training.fireworks_teacher import FireworksTeacher
 
         return FireworksTeacher(model=inference_handle, api_key=api_key, base_url=base_url)
@@ -205,7 +251,9 @@ def resolve_local_adapter(
             f"local adapter path does not exist: {adapter_path} (handle {handle!r})"
         )
 
-    def _build() -> object:
+    def _build(*, gen_seed: Optional[int] = None) -> object:
+        # Local sampling seed lives inside the lazy transport; accept for interface
+        # uniformity. (The local backend is unused on this account; Modal is the path.)
         return LocalAdapterTeacher(str(adapter_path), base_model=base_model)
 
     return ResolvedTeacher(
@@ -304,6 +352,7 @@ def resolve_modal(
     handle: str,
     *,
     base_model: str = HF_DEFAULT_MODEL,
+    base_seed: int = 0,
 ) -> ResolvedTeacher:
     """Resolve a ``modal:`` handle to a Teacher that GENERATES on a Modal GPU.
 
@@ -317,14 +366,21 @@ def resolve_modal(
     ``crucible-teacher-gen`` app. The base/trained fairness invariant holds because
     BOTH use the SAME ``base_model`` + prompt + sampling — only the adapter tag
     differs, which is exactly what we want to attribute the delta to.
+
+    The Teacher-generation seed is per-build: a caller passes ``gen_seed`` to
+    ``build()`` (the Stage-6 replicate index) so each replicate samples DIFFERENT
+    curricula from the same Teacher. ``base_seed`` shifts the whole sequence; the
+    EFFECTIVE seed handed to the GPU is ``base_seed + gen_seed`` and is applied
+    identically to base and trained for a given replicate (fairness preserved).
     """
     tag = _strip_prefix(handle, "modal:").strip()
     if tag in ("", "base", "none"):
         tag = ""  # base weights, no adapter
     resolved_id = f"modal:{base_model}" if not tag else f"modal:{base_model}+{tag}"
 
-    def _build() -> object:
-        return ModalTeacher(adapter_tag=tag, base_model=base_model)
+    def _build(*, gen_seed: Optional[int] = None) -> object:
+        seed = base_seed + (gen_seed if gen_seed is not None else 0)
+        return ModalTeacher(adapter_tag=tag, base_model=base_model, seed=seed)
 
     return ResolvedTeacher(
         label=label,
@@ -374,40 +430,39 @@ class ModalTeacher:
 
     @staticmethod
     def _prompt_messages(game) -> tuple[str, str]:
-        """Build the IDENTICAL (system, user) the FireworksTeacher would send.
+        """Build the EXACT (system, user) the Teacher was TRAINED with for this game.
 
-        Reuses FireworksTeacher's prompt JSON so base/trained/local/modal all prompt
-        the model with one coherent schema surface (the schema is the game's
-        ``param_schema``).
+        Stage 6 is a clean base-vs-trained comparison on the TRAINING task, not a
+        prompt-generalization test — so generation MUST use the same prompt the GRPO
+        trainer conditioned on. That prompt is the per-game ``prompt`` string in
+        ``games_registry`` (the single source of truth the trainer mirrors and
+        asserts parity against in ``train_teacher_modal._assert_registry_parity``).
+
+        The trainer renders the chat template from ``[{"role": "user", ...}]`` with
+        NO system message (``train_teacher_modal.TeacherGenerator._render_prompt``),
+        and the Modal generator skips the system turn when ``system`` is empty
+        (``teacher_gen_modal.TeacherGenerator._render_prompt``). So returning
+        ``("", training_prompt)`` makes Stage-6 generation byte-identical to training.
+
+        Base and trained both flow through here, so the fairness invariant still
+        holds: identical prompt + sampling, only the LoRA adapter differs.
         """
-        import json as _json
-
-        prompt = {
-            "game": game.name,
-            "parameter_schema": {
-                key: {"minimum": low, "maximum": high}
-                for key, (low, high) in game.param_schema.items()
-            },
-            "instruction": (
-                "Return one JSON object containing only parameter keys. "
-                "Choose a potentially learnable environment."
-            ),
-        }
-        system = (
-            "You design RL training environments. Output strict JSON only; never "
-            "output code or alter the true objective."
-        )
-        return system, _json.dumps(prompt)
+        return "", _training_prompt_for_game(game)
 
     def _refill(self, game) -> None:
         self._ensure_cls()
         system, user = self._prompt_messages(game)
         inst = self._cls(model_name=self.base_model, adapter_tag=self.adapter_tag)
-        # Vary the seed per refill so a second batch isn't an exact replay.
+        # Per-refill seed is the replicate seed shifted into its OWN block (×1000) so a
+        # replicate's later refills can never collide with the NEXT replicate's base
+        # seed — distinct ``self.seed`` per replicate => disjoint seed sequences =>
+        # different curricula across replicates, while a 2nd batch within a replicate
+        # still varies (not an exact replay).
+        refill_seed = self.seed * 1000 + self._refills
         comps = inst.generate.remote(
             n=self._batch, system=system, user=user,
             temperature=self.temperature, top_p=self.top_p,
-            max_new_tokens=self.max_new_tokens, seed=self.seed + self._refills,
+            max_new_tokens=self.max_new_tokens, seed=refill_seed,
         )
         self._refills += 1
         self._buffer.extend(comps)
@@ -512,7 +567,9 @@ def resolve_offline(label: str, handle: str = "offline") -> ResolvedTeacher:
         except Exception:
             params = default_params
 
-    def _build() -> object:
+    def _build(*, gen_seed: Optional[int] = None) -> object:
+        # Offline returns a fixed canned set; the seed is accepted (interface
+        # uniformity) but does not vary the deterministic response.
         from training.fireworks_teacher import FireworksTeacher
 
         return FireworksTeacher.offline(params=params)

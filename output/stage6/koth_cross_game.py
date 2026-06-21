@@ -160,8 +160,10 @@ def _wrap_resolved(resolved: ResolvedTeacher, sink: dict, key: str) -> ResolvedT
     difficulty clamp it applied — for base AND trained identically.
     """
 
-    def _build():
-        wrapped = _MappingTeacher(resolved.build())
+    def _build(*, gen_seed=None):
+        # Forward the per-replicate generation seed to the inner Teacher so KOTH
+        # cross-game replicates also sample DIFFERENT (fighter-schema) curricula.
+        wrapped = _MappingTeacher(resolved.build(gen_seed=gen_seed))
         sink.setdefault(key, []).append(wrapped)
         return wrapped
 

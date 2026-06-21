@@ -299,7 +299,7 @@ def _stub_resolver(base_arenas, trained_arenas):
         rid = f"stub::{handle}"
         return ResolvedTeacher(
             label=label, handle=handle, resolved_id=rid, kind="fireworks",
-            _build=lambda: _StubTeacher(arenas),
+            _build=lambda *, gen_seed=None: _StubTeacher(arenas),
         )
     return _resolve
 
@@ -363,7 +363,8 @@ def test_end_to_end_same_model_flags_failure():
 
     def _same_resolver(label, handle, **kw):
         return ResolvedTeacher(label=label, handle=handle, resolved_id="SAME",
-                               kind="fireworks", _build=lambda: _StubTeacher(arenas))
+                               kind="fireworks",
+                               _build=lambda *, gen_seed=None: _StubTeacher(arenas))
 
     req = EvalRequest(base_handle="a", trained_handle="b", game="fighter",
                       backend="local", config=cfg, is_smoke=False, verbose=False)

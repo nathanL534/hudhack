@@ -305,8 +305,14 @@ def _run_one_replicate(
     game = req.game
 
     # --- 1. both Teachers generate curricula (identical prompt/sampling) ---
-    base_teacher = req.base.build()
-    trained_teacher = req.trained.build()
+    # Each replicate uses a DISTINCT generation seed (``curriculum_seed_base + r``),
+    # applied IDENTICALLY to base and trained, so the two Teachers are rebuilt fresh
+    # per replicate and sample DIFFERENT curricula across replicates. Without this,
+    # every replicate would rebuild the Teacher at the same seed and emit identical
+    # arenas, so the curriculum-level CI would capture only Student-training noise.
+    gen_seed = cfg.curriculum_seed_base + r
+    base_teacher = req.base.build(gen_seed=gen_seed)
+    trained_teacher = req.trained.build(gen_seed=gen_seed)
     base_gen = generate_arenas(base_teacher, game, n=cfg.curriculum_arenas,
                                label=f"base-r{r}", verbose=False)
     trained_gen = generate_arenas(trained_teacher, game, n=cfg.curriculum_arenas,
