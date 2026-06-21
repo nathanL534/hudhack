@@ -156,6 +156,13 @@ def create_ep_app(
     app = FastAPI(title="Crucible Fireworks-HUD Rollout Bridge")
     app.state.tasks = set()
     app.state.results = {}
+    # run_id -> list of this run's rollout_ids (newest last). The launcher's monitor
+    # cannot enumerate rollout ids ahead of time and the RFT job object does not
+    # expose the EP run_id, so the bridge surfaces the run_ids it has actually seen
+    # (recorded at /init time, before the rollout even finishes) via GET /runs. That
+    # is the monitor's honest discovery handle for the run_id:<id> tracing tag.
+    app.state.run_index: dict[str, list[str]] = {}
+    app.state.run_order: list[str] = []
 
     async def _run(request: InitRequest) -> None:
         rollout_id = request.metadata.rollout_id
@@ -185,10 +192,31 @@ def create_ep_app(
     async def init(request: InitRequest):
         if not request.messages:
             return JSONResponse(status_code=422, content={"detail": "messages is required"})
+        # Record the run_id -> rollout_id mapping at accept time so the monitor can
+        # discover the run before any rollout finishes.
+        run_id = request.metadata.run_id
+        rollout_id = request.metadata.rollout_id
+        if run_id:
+            ids = app.state.run_index.setdefault(run_id, [])
+            if rollout_id not in ids:
+                ids.append(rollout_id)
+            if run_id not in app.state.run_order:
+                app.state.run_order.append(run_id)
         task = asyncio.create_task(_run(request))
         app.state.tasks.add(task)
         task.add_done_callback(app.state.tasks.discard)
-        return {"status": "accepted", "rollout_id": request.metadata.rollout_id}
+        return {"status": "accepted", "rollout_id": rollout_id}
+
+    @app.get("/runs")
+    async def runs(limit: int = 20):
+        """Recently-seen EP run_ids (newest last) + their rollout ids.
+
+        The launcher's monitor reads this to discover the RFT job's run_id, which it
+        then uses as the ``run_id:<id>`` tracing tag to fetch + aggregate rewards.
+        Returns only ids — never credentials, prompts, or rewards.
+        """
+        order = app.state.run_order[-limit:]
+        return {"runs": [{"run_id": r, "rollout_ids": app.state.run_index.get(r, [])} for r in order]}
 
     @app.get("/debug/result/{rollout_id}")
     async def debug_result(rollout_id: str):
