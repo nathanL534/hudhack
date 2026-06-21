@@ -668,11 +668,15 @@ def _capture_h2h_replays(game, arena, trained, base, match_seeds, payload) -> li
     draw. Each carries source-Teacher / curriculum / policy-seed / arena / side /
     outcome metadata. Reuses ``record_replay.record_match`` (the single home for the
     sim+capture loop) so capture stays byte-identical to the canonical recorder.
-    Only the fighter has a viewer replay; KOTH does not fabricate frames."""
-    from record_replay import record_match
-
+    Only the fighter has a viewer replay; KOTH / Target Knockback do not fabricate
+    frames."""
     if game not in ("fighter", "ring-out-duel", "ring_out_duel"):
-        return []  # KOTH has no fighter-style viewer replay; do not fabricate.
+        # KOTH / TK have no fighter-style viewer replay; do not fabricate — and do
+        # NOT import the fighter-only recorder, so a non-fighter head-to-head never
+        # depends on ``record_replay`` being on the path.
+        return []
+
+    from record_replay import record_match
 
     tp = payload["trained_policy"]
     bp = payload["base_policy"]
@@ -761,8 +765,13 @@ if modal is not None:  # pragma: no branch
         # ``replay`` is needed by the held-out transfer worker's replay-capture
         # branch (it builds a viewer-ready replay of the trained Player in-container).
         # ``output`` is needed by the Student-vs-Student workers (output.stage6.policy
-        # serialize/restore). ``games.koth`` rides in via ``games``.
-        .add_local_python_source("games", "harness", "contracts", "replay", "output")
+        # serialize/restore). ``games.koth`` / ``games.target_knockback`` ride in via
+        # ``games``. ``record_replay`` is the top-level recorder the FIGHTER head-to-head
+        # replay-capture imports (``_capture_h2h_replays``); without it a fighter
+        # capture crashes with ModuleNotFoundError. Non-fighter games never import it.
+        .add_local_python_source(
+            "games", "harness", "contracts", "replay", "output", "record_replay"
+        )
     )
 
     @app.function(image=image, timeout=1800)
