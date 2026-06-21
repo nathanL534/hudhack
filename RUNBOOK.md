@@ -409,6 +409,91 @@ anyone with the deployed `crucible-teacher-gen` + Volume access.
 
 ---
 
+## 11. Collaborator configs (smaller-scale, complementary)
+
+For a collaborator on their OWN Modal account — especially a **container-limited**
+one — who wants their runs to **complement** ours, not duplicate them. Same
+workflow as §4/§5, just sized down and offset in the config space.
+
+### The container-budget rule (read this first)
+Each variant fans out **`group_size × n_seeds × 2_games`** CPU reward containers
+**+ 1 trainer** (§6). At OUR defaults (G=12, 3 seeds): `12×3×2 = 72 + 1 ≈ 73`/variant.
+Four concurrent variants → `4×73 ≈ 292`, which **overran a 100-container cap**. So:
+
+```
+concurrent_variants × per_variant_containers  ≤  your_workspace_container_limit
+```
+
+Check YOUR limit in the Modal dashboard under **Workspace metrics → Total
+containers / Limit**, then size `concurrent_variants` accordingly. **GPUs are NOT
+the bottleneck** — the CPU reward containers (`crucible-player` /
+`crucible-player-tk` PPO jobs) are.
+
+### Smaller-scale knobs (grounded in the argparse, §4)
+- **`--group-size 8`** (default 12 in our runs): `8×3×2 = 48` reward
+  containers/variant (vs ~72). Lower fan-out AND lower VRAM.
+- **VRAM:** G=12 is what forced **A100-80GB** — 40GB OOM'd at the GRPO
+  `update_multi` even with the per-game gradient-accumulation that's already in
+  the code (§6). G=8 has a smaller logits/activation footprint and is **expected**
+  to fit **A100-40GB** — but **confirm with a smoke run first**, do not assume:
+  ```bash
+  CRUCIBLE_RUN_ID=fit CRUCIBLE_GPU=A100-40GB PYTHONPATH=. \
+  python3 training/train_teacher_modal.py \
+    --run-id fit --gpu A100-40GB --gpu-smoke --group-size 8
+  ```
+  If that OOMs, fall back to `--gpu A100-80GB` (and `CRUCIBLE_GPU=A100-80GB`).
+- **`--seeds 2 --tk-seeds 2`** (default 3 each) to shrink further: `8×2×2 = 32`
+  reward containers/variant — at the cost of a **noisier (less seed-averaged)**
+  reward signal per arena.
+
+### The complementary config matrix
+Our live runs are `runA` (r32 / t1.4 / seed-base 101) and `runB` (r16 / t1.4 /
+seed-base 101). Pick **different seeds and temperatures** so curricula don't
+overlap, while still covering **both rank 16 and rank 32** for a comparable
+ablation. Keep `--lora-alpha = 2 × --lora-r` (§5). Literal copy-paste:
+
+```bash
+set -a && source .env && set +a
+unset MODAL_TOKEN_ID MODAL_TOKEN_SECRET     # use ~/.modal.toml profile
+
+# rank-16 variant — temp 1.3, seed-base 303
+CRUCIBLE_RUN_ID=friend_r16 CRUCIBLE_GPU=A100-40GB PYTHONPATH=. \
+python3 training/train_teacher_modal.py \
+  --run-id friend_r16 --gpu A100-40GB \
+  --updates 14 --group-size 8 \
+  --lora-r 16 --lora-alpha 32 \
+  --temperature 1.3 --seed-base 303
+
+# rank-32 variant — temp 1.2, seed-base 404
+CRUCIBLE_RUN_ID=friend_r32 CRUCIBLE_GPU=A100-40GB PYTHONPATH=. \
+python3 training/train_teacher_modal.py \
+  --run-id friend_r32 --gpu A100-40GB \
+  --updates 14 --group-size 8 \
+  --lora-r 32 --lora-alpha 64 \
+  --temperature 1.2 --seed-base 404
+```
+
+| run_id | `--lora-r` | `--lora-alpha` | `--temperature` | `--seed-base` | `--group-size` |
+|---|---|---|---|---|---|
+| `friend_r16` | 16 | 32 | 1.3 | 303 | 8 |
+| `friend_r32` | 32 | 64 | 1.2 | 404 | 8 |
+
+Notes: `alpha = 2×rank`. Seeds **303 / 404** are disjoint from our 101/202;
+temps **1.2 / 1.3** fill the gap between our 1.1 and 1.4. **Run 1–2 at a time**
+depending on the container limit (`2 × 49 ≈ 98` fits a 100-cap; if tight, run one).
+If the G=8 smoke run OOM'd on 40GB, swap both lines to `A100-80GB` (and
+`CRUCIBLE_GPU=A100-80GB`).
+
+### Why this complements ours
+A different `--seed-base` → different sampled curricula → **statistically
+independent** runs (not a re-roll of ours). Different temperatures → fills the
+**curriculum-exploration sweep** between our 1.1 and 1.4. Rank 16 + 32 → **extends
+the rank ablation**. Pool everyone's `output/contingency_<run_id>/history.json`
+plus each run's best-checkpoint Stage-6 result (§10) and you get a richer
+**rank × temp × seed** dataset than any single machine could produce.
+
+---
+
 ## Minimum viable run (smoke-test your setup)
 
 GPU-only, no reward compute, no Modal reward containers — proves load + sample
