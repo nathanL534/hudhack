@@ -38,6 +38,10 @@ from output.stage6.games import get_game
 from output.stage6.handles import ResolvedTeacher
 
 
+def test_stage6_default_uses_anti_camping_student_budget():
+    assert EvalConfig().ppo_episodes == 1500
+
+
 # ---------------------------------------------------------------------------
 # policy serialize / restore (one cheap real-PPO test)
 # ---------------------------------------------------------------------------

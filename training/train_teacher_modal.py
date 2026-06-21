@@ -280,6 +280,19 @@ gpu_image = (
         "huggingface_hub",
     )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "0"})
+    # Propagate the run-id INTO the container. ADAPTER_RUN_DIR is computed at import
+    # from CRUCIBLE_RUN_ID, but `save_adapter` is a @modal.method that runs CONTAINER-
+    # side, where the host's shell env does NOT reach. Without this line the container
+    # imports with CRUCIBLE_RUN_ID unset -> RUN_ID="" -> every run writes flat
+    # /adapters/<tag>, so concurrent variants CLOBBER each other's checkpoints. Each
+    # variant is its own Modal App -> own container -> own image-env -> own
+    # /adapters/<run_id> subdir on the shared Volume. (Caught by the collision test.)
+    .env({"CRUCIBLE_RUN_ID": RUN_ID})
+    # Reduce CUDA allocator fragmentation: the G=12 logprob forward materialises a large
+    # transient (B,L,V) logits tensor per update, and a fragmented heap OOM'd a 40GB A100
+    # by only ~116MB. expandable_segments lets the allocator grow segments instead of
+    # failing on fragmentation (the fix the OOM error itself recommends).
+    .env({"PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"})
 )
 
 
@@ -472,10 +485,23 @@ class TeacherTrainer:
         the original single-game GRPO step exactly).
         """
         torch = self.torch
-        comp_logps = []
-        advs = []
         per_game_logp_mean: dict = {}
         used_games = []
+        # GRADIENT ACCUMULATION over games (memory fix for G>=12 on a 40GB GPU). We
+        # compute logprobs + backward ONE GAME AT A TIME so peak VRAM holds only one
+        # game's (G, L, V) logits, not both concatenated (which OOM'd a 40GB A100 at
+        # G=12). Each game's loss is scaled by 1/N_total (the size of the concatenated
+        # batch the old path averaged over), so the SUM of the per-game gradients is
+        # mathematically IDENTICAL to a single .mean() backward over the concatenation.
+        n_total = sum(
+            len(advantages_by_game[g]) for g in GAME_KEYS if g in advantages_by_game
+        )
+        assert n_total > 0, "update_multi called with no game groups"
+
+        self.model.train()
+        self.optimizer.zero_grad()
+        total_loss = 0.0
+        n_completions = 0
         for game in GAME_KEYS:
             if game not in advantages_by_game:
                 continue
@@ -486,28 +512,26 @@ class TeacherTrainer:
                 f"{game}: {len(game_adv)} advantages vs {seqs.shape[0]} samples"
             )
             lp = self._completion_logprobs(seqs, self._prompt_len[game])  # (G,) with grad
-            comp_logps.append(lp)
-            advs.append(torch.tensor(game_adv, dtype=torch.float32, device="cuda:0"))
+            adv = torch.tensor(game_adv, dtype=torch.float32, device="cuda:0")
+            # .sum()/n_total (NOT .mean()) so the per-game grads SUM to the old single
+            # .mean() over the concatenated batch. backward() frees this game's logits
+            # graph before the next game's forward -> peak memory is one game, not both.
+            game_loss = -(adv * lp).sum() / n_total
+            game_loss.backward()
+            total_loss += float(game_loss.detach().cpu())
             per_game_logp_mean[game] = float(lp.detach().mean().cpu())
+            n_completions += int(lp.shape[0])
             used_games.append(game)
 
-        assert comp_logps, "update_multi called with no game groups"
-        logp_concat = torch.cat(comp_logps, dim=0)   # (sum_G,)
-        adv_concat = torch.cat(advs, dim=0)          # (sum_G,)
-
-        self.model.train()
-        self.optimizer.zero_grad()
-        loss = -(adv_concat * logp_concat).mean()
-        loss.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(
             [p for p in self.model.parameters() if p.requires_grad], 1.0
         )
         self.optimizer.step()
         return {
-            "loss": float(loss.detach().cpu()),
+            "loss": total_loss,
             "grad_norm": float(grad_norm),
             "games": used_games,
-            "n_completions": int(logp_concat.shape[0]),
+            "n_completions": n_completions,
             "mean_completion_logprob_by_game": {
                 g: round(v, 4) for g, v in per_game_logp_mean.items()
             },

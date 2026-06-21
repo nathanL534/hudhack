@@ -552,7 +552,14 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         from harness.fighter_adapter import FighterGameAdapter
 
         adapter = FighterGameAdapter(eval_seeds=eval_seeds)
-        trainer = PPOPlayerTrainer(eval_seeds=eval_seeds)
+        # Explicit Stage-6-only anti-camping settings. The nested Teacher reward
+        # workers instantiate PPOPlayerTrainer with its original defaults.
+        trainer = PPOPlayerTrainer(
+            eval_seeds=eval_seeds,
+            ent_coef=float(payload.get("student_ent_coef", 0.03)),
+            min_timesteps=int(payload.get("student_min_timesteps", 60_000)),
+            anti_camping_reward=bool(payload.get("student_anti_camping", True)),
+        )
 
     train_arenas = adapter.arenas_from_configs(arenas, curriculum_id=curriculum_id)
     job = trainer.submit(config, train_arenas)
@@ -607,6 +614,9 @@ def _head_to_head_match(payload: dict, seed: int) -> dict:
     arena_cls, play_match, obs_dim, env_cls = _game_modules(game)
 
     arena = _arenas_from_specs([payload["arena"]], arena_cls)[0]
+    if game in ("fighter", "ring-out-duel", "ring_out_duel"):
+        import dataclasses
+        arena = dataclasses.replace(arena, decisive_timeout=True)
     match_seeds = [int(s) for s in payload.get("match_seeds", [seed])]
 
     # A throwaway env only supplies obs/action spaces to restore the frozen nets.

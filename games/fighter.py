@@ -110,6 +110,9 @@ class FighterArena:
     knockback: float = 2.5        # horizontal impulse a landed punch imparts
     spawn_gap: float = 4.0        # initial horizontal distance between fighters
     max_steps: int = 200          # step budget; no ring-out by then => draw
+    # Stage-6-only evaluation option. The validated nested-reward path leaves this
+    # False, preserving the original timeout semantics.
+    decisive_timeout: bool = False
 
     # Difficulty dial in [0, 1] for the PARAMETRIC opponent. This is the single
     # knob the Teacher (via ArenaSpec.difficulty) turns to make the opponent
@@ -166,6 +169,8 @@ class FighterSim:
     steps: int = field(default=0, init=False)
     winner: Optional[int] = field(default=None, init=False)  # 0, 1, or None (draw/ongoing)
     done: bool = field(default=False, init=False)
+    hits: list[int] = field(default_factory=lambda: [0, 0], init=False)
+    approach: list[float] = field(default_factory=lambda: [0.0, 0.0], init=False)
 
     def __post_init__(self) -> None:
         self.reset(self.seed)
@@ -228,6 +233,13 @@ class FighterSim:
         self.steps = 0
         self.winner = None
         self.done = False
+        self.hits = [0, 0]
+        self.approach = [0.0, 0.0]
+        # Cap for cumulative approach credit: a fighter can productively close at most the
+        # INITIAL separation. Without this, chasing a fleeing (high-difficulty) opponent
+        # farms unbounded approach shaping — the d>=0.60 "approach but never punch" hack
+        # where perpetual chasing out-scores a decisive win.
+        self._init_sep = abs(self.f0.x - self.f1.x)
 
     # -- one tick -----------------------------------------------------------
 
@@ -242,8 +254,13 @@ class FighterSim:
         if self.done:
             return
 
+        x0_before, x1_before = self.f0.x, self.f1.x
         self._apply_move(self.f0, a0)
         self._apply_move(self.f1, a1)
+        # Snapshot post-MOVE positions (before jumps/punch-knockback) so approach credit
+        # reflects each fighter's OWN movement, not the opponent's knockback displacement
+        # (the secondary inflation bug: ~23% of approach credit at d=0.7 was spurious).
+        x0_moved, x1_moved = self.f0.x, self.f1.x
 
         # Keep facing pointed at the opponent unless actively moving away — this
         # makes "facing direction" a meaningful part of the observation and
@@ -255,10 +272,13 @@ class FighterSim:
         self._apply_jump(self.f1, a1)
 
         # Punches resolve against the CURRENT positions (pre-gravity this tick).
-        if a0 == Action.PUNCH:
-            self._resolve_punch(attacker=self.f0, defender=self.f1)
-        if a1 == Action.PUNCH:
-            self._resolve_punch(attacker=self.f1, defender=self.f0)
+        if a0 == Action.PUNCH and self._resolve_punch(attacker=self.f0, defender=self.f1):
+            self.hits[0] += 1
+        if a1 == Action.PUNCH and self._resolve_punch(attacker=self.f1, defender=self.f0):
+            self.hits[1] += 1
+
+        self._credit_approach(0, x0_before, x1_before, x0_moved)
+        self._credit_approach(1, x1_before, x0_before, x1_moved)
 
         self._integrate_gravity(self.f0)
         self._integrate_gravity(self.f1)
@@ -268,6 +288,22 @@ class FighterSim:
 
         self.steps += 1
         self._resolve_outcome()
+
+    def _credit_approach(self, ego: int, me_before: float, opp_before: float,
+                         me_after: float) -> None:
+        """Credit this fighter's OWN self-driven closing, capped at the initial gap.
+
+        ``me_after`` is the position right after this fighter's own MOVE (not the
+        post-knockback position), so approach reflects self-driven travel only.
+        Cumulative approach is clamped to the initial separation: a genuine approacher
+        closes the gap once and is fully credited, but a fighter chasing a perpetually
+        fleeing opponent cannot farm unbounded shaping — making a decisive win strictly
+        dominate the "approach but never punch" strategy at every difficulty.
+        """
+        direction = 1.0 if opp_before >= me_before else -1.0
+        moved_toward = (me_after - me_before) * direction
+        if moved_toward > 0:
+            self.approach[ego] = min(self.approach[ego] + moved_toward, self._init_sep)
 
     # -- physics helpers ----------------------------------------------------
 
@@ -299,9 +335,9 @@ class FighterSim:
         if action == Action.JUMP and body.on_ground:
             body.vy = self.arena.jump_impulse
 
-    def _resolve_punch(self, attacker: _Body, defender: _Body) -> None:
+    def _resolve_punch(self, attacker: _Body, defender: _Body) -> bool:
         if not attacker.alive or not defender.alive:
-            return
+            return False
         dx = defender.x - attacker.x
         # The punch only connects if the defender is within range AND on the
         # side the attacker faces (you can't punch behind you).
@@ -312,6 +348,8 @@ class FighterSim:
         if in_range and in_front and same_height:
             # Knockback pushes the defender AWAY in the attacker's facing dir.
             defender.x += self.arena.knockback * attacker.facing
+            return True
+        return False
 
     def _integrate_gravity(self, body: _Body) -> None:
         if not body.alive:
@@ -347,9 +385,17 @@ class FighterSim:
             self.winner = 1
             self.done = True
         elif self.steps >= self.arena.max_steps:
-            # Out of budget with both alive -> draw (no winner).
-            self.winner = None
+            self.winner = self._aggression_tiebreak() if self.arena.decisive_timeout else None
             self.done = True
+
+    def _aggression_tiebreak(self) -> Optional[int]:
+        """Resolve Stage-6 timeouts by landed hits, then self-driven approach."""
+        hit_weight = 100.0
+        s0 = self.hits[0] * hit_weight + self.approach[0]
+        s1 = self.hits[1] * hit_weight + self.approach[1]
+        if abs(s0 - s1) <= 1e-6:
+            return None
+        return 0 if s0 > s1 else 1
 
     # -- observation --------------------------------------------------------
 
@@ -642,10 +688,12 @@ class FighterEnv(_GYM_BASE):
         opponent_factory: Callable[[FighterArena], Policy],
         *,
         seed: int = 0,
+        anti_camping_reward: bool = False,
     ):
         super().__init__()
         self.arena = arena
         self._opponent_factory = opponent_factory
+        self._anti_camping_reward = anti_camping_reward
         self._base_seed = seed
         self._episode = 0
 
@@ -681,6 +729,8 @@ class FighterEnv(_GYM_BASE):
         opp_action = int(self._opponent(opp_obs))
 
         prev_dist = abs(self.sim.f1.x - self.sim.f0.x)
+        hits_before = self.sim.hits[0]
+        approach_before = self.sim.approach[0]
         self.sim.step(int(action), opp_action)
         new_dist = abs(self.sim.f1.x - self.sim.f0.x)
 
@@ -688,13 +738,19 @@ class FighterEnv(_GYM_BASE):
         terminated = self.sim.done
         truncated = False
 
-        reward = self._shaping_reward(int(action), prev_dist, new_dist)
+        if self._anti_camping_reward:
+            landed = self.sim.hits[0] - hits_before
+            approached = self.sim.approach[0] - approach_before
+            reward = self._anti_camping_shaping(approached, landed)
+        else:
+            reward = self._shaping_reward(int(action), prev_dist, new_dist)
         if terminated:
             if self.sim.winner == 0:
                 reward += 1.0
             elif self.sim.winner == 1:
                 reward += -1.0
-            # draw -> +0
+            elif self._anti_camping_reward:
+                reward += -0.25
 
         info = {"winner": self.sim.winner, "steps": self.sim.steps}
         return obs, reward, terminated, truncated, info
@@ -714,6 +770,11 @@ class FighterEnv(_GYM_BASE):
             shaping += 0.02
         shaping -= 0.001  # mild urgency
         return shaping
+
+    @staticmethod
+    def _anti_camping_shaping(approached: float, landed: int) -> float:
+        """Stage-6-only shaping that cannot reward stationary punch spam."""
+        return 0.06 * max(0.0, approached) + 0.03 * landed - 0.004
 
 
 # ---------------------------------------------------------------------------

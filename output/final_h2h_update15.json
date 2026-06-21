@@ -1,0 +1,1987 @@
+{
+  "experiment": "stage6_student_vs_student",
+  "game": "fighter",
+  "backend": "modal",
+  "is_smoke": false,
+  "base_handle": "modal:base",
+  "base_resolved_id": "modal:Qwen/Qwen3-4B",
+  "base_kind": "modal",
+  "trained_handle": "modal:update15",
+  "trained_resolved_id": "modal:Qwen/Qwen3-4B+update15",
+  "trained_kind": "modal",
+  "config": {
+    "temperature": 1.1,
+    "ppo_episodes": 700,
+    "eval_seeds": 12,
+    "architecture": "mlp",
+    "arenas_per_model": 5,
+    "player_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "held_out_grid": "full",
+    "n_replicates": 4,
+    "curriculum_arenas": 3,
+    "match_seeds_per_arena": 16,
+    "head_to_head_grid": "full",
+    "fingerprint": "0a8fb10c66e7"
+  },
+  "headline_metric": "primary_student_vs_student_head_to_head",
+  "primary": {
+    "metric": "primary_student_vs_student_head_to_head",
+    "game": "fighter",
+    "n_replicates": 4,
+    "curriculum_arenas_per_teacher": 3,
+    "n_held_out_arenas": 15,
+    "match_seeds_per_arena_per_side": 16,
+    "held_out_arenas": [
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.8
+      }
+    ],
+    "trained_student_win_rate": 0.107813,
+    "base_student_win_rate": 0.032813,
+    "draw_rate": 0.859375,
+    "mean_paired_advantage": 0.075,
+    "ci_t": {
+      "mean": 0.075,
+      "low": -0.088191,
+      "high": 0.238191,
+      "half_width": 0.163191,
+      "std": 0.102571,
+      "n": 4,
+      "confidence": 0.95
+    },
+    "ci_bootstrap": {
+      "mean": 0.075,
+      "low": -0.015625,
+      "high": 0.15,
+      "half_width": 0.082812,
+      "std": 0.102571,
+      "n": 4,
+      "confidence": 0.95
+    },
+    "ci_lower_bound": -0.088191,
+    "effect_size_cohens_d": 0.7312,
+    "trained_win_rate_as_p0": 0.125,
+    "trained_win_rate_as_p1": 0.090625,
+    "per_arena_family_advantage": {
+      "narrow_ledge": 0.171875,
+      "wide_arena": 0.0,
+      "floaty_lowg": 0.03125,
+      "heavy_knock": 0.148438,
+      "high_grav": 0.023438
+    },
+    "held_out_overlap_total": 0,
+    "anti_circularity": {
+      "passed": false,
+      "any_failed": true,
+      "checks": [
+        {
+          "name": "ci_lower_above_zero",
+          "passed": false,
+          "severity": "fail",
+          "value": -0.088191,
+          "threshold": 0.0,
+          "detail": "paired-advantage mean +0.0750, 95% CI lower bound -0.0882 <= 0"
+        },
+        {
+          "name": "no_side_bias",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.034375,
+          "threshold": 0.25,
+          "detail": "trained win-rate P0=0.1250 P1=0.0906 (gap 0.0344, limit 0.25)"
+        },
+        {
+          "name": "multi_arena_benefit",
+          "passed": true,
+          "severity": "fail",
+          "value": 4.0,
+          "threshold": 2.0,
+          "detail": "trained Student ahead on 4/5 arena families (need >1)"
+        },
+        {
+          "name": "distinct_students",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "base and trained Students have distinct policy weights: base=2a32bd35bfa983b9 trained=aab24361a7337fc4"
+        },
+        {
+          "name": "disjoint_held_out",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "0 held-out arena(s) overlap a Teacher's curriculum (must be 0 \u2014 no training-on-the-test)"
+        },
+        {
+          "name": "enough_replicates",
+          "passed": true,
+          "severity": "fail",
+          "value": 4.0,
+          "threshold": 2.0,
+          "detail": "4 independent curriculum replicate(s) (need >1 for a curriculum-level CI)"
+        }
+      ],
+      "failed": [
+        "ci_lower_above_zero"
+      ],
+      "warnings": []
+    },
+    "primary_pass": false,
+    "wall_clock_s": 249.19,
+    "replicates": [
+      {
+        "replicate": 0,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          }
+        ],
+        "base_student_checksum": "2a32bd35bfa983b9",
+        "trained_student_checksum": "aab24361a7337fc4",
+        "base_student_train_winrate": 0.0,
+        "trained_student_train_winrate": 0.0,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.13125,
+        "base_win_rate": 0.00625,
+        "draw_rate": 0.8625,
+        "paired_advantage": 0.125,
+        "n_matches": 480,
+        "per_family_advantage": {
+          "narrow_ledge": 0.40625,
+          "wide_arena": 0.0,
+          "floaty_lowg": 0.0625,
+          "heavy_knock": 0.15625,
+          "high_grav": 0.0
+        },
+        "replays": [
+          {
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 7.0,
+              "gravity": 0.6,
+              "knockback": 2.5,
+              "spawn_gap": 3.0,
+              "difficulty": 0.4
+            },
+            "match_seed": 0,
+            "side": "trained_as_P0",
+            "outcome": "trained_win",
+            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_trained_win_trained_as_P0.json"
+          },
+          {
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 7.0,
+              "gravity": 0.6,
+              "knockback": 2.5,
+              "spawn_gap": 3.0,
+              "difficulty": 0.4
+            },
+            "match_seed": 1,
+            "side": "trained_as_P0",
+            "outcome": "draw",
+            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P0.json"
+          },
+          {
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 7.0,
+              "gravity": 0.6,
+              "knockback": 2.5,
+              "spawn_gap": 3.0,
+              "difficulty": 0.4
+            },
+            "match_seed": 0,
+            "side": "trained_as_P1",
+            "outcome": "draw",
+            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P1.json"
+          }
+        ],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      },
+      {
+        "replicate": 1,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          }
+        ],
+        "base_student_checksum": "9da37bb2de015c69",
+        "trained_student_checksum": "c0bae046bcdf23bf",
+        "base_student_train_winrate": 0.0,
+        "trained_student_train_winrate": 0.0,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.10625,
+        "base_win_rate": 0.04375,
+        "draw_rate": 0.85,
+        "paired_advantage": 0.0625,
+        "n_matches": 480,
+        "per_family_advantage": {
+          "narrow_ledge": 0.125,
+          "wide_arena": 0.0,
+          "floaty_lowg": 0.03125,
+          "heavy_knock": 0.125,
+          "high_grav": 0.03125
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      },
+      {
+        "replicate": 2,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          }
+        ],
+        "base_student_checksum": "506f711a01e2b531",
+        "trained_student_checksum": "a573adb1f87eb329",
+        "base_student_train_winrate": 0.0,
+        "trained_student_train_winrate": 0.0,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.0,
+        "base_win_rate": 0.0625,
+        "draw_rate": 0.9375,
+        "paired_advantage": -0.0625,
+        "n_matches": 480,
+        "per_family_advantage": {
+          "narrow_ledge": -0.1875,
+          "wide_arena": 0.0,
+          "floaty_lowg": -0.03125,
+          "heavy_knock": -0.09375,
+          "high_grav": 0.0
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      },
+      {
+        "replicate": 3,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          }
+        ],
+        "base_student_checksum": "32049d01a311b933",
+        "trained_student_checksum": "f80d6fd264254226",
+        "base_student_train_winrate": 0.0,
+        "trained_student_train_winrate": 0.0556,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.19375,
+        "base_win_rate": 0.01875,
+        "draw_rate": 0.7875,
+        "paired_advantage": 0.175,
+        "n_matches": 480,
+        "per_family_advantage": {
+          "narrow_ledge": 0.34375,
+          "wide_arena": 0.0,
+          "floaty_lowg": 0.0625,
+          "heavy_knock": 0.40625,
+          "high_grav": 0.0625
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      }
+    ],
+    "replays": [
+      {
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 7.0,
+          "gravity": 0.6,
+          "knockback": 2.5,
+          "spawn_gap": 3.0,
+          "difficulty": 0.4
+        },
+        "match_seed": 0,
+        "side": "trained_as_P0",
+        "outcome": "trained_win",
+        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_trained_win_trained_as_P0.json"
+      },
+      {
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 7.0,
+          "gravity": 0.6,
+          "knockback": 2.5,
+          "spawn_gap": 3.0,
+          "difficulty": 0.4
+        },
+        "match_seed": 1,
+        "side": "trained_as_P0",
+        "outcome": "draw",
+        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P0.json"
+      },
+      {
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 7.0,
+          "gravity": 0.6,
+          "knockback": 2.5,
+          "spawn_gap": 3.0,
+          "difficulty": 0.4
+        },
+        "match_seed": 0,
+        "side": "trained_as_P1",
+        "outcome": "draw",
+        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P1.json"
+      }
+    ]
+  },
+  "overall_pass": false,
+  "secondary_transfer_diagnostic": {
+    "experiment": "stage6_base_vs_trained",
+    "game": "fighter",
+    "game_role": "teacher",
+    "backend": "modal",
+    "is_smoke": false,
+    "base_handle": "modal:base",
+    "base_resolved_id": "modal:Qwen/Qwen3-4B",
+    "base_kind": "modal",
+    "trained_handle": "modal:update15",
+    "trained_resolved_id": "modal:Qwen/Qwen3-4B+update15",
+    "trained_kind": "modal",
+    "config": {
+      "temperature": 1.1,
+      "ppo_episodes": 700,
+      "eval_seeds": 12,
+      "architecture": "mlp",
+      "arenas_per_model": 5,
+      "player_seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "held_out_grid": "full",
+      "n_replicates": 4,
+      "curriculum_arenas": 3,
+      "match_seeds_per_arena": 16,
+      "head_to_head_grid": "full",
+      "fingerprint": "0a8fb10c66e7"
+    },
+    "n_held_out_arenas": 15,
+    "held_out_arenas": [
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.8
+      }
+    ],
+    "n_jobs": 50,
+    "wall_clock_s": 94.39,
+    "estimated_cost_usd": 0.5,
+    "per_model": [
+      {
+        "model": "base",
+        "resolved_id": "modal:Qwen/Qwen3-4B",
+        "kind": "modal",
+        "mean_transfer": 0.17,
+        "std_transfer": 0.0599,
+        "ci": {
+          "mean": 0.17,
+          "low": 0.145291,
+          "high": 0.194709,
+          "half_width": 0.024709,
+          "std": 0.059857,
+          "n": 25,
+          "confidence": 0.95
+        },
+        "n_jobs": 25,
+        "arenas": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "diversity": {
+          "n_arenas": 5,
+          "n_unique": 1,
+          "unique_fraction": 0.2,
+          "per_param_std": {
+            "difficulty": 0.0,
+            "platform_width": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "spawn_gap": 0.0
+          },
+          "mean_param_std": 0.0,
+          "collapsed": true
+        },
+        "generation": {
+          "total": 5,
+          "invalid": 0,
+          "clamped": 0
+        },
+        "per_job": [
+          {
+            "arena_index": 0,
+            "seed": 1,
+            "held_out_improvement": 0.1111,
+            "before": 0.1222,
+            "after": 0.2333,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 0,
+            "seed": 2,
+            "held_out_improvement": 0.1389,
+            "before": 0.0167,
+            "after": 0.1556,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 0,
+            "seed": 3,
+            "held_out_improvement": 0.2611,
+            "before": 0.0,
+            "after": 0.2611,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 0,
+            "seed": 4,
+            "held_out_improvement": 0.2167,
+            "before": 0.0944,
+            "after": 0.3111,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 0,
+            "seed": 5,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 1,
+            "held_out_improvement": 0.1111,
+            "before": 0.1222,
+            "after": 0.2333,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 2,
+            "held_out_improvement": 0.1389,
+            "before": 0.0167,
+            "after": 0.1556,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 3,
+            "held_out_improvement": 0.2611,
+            "before": 0.0,
+            "after": 0.2611,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 4,
+            "held_out_improvement": 0.2167,
+            "before": 0.0944,
+            "after": 0.3111,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 5,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 1,
+            "held_out_improvement": 0.1111,
+            "before": 0.1222,
+            "after": 0.2333,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 2,
+            "held_out_improvement": 0.1389,
+            "before": 0.0167,
+            "after": 0.1556,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 3,
+            "held_out_improvement": 0.2611,
+            "before": 0.0,
+            "after": 0.2611,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 4,
+            "held_out_improvement": 0.2167,
+            "before": 0.0944,
+            "after": 0.3111,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 5,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 1,
+            "held_out_improvement": 0.1111,
+            "before": 0.1222,
+            "after": 0.2333,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 2,
+            "held_out_improvement": 0.1389,
+            "before": 0.0167,
+            "after": 0.1556,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 3,
+            "held_out_improvement": 0.2611,
+            "before": 0.0,
+            "after": 0.2611,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 4,
+            "held_out_improvement": 0.2167,
+            "before": 0.0944,
+            "after": 0.3111,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 5,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 1,
+            "held_out_improvement": 0.1111,
+            "before": 0.1222,
+            "after": 0.2333,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 2,
+            "held_out_improvement": 0.1389,
+            "before": 0.0167,
+            "after": 0.1556,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 3,
+            "held_out_improvement": 0.2611,
+            "before": 0.0,
+            "after": 0.2611,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 4,
+            "held_out_improvement": 0.2167,
+            "before": 0.0944,
+            "after": 0.3111,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 5,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          }
+        ]
+      },
+      {
+        "model": "trained",
+        "resolved_id": "modal:Qwen/Qwen3-4B+update15",
+        "kind": "modal",
+        "mean_transfer": 0.158,
+        "std_transfer": 0.1288,
+        "ci": {
+          "mean": 0.158,
+          "low": 0.104843,
+          "high": 0.211157,
+          "half_width": 0.053157,
+          "std": 0.128771,
+          "n": 25,
+          "confidence": 0.95
+        },
+        "n_jobs": 25,
+        "arenas": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "diversity": {
+          "n_arenas": 5,
+          "n_unique": 3,
+          "unique_fraction": 0.6,
+          "per_param_std": {
+            "difficulty": 0.0,
+            "platform_width": 1.095445,
+            "gravity": 0.0,
+            "knockback": 0.547723,
+            "spawn_gap": 0.547723
+          },
+          "mean_param_std": 0.438178,
+          "collapsed": false
+        },
+        "generation": {
+          "total": 5,
+          "invalid": 0,
+          "clamped": 0
+        },
+        "per_job": [
+          {
+            "arena_index": 0,
+            "seed": 1,
+            "held_out_improvement": 0.0167,
+            "before": 0.1222,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 0,
+            "seed": 2,
+            "held_out_improvement": 0.2667,
+            "before": 0.0167,
+            "after": 0.2833,
+            "train_arena_winrate": 0.1667
+          },
+          {
+            "arena_index": 0,
+            "seed": 3,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 0,
+            "seed": 4,
+            "held_out_improvement": 0.1722,
+            "before": 0.0944,
+            "after": 0.2667,
+            "train_arena_winrate": 0.0833
+          },
+          {
+            "arena_index": 0,
+            "seed": 5,
+            "held_out_improvement": 0.0944,
+            "before": 0.0,
+            "after": 0.0944,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 1,
+            "held_out_improvement": 0.0556,
+            "before": 0.1222,
+            "after": 0.1778,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 2,
+            "held_out_improvement": 0.1833,
+            "before": 0.0167,
+            "after": 0.2,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 3,
+            "held_out_improvement": 0.1389,
+            "before": 0.0,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 4,
+            "held_out_improvement": 0.0444,
+            "before": 0.0944,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 1,
+            "seed": 5,
+            "held_out_improvement": 0.45,
+            "before": 0.0,
+            "after": 0.45,
+            "train_arena_winrate": 0.25
+          },
+          {
+            "arena_index": 2,
+            "seed": 1,
+            "held_out_improvement": 0.0167,
+            "before": 0.1222,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 2,
+            "held_out_improvement": 0.2667,
+            "before": 0.0167,
+            "after": 0.2833,
+            "train_arena_winrate": 0.1667
+          },
+          {
+            "arena_index": 2,
+            "seed": 3,
+            "held_out_improvement": 0.1222,
+            "before": 0.0,
+            "after": 0.1222,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 2,
+            "seed": 4,
+            "held_out_improvement": 0.1722,
+            "before": 0.0944,
+            "after": 0.2667,
+            "train_arena_winrate": 0.0833
+          },
+          {
+            "arena_index": 2,
+            "seed": 5,
+            "held_out_improvement": 0.0944,
+            "before": 0.0,
+            "after": 0.0944,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 1,
+            "held_out_improvement": 0.0167,
+            "before": 0.1222,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 2,
+            "held_out_improvement": 0.2556,
+            "before": 0.0167,
+            "after": 0.2722,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 3,
+            "held_out_improvement": 0.4056,
+            "before": 0.0,
+            "after": 0.4056,
+            "train_arena_winrate": 0.3333
+          },
+          {
+            "arena_index": 3,
+            "seed": 4,
+            "held_out_improvement": 0.0444,
+            "before": 0.0944,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 3,
+            "seed": 5,
+            "held_out_improvement": 0.1389,
+            "before": 0.0,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 1,
+            "held_out_improvement": 0.0556,
+            "before": 0.1222,
+            "after": 0.1778,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 2,
+            "held_out_improvement": 0.1833,
+            "before": 0.0167,
+            "after": 0.2,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 3,
+            "held_out_improvement": 0.1389,
+            "before": 0.0,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 4,
+            "held_out_improvement": 0.0444,
+            "before": 0.0944,
+            "after": 0.1389,
+            "train_arena_winrate": 0.0
+          },
+          {
+            "arena_index": 4,
+            "seed": 5,
+            "held_out_improvement": 0.45,
+            "before": 0.0,
+            "after": 0.45,
+            "train_arena_winrate": 0.25
+          }
+        ]
+      }
+    ],
+    "per_game": [
+      {
+        "game": "fighter",
+        "role": "teacher",
+        "base_mean": 0.17,
+        "trained_mean": 0.158,
+        "delta": -0.012
+      }
+    ],
+    "json_validation": {
+      "total": 10,
+      "clamped": 0,
+      "clamp_fraction": 0.0
+    },
+    "base_mean_transfer": 0.17,
+    "trained_mean_transfer": 0.158,
+    "trained_beats_base": false,
+    "delta": -0.012,
+    "anti_gaming": {
+      "passed": false,
+      "any_failed": true,
+      "checks": [
+        {
+          "name": "reward_up_but_no_transfer",
+          "passed": false,
+          "severity": "fail",
+          "value": -0.012,
+          "threshold": 0.0,
+          "detail": "held-out transfer trained(+0.1580) <= base(+0.1700)"
+        },
+        {
+          "name": "arena_collapse",
+          "passed": true,
+          "severity": "fail",
+          "value": 3.0,
+          "threshold": 2.0,
+          "detail": "trained Teacher emitted 3/5 unique arena configs"
+        },
+        {
+          "name": "excessive_clamping",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.1,
+          "detail": "invalid/clamped JSON fraction 0.0% (limit 10%)"
+        },
+        {
+          "name": "seed_noise_dominates",
+          "passed": false,
+          "severity": "fail",
+          "value": 0.1288,
+          "threshold": 0.012,
+          "detail": "seed std 0.1288 > |mean improvement| 0.0120"
+        },
+        {
+          "name": "train_game_only",
+          "passed": true,
+          "severity": "skip",
+          "value": null,
+          "threshold": null,
+          "detail": "no held-out probe games were run (check skipped)"
+        },
+        {
+          "name": "same_model",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "base and trained resolved to distinct models: base=modal:Qwen/Qwen3-4B trained=modal:Qwen/Qwen3-4B+update15"
+        }
+      ],
+      "failed": [
+        "reward_up_but_no_transfer",
+        "seed_noise_dominates"
+      ]
+    },
+    "overall_pass": false,
+    "hud_traces": [],
+    "replays": []
+  },
+  "trained_student_win_rate": 0.107813,
+  "base_student_win_rate": 0.032813,
+  "mean_paired_advantage": 0.075,
+  "ci_lower_bound": -0.088191,
+  "replays": [
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 0,
+      "side": "trained_as_P0",
+      "outcome": "trained_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_trained_win_trained_as_P0.json"
+    },
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 1,
+      "side": "trained_as_P0",
+      "outcome": "draw",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P0.json"
+    },
+    {
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.4
+      },
+      "match_seed": 0,
+      "side": "trained_as_P1",
+      "outcome": "draw",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P1.json"
+    }
+  ],
+  "cross_game_koth": {
+    "metric": "primary_student_vs_student_head_to_head",
+    "game": "koth",
+    "n_replicates": 4,
+    "curriculum_arenas_per_teacher": 3,
+    "n_held_out_arenas": 8,
+    "match_seeds_per_arena_per_side": 16,
+    "held_out_arenas": [
+      {
+        "platform_width": 9.0,
+        "zone_half": 1.0,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 9.0,
+        "zone_half": 1.0,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.65
+      },
+      {
+        "platform_width": 16.0,
+        "zone_half": 2.2,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 16.0,
+        "zone_half": 2.2,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.65
+      },
+      {
+        "platform_width": 12.0,
+        "zone_half": 1.4,
+        "zone_center_frac": 0.68,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 12.0,
+        "zone_half": 1.4,
+        "zone_center_frac": 0.68,
+        "difficulty": 0.65
+      },
+      {
+        "platform_width": 13.0,
+        "zone_half": 0.8,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 13.0,
+        "zone_half": 0.8,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.65
+      }
+    ],
+    "trained_student_win_rate": 0.261719,
+    "base_student_win_rate": 0.347656,
+    "draw_rate": 0.390625,
+    "mean_paired_advantage": -0.085938,
+    "ci_t": {
+      "mean": -0.085938,
+      "low": -0.296632,
+      "high": 0.124757,
+      "half_width": 0.210695,
+      "std": 0.132429,
+      "n": 4,
+      "confidence": 0.95
+    },
+    "ci_bootstrap": {
+      "mean": -0.085938,
+      "low": -0.212891,
+      "high": -0.003906,
+      "half_width": 0.104492,
+      "std": 0.132429,
+      "n": 4,
+      "confidence": 0.95
+    },
+    "ci_lower_bound": -0.296632,
+    "effect_size_cohens_d": -0.6489,
+    "trained_win_rate_as_p0": 0.277344,
+    "trained_win_rate_as_p1": 0.246094,
+    "per_arena_family_advantage": {
+      "koth_tight": -0.140625,
+      "koth_wide": -0.015625,
+      "koth_offcentre": -0.09375,
+      "koth_pinhole": -0.09375
+    },
+    "held_out_overlap_total": 0,
+    "anti_circularity": {
+      "passed": false,
+      "any_failed": true,
+      "checks": [
+        {
+          "name": "ci_lower_above_zero",
+          "passed": false,
+          "severity": "fail",
+          "value": -0.296632,
+          "threshold": 0.0,
+          "detail": "paired-advantage mean -0.0859, 95% CI lower bound -0.2966 <= 0"
+        },
+        {
+          "name": "no_side_bias",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.03125,
+          "threshold": 0.25,
+          "detail": "trained win-rate P0=0.2773 P1=0.2461 (gap 0.0312, limit 0.25)"
+        },
+        {
+          "name": "multi_arena_benefit",
+          "passed": false,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 2.0,
+          "detail": "trained Student ahead on 0/4 arena families (need >1)"
+        },
+        {
+          "name": "distinct_students",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "base and trained Students have distinct policy weights: base=f8e9389ae2c164d0 trained=bc88a396886eda83"
+        },
+        {
+          "name": "disjoint_held_out",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "0 held-out arena(s) overlap a Teacher's curriculum (must be 0 \u2014 no training-on-the-test)"
+        },
+        {
+          "name": "enough_replicates",
+          "passed": true,
+          "severity": "fail",
+          "value": 4.0,
+          "threshold": 2.0,
+          "detail": "4 independent curriculum replicate(s) (need >1 for a curriculum-level CI)"
+        }
+      ],
+      "failed": [
+        "ci_lower_above_zero",
+        "multi_arena_benefit"
+      ],
+      "warnings": []
+    },
+    "primary_pass": false,
+    "wall_clock_s": 208.62,
+    "replicates": [
+      {
+        "replicate": 0,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "zone_half": 3.784,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          }
+        ],
+        "base_student_checksum": "f8e9389ae2c164d0",
+        "trained_student_checksum": "bc88a396886eda83",
+        "base_student_train_winrate": 0.1667,
+        "trained_student_train_winrate": 0.5,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.265625,
+        "base_win_rate": 0.265625,
+        "draw_rate": 0.46875,
+        "paired_advantage": 0.0,
+        "n_matches": 256,
+        "per_family_advantage": {
+          "koth_tight": 0.0,
+          "koth_wide": 0.0,
+          "koth_offcentre": 0.0,
+          "koth_pinhole": 0.0
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      },
+      {
+        "replicate": 1,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "zone_half": 3.784,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          }
+        ],
+        "base_student_checksum": "747b0cca5a735d21",
+        "trained_student_checksum": "90fe54547a2c359d",
+        "base_student_train_winrate": 0.25,
+        "trained_student_train_winrate": 0.5,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.304688,
+        "base_win_rate": 0.3125,
+        "draw_rate": 0.382812,
+        "paired_advantage": -0.007812,
+        "n_matches": 256,
+        "per_family_advantage": {
+          "koth_tight": -0.03125,
+          "koth_wide": 0.0,
+          "koth_offcentre": 0.0,
+          "koth_pinhole": 0.0
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      },
+      {
+        "replicate": 2,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "zone_half": 3.784,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          }
+        ],
+        "base_student_checksum": "a936363a0dc5b7dc",
+        "trained_student_checksum": "7ab25060a9889e0b",
+        "base_student_train_winrate": 0.1667,
+        "trained_student_train_winrate": 0.5556,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.210938,
+        "base_win_rate": 0.492188,
+        "draw_rate": 0.296875,
+        "paired_advantage": -0.28125,
+        "n_matches": 256,
+        "per_family_advantage": {
+          "koth_tight": -0.4375,
+          "koth_wide": -0.0625,
+          "koth_offcentre": -0.34375,
+          "koth_pinhole": -0.28125
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      },
+      {
+        "replicate": 3,
+        "base_curriculum": [
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "zone_half": 2.491,
+            "zone_center_frac": 0.626
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 20.0,
+            "zone_half": 3.784,
+            "zone_center_frac": 0.572
+          },
+          {
+            "difficulty": 0.4,
+            "platform_width": 18.0,
+            "zone_half": 3.406,
+            "zone_center_frac": 0.572
+          }
+        ],
+        "base_student_checksum": "46a6dd665b569e5b",
+        "trained_student_checksum": "a37d03bd01740a2f",
+        "base_student_train_winrate": 0.1667,
+        "trained_student_train_winrate": 0.5,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.265625,
+        "base_win_rate": 0.320312,
+        "draw_rate": 0.414062,
+        "paired_advantage": -0.054688,
+        "n_matches": 256,
+        "per_family_advantage": {
+          "koth_tight": -0.09375,
+          "koth_wide": 0.0,
+          "koth_offcentre": -0.03125,
+          "koth_pinhole": -0.09375
+        },
+        "replays": [],
+        "clamp": {
+          "base": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 3,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      }
+    ],
+    "replays": [],
+    "label": "cross_game_generalization",
+    "supported": true,
+    "mapping": "fighter-schema -> KOTH zone geometry (koth_adapter mapping)",
+    "difficulty_clamp": {
+      "range": [
+        0.15,
+        0.8
+      ],
+      "reason": "KOTH difficulty->hardness is only monotone in [0.15, 0.80]: outside it a high-d arena re-trivializes (scripted win-rate climbs back toward 1.0). The clamp caps mapped difficulty into the band; a gentler zone_half shrink (slope 0.35, floor 0.12*width) removes the residual in-band re-easing on small maps. Keeps the 'hard' signal honest.",
+      "base": {
+        "range": [
+          0.15,
+          0.8
+        ],
+        "n_arenas_total": 12,
+        "n_clamped": 0,
+        "clamped": []
+      },
+      "trained": {
+        "range": [
+          0.15,
+          0.8
+        ],
+        "n_arenas_total": 12,
+        "n_clamped": 0,
+        "clamped": []
+      }
+    }
+  }
+}

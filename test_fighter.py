@@ -63,6 +63,36 @@ def test_on_platform_is_safe():
     assert sim.f0.alive
 
 
+def test_timeout_remains_draw_by_default_for_nested_reward_compatibility():
+    sim = FighterSim(arena=FighterArena(max_steps=1), seed=0)
+    sim.hits = [3, 0]
+    sim.steps = 1
+    sim._resolve_outcome()
+    assert sim.done
+    assert sim.winner is None
+
+
+def test_stage6_decisive_timeout_prefers_landed_hits():
+    sim = FighterSim(
+        arena=FighterArena(max_steps=1, decisive_timeout=True),
+        seed=0,
+    )
+    sim.hits = [1, 0]
+    sim.steps = 1
+    sim._resolve_outcome()
+    assert sim.done
+    assert sim.winner == 0
+
+
+def test_ppo_defaults_preserve_validated_nested_reward_objective():
+    from harness.ppo_trainer import PPOPlayerTrainer
+
+    trainer = PPOPlayerTrainer()
+    assert trainer._ent_coef == 0.0
+    assert trainer._min_timesteps == 4_000
+    assert trainer._anti_camping_reward is False
+
+
 def test_punch_knockback_can_ring_out_opponent():
     # Put the defender at the edge, attacker in range facing it, punch once.
     arena = FighterArena(platform_width=10.0, knockback=3.0, punch_range=2.0)

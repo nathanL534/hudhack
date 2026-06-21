@@ -1,0 +1,367 @@
+[
+  {
+    "step": 0,
+    "tag": "base",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.104,
+          0.104,
+          0.2324,
+          0.104,
+          0.1293,
+          0.104,
+          0.1049,
+          0.104,
+          0.104,
+          0.124,
+          0.1173,
+          0.104
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1197,
+        "reward_std": 0.0351,
+        "advantages": [
+          -0.4465,
+          -0.4465,
+          3.2142,
+          -0.4465,
+          0.2755,
+          -0.4465,
+          -0.4212,
+          -0.4465,
+          -0.4465,
+          0.1235,
+          -0.0665,
+          -0.4465
+        ],
+        "params": [
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 0.65,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.5,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
+          }
+        ],
+        "completions_preview": [
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 6.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+          "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 6.0\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.6208,
+          "difficulty_std": 0.038,
+          "difficulty_unique": 3,
+          "knob_std": {
+            "difficulty": 0.038,
+            "gravity": 0.0,
+            "knockback": 0.1382,
+            "platform_width": 1.118,
+            "spawn_gap": 0.3727
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.1533,
+          0.1667,
+          0.1622,
+          0.1556,
+          0.1556,
+          0.0689,
+          0.0556,
+          0.1556,
+          0.1956,
+          0.1622,
+          0.1667,
+          0.1956
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1495,
+        "reward_std": 0.0414,
+        "advantages": [
+          0.0925,
+          0.4159,
+          0.3073,
+          0.148,
+          0.148,
+          -1.9443,
+          -2.2652,
+          0.148,
+          1.1133,
+          0.3073,
+          0.4159,
+          1.1133
+        ],
+        "params": [
+          {
+            "difficulty": 0.6,
+            "platform_width": 16.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.65,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.65,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.5,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.65,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.5,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 14.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.65,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.6,
+            "platform_width": 14.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 14.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 14.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.6167,
+          "difficulty_std": 0.0236,
+          "difficulty_unique": 2,
+          "knob_std": {
+            "difficulty": 0.0236,
+            "gravity": 0.0,
+            "knockback": 0.1863,
+            "platform_width": 0.986,
+            "spawn_gap": 0.0,
+            "zone_center_frac": 0.0,
+            "zone_half": 0.0
+          }
+        }
+      }
+    },
+    "score_wall_s": 169.1,
+    "train_seeds": {
+      "ring_out": [
+        101,
+        102,
+        103
+      ],
+      "target_knockback": [
+        1000101,
+        1000102,
+        1000103
+      ]
+    }
+  }
+]

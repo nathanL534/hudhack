@@ -31,7 +31,8 @@ class EvalConfig:
     # -- generation (prompt + sampling) — identical for both Teachers ---------
     temperature: float = 0.8
     # -- PPO budget for each fresh Player ------------------------------------
-    ppo_episodes: int = 1000
+    # Larger budget is scoped to Stage-6 evaluation students only.
+    ppo_episodes: int = 1500
     eval_seeds: int = 50
     architecture: str = "mlp"
     # -- experiment shape -----------------------------------------------------

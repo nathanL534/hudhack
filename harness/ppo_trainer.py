@@ -86,16 +86,19 @@ class _MultiArenaFighterEnv(gym.Env):
 
     metadata = {"render_modes": []}
 
-    def __init__(self, arenas: list[FighterArena], seed: int):
+    def __init__(self, arenas: list[FighterArena], seed: int,
+                 anti_camping_reward: bool = False):
         super().__init__()
         assert arenas, "need at least one arena to train on"
         self._arenas = arenas
         self._rng = np.random.default_rng(seed)
         self._seed = seed
+        self._anti_camping_reward = anti_camping_reward
         self._inner = FighterEnv(
             arenas[0],
             opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=seed),
             seed=seed,
+            anti_camping_reward=anti_camping_reward,
         )
         self.action_space = self._inner.action_space
         self.observation_space = self._inner.observation_space
@@ -111,6 +114,7 @@ class _MultiArenaFighterEnv(gym.Env):
             arena,
             opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=ep_seed),
             seed=ep_seed,
+            anti_camping_reward=self._anti_camping_reward,
         )
         return self._inner.reset(seed=seed, options=options)
 
@@ -157,9 +161,14 @@ class _PPOTrainingJob(TrainingJob):
 class PPOPlayerTrainer(PlayerTrainer):
     """Real PlayerTrainer: trains a small MLP via SB3 PPO vs the scripted opponent."""
 
-    def __init__(self, *, eval_seeds: int = 25, verbose: int = 0):
+    def __init__(self, *, eval_seeds: int = 25, verbose: int = 0,
+                 ent_coef: float = 0.0, min_timesteps: int = _MIN_TIMESTEPS,
+                 anti_camping_reward: bool = False):
         self._eval_seeds = eval_seeds
         self._verbose = verbose
+        self._ent_coef = ent_coef
+        self._min_timesteps = min_timesteps
+        self._anti_camping_reward = anti_camping_reward
 
     def submit(self, config: PlayerConfig, arenas: list[Arena]) -> TrainingJob:
         if config.modal_parallel:
@@ -178,9 +187,15 @@ class PPOPlayerTrainer(PlayerTrainer):
 
         fighter_arenas = [_arena_of(h) for h in arenas]
         curriculum_id = _curriculum_id_of(arenas)
-        total_timesteps = max(_MIN_TIMESTEPS, config.budget.episodes * _STEPS_PER_EPISODE)
+        total_timesteps = max(
+            self._min_timesteps, config.budget.episodes * _STEPS_PER_EPISODE
+        )
 
-        env = _MultiArenaFighterEnv(fighter_arenas, seed=config.seed)
+        env = _MultiArenaFighterEnv(
+            fighter_arenas,
+            seed=config.seed,
+            anti_camping_reward=self._anti_camping_reward,
+        )
         model = PPO(
             "MlpPolicy",
             env,
@@ -193,6 +208,7 @@ class PPOPlayerTrainer(PlayerTrainer):
             n_epochs=4,
             gamma=0.99,
             learning_rate=3e-4,
+            ent_coef=self._ent_coef,
             device="cpu",
         )
         model.learn(total_timesteps=total_timesteps, progress_bar=False)
