@@ -22,3 +22,5 @@ output/dry_loop/
 
 # Claude Code agent worktrees (embedded git repos) + machine-local state — never commit
 .claude/
+# Target-Knockback dry-loop sidecar cache (regenerated every run)
+output/tk_dry_loop/

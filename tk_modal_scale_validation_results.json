@@ -1,0 +1,412 @@
+{
+  "experiment": "tk_modal_scale_validation",
+  "worker": {
+    "app": "crucible-player-tk",
+    "function": "train_tk_player"
+  },
+  "grid": {
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "difficulties": [
+      0.45,
+      0.5,
+      0.55,
+      0.6
+    ],
+    "n_jobs": 48,
+    "ppo_episodes": 2000,
+    "eval_seeds": 50
+  },
+  "wall_clock_seconds": 261.9651908874512,
+  "per_difficulty": {
+    "0.45": {
+      "difficulty": 0.45,
+      "n_seeds": 12,
+      "per_seed": [
+        {
+          "seed": 1,
+          "before_winrate": 0.36,
+          "after_winrate": 0.98,
+          "improvement": 0.62
+        },
+        {
+          "seed": 2,
+          "before_winrate": 0.48,
+          "after_winrate": 0.88,
+          "improvement": 0.4
+        },
+        {
+          "seed": 3,
+          "before_winrate": 0.88,
+          "after_winrate": 0.5,
+          "improvement": -0.38
+        },
+        {
+          "seed": 4,
+          "before_winrate": 0.78,
+          "after_winrate": 0.6,
+          "improvement": -0.18000000000000005
+        },
+        {
+          "seed": 5,
+          "before_winrate": 0.74,
+          "after_winrate": 0.56,
+          "improvement": -0.17999999999999994
+        },
+        {
+          "seed": 6,
+          "before_winrate": 0.5,
+          "after_winrate": 0.42,
+          "improvement": -0.08000000000000002
+        },
+        {
+          "seed": 7,
+          "before_winrate": 0.52,
+          "after_winrate": 1.0,
+          "improvement": 0.48
+        },
+        {
+          "seed": 8,
+          "before_winrate": 0.54,
+          "after_winrate": 0.46,
+          "improvement": -0.08000000000000002
+        },
+        {
+          "seed": 9,
+          "before_winrate": 0.68,
+          "after_winrate": 0.74,
+          "improvement": 0.05999999999999994
+        },
+        {
+          "seed": 10,
+          "before_winrate": 0.76,
+          "after_winrate": 0.86,
+          "improvement": 0.09999999999999998
+        },
+        {
+          "seed": 11,
+          "before_winrate": 0.6,
+          "after_winrate": 0.92,
+          "improvement": 0.32000000000000006
+        },
+        {
+          "seed": 12,
+          "before_winrate": 0.56,
+          "after_winrate": 0.72,
+          "improvement": 0.15999999999999992
+        }
+      ],
+      "before_mean": 0.6166666666666667,
+      "before_std": 0.15155756981984428,
+      "after_mean": 0.72,
+      "after_std": 0.2083702997506646,
+      "improvement_mean": 0.10333333333333332,
+      "improvement_std": 0.30305515049644716,
+      "n_positive": 7,
+      "robustness": {
+        "mean_clears_sem": true,
+        "sem": 0.08748448635921316,
+        "majority_improved": true,
+        "training_stabilizes": false,
+        "robust": true
+      }
+    },
+    "0.5": {
+      "difficulty": 0.5,
+      "n_seeds": 12,
+      "per_seed": [
+        {
+          "seed": 1,
+          "before_winrate": 0.28,
+          "after_winrate": 0.6,
+          "improvement": 0.31999999999999995
+        },
+        {
+          "seed": 2,
+          "before_winrate": 0.36,
+          "after_winrate": 0.48,
+          "improvement": 0.12
+        },
+        {
+          "seed": 3,
+          "before_winrate": 0.78,
+          "after_winrate": 0.5,
+          "improvement": -0.28
+        },
+        {
+          "seed": 4,
+          "before_winrate": 0.66,
+          "after_winrate": 0.52,
+          "improvement": -0.14
+        },
+        {
+          "seed": 5,
+          "before_winrate": 0.7,
+          "after_winrate": 0.66,
+          "improvement": -0.039999999999999925
+        },
+        {
+          "seed": 6,
+          "before_winrate": 0.38,
+          "after_winrate": 0.78,
+          "improvement": 0.4
+        },
+        {
+          "seed": 7,
+          "before_winrate": 0.46,
+          "after_winrate": 0.92,
+          "improvement": 0.46
+        },
+        {
+          "seed": 8,
+          "before_winrate": 0.34,
+          "after_winrate": 0.56,
+          "improvement": 0.22000000000000003
+        },
+        {
+          "seed": 9,
+          "before_winrate": 0.64,
+          "after_winrate": 0.54,
+          "improvement": -0.09999999999999998
+        },
+        {
+          "seed": 10,
+          "before_winrate": 0.6,
+          "after_winrate": 0.76,
+          "improvement": 0.16000000000000003
+        },
+        {
+          "seed": 11,
+          "before_winrate": 0.6,
+          "after_winrate": 0.54,
+          "improvement": -0.05999999999999994
+        },
+        {
+          "seed": 12,
+          "before_winrate": 0.54,
+          "after_winrate": 0.94,
+          "improvement": 0.3999999999999999
+        }
+      ],
+      "before_mean": 0.5283333333333333,
+      "before_std": 0.16101006932562453,
+      "after_mean": 0.65,
+      "after_std": 0.16214471650630213,
+      "improvement_mean": 0.12166666666666667,
+      "improvement_std": 0.2445713628271951,
+      "n_positive": 7,
+      "robustness": {
+        "mean_clears_sem": true,
+        "sem": 0.07060167108217737,
+        "majority_improved": true,
+        "training_stabilizes": false,
+        "robust": true
+      }
+    },
+    "0.55": {
+      "difficulty": 0.55,
+      "n_seeds": 12,
+      "per_seed": [
+        {
+          "seed": 1,
+          "before_winrate": 0.24,
+          "after_winrate": 0.5,
+          "improvement": 0.26
+        },
+        {
+          "seed": 2,
+          "before_winrate": 0.16,
+          "after_winrate": 0.68,
+          "improvement": 0.52
+        },
+        {
+          "seed": 3,
+          "before_winrate": 0.48,
+          "after_winrate": 0.56,
+          "improvement": 0.08000000000000007
+        },
+        {
+          "seed": 4,
+          "before_winrate": 0.54,
+          "after_winrate": 0.58,
+          "improvement": 0.039999999999999925
+        },
+        {
+          "seed": 5,
+          "before_winrate": 0.64,
+          "after_winrate": 0.42,
+          "improvement": -0.22000000000000003
+        },
+        {
+          "seed": 6,
+          "before_winrate": 0.26,
+          "after_winrate": 0.56,
+          "improvement": 0.30000000000000004
+        },
+        {
+          "seed": 7,
+          "before_winrate": 0.36,
+          "after_winrate": 0.38,
+          "improvement": 0.020000000000000018
+        },
+        {
+          "seed": 8,
+          "before_winrate": 0.1,
+          "after_winrate": 0.56,
+          "improvement": 0.4600000000000001
+        },
+        {
+          "seed": 9,
+          "before_winrate": 0.5,
+          "after_winrate": 0.7,
+          "improvement": 0.19999999999999996
+        },
+        {
+          "seed": 10,
+          "before_winrate": 0.38,
+          "after_winrate": 0.46,
+          "improvement": 0.08000000000000002
+        },
+        {
+          "seed": 11,
+          "before_winrate": 0.36,
+          "after_winrate": 0.5,
+          "improvement": 0.14
+        },
+        {
+          "seed": 12,
+          "before_winrate": 0.48,
+          "after_winrate": 0.52,
+          "improvement": 0.040000000000000036
+        }
+      ],
+      "before_mean": 0.375,
+      "before_std": 0.1620605947281336,
+      "after_mean": 0.535,
+      "after_std": 0.09424339861135199,
+      "improvement_mean": 0.16,
+      "improvement_std": 0.20378241515712964,
+      "n_positive": 11,
+      "robustness": {
+        "mean_clears_sem": true,
+        "sem": 0.058826916123540435,
+        "majority_improved": true,
+        "training_stabilizes": true,
+        "robust": true
+      }
+    },
+    "0.6": {
+      "difficulty": 0.6,
+      "n_seeds": 12,
+      "per_seed": [
+        {
+          "seed": 1,
+          "before_winrate": 0.14,
+          "after_winrate": 0.0,
+          "improvement": -0.14
+        },
+        {
+          "seed": 2,
+          "before_winrate": 0.1,
+          "after_winrate": 0.14,
+          "improvement": 0.04000000000000001
+        },
+        {
+          "seed": 3,
+          "before_winrate": 0.28,
+          "after_winrate": 0.16,
+          "improvement": -0.12000000000000002
+        },
+        {
+          "seed": 4,
+          "before_winrate": 0.16,
+          "after_winrate": 0.24,
+          "improvement": 0.07999999999999999
+        },
+        {
+          "seed": 5,
+          "before_winrate": 0.38,
+          "after_winrate": 0.28,
+          "improvement": -0.09999999999999998
+        },
+        {
+          "seed": 6,
+          "before_winrate": 0.16,
+          "after_winrate": 0.26,
+          "improvement": 0.1
+        },
+        {
+          "seed": 7,
+          "before_winrate": 0.22,
+          "after_winrate": 0.28,
+          "improvement": 0.060000000000000026
+        },
+        {
+          "seed": 8,
+          "before_winrate": 0.0,
+          "after_winrate": 0.2,
+          "improvement": 0.2
+        },
+        {
+          "seed": 9,
+          "before_winrate": 0.12,
+          "after_winrate": 0.12,
+          "improvement": 0.0
+        },
+        {
+          "seed": 10,
+          "before_winrate": 0.24,
+          "after_winrate": 0.34,
+          "improvement": 0.10000000000000003
+        },
+        {
+          "seed": 11,
+          "before_winrate": 0.16,
+          "after_winrate": 0.16,
+          "improvement": 0.0
+        },
+        {
+          "seed": 12,
+          "before_winrate": 0.16,
+          "after_winrate": 0.24,
+          "improvement": 0.07999999999999999
+        }
+      ],
+      "before_mean": 0.17666666666666667,
+      "before_std": 0.09566355184455129,
+      "after_mean": 0.20166666666666666,
+      "after_std": 0.09163498074954618,
+      "improvement_mean": 0.025000000000000005,
+      "improvement_std": 0.10202495238465398,
+      "n_positive": 7,
+      "robustness": {
+        "mean_clears_sem": false,
+        "sem": 0.029452066861669363,
+        "majority_improved": true,
+        "training_stabilizes": true,
+        "robust": false
+      }
+    }
+  },
+  "best_learnable_difficulty": 0.55,
+  "after_winrate_stabilizer_bands": 2,
+  "any_band_robust": true,
+  "best_band_robust": true,
+  "verdict": "ROBUST: TK reliably improves a Player at scale. Best learnable band is d=0.55 (improvement mean=+0.160 std=0.204, 11/12 seeds improved). Clean enough to include TK in the 2-game RFT.",
+  "replay_paths": [
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.claude/worktrees/agent-a7e455812f3cc1623/replays/tk_modal_trained_scale_d0.5_seed1.json",
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.claude/worktrees/agent-a7e455812f3cc1623/replays/tk_modal_trained_scale_d0.55_seed1.json"
+  ]
+}

@@ -21,5 +21,10 @@
   "sweep_scripted_vs_d060.json",
   "sweep_scripted_vs_d080.json",
   "sweep_scripted_vs_d100.json",
+  "tk-dry-loop_a0.json",
+  "tk_dryrun_tk-dryrun-1782038995.json",
+  "tk_modal_trained_d05_seed1.json",
+  "tk_modal_trained_scale_d0.55_seed1.json",
+  "tk_modal_trained_scale_d0.5_seed1.json",
   "trained_vs_scripted.json"
 ]

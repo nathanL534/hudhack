@@ -1,0 +1,3038 @@
+{
+  "meta": {
+    "game": "ring-out-duel",
+    "config": "d0.5",
+    "winner": "p1",
+    "frames": 201,
+    "p1_policy": "modal_trained_ppo_tk",
+    "p2_policy": "parametric_target_knockback",
+    "seed": 1,
+    "schema": 1
+  },
+  "platform": {
+    "x_left": 0.0,
+    "x_right": 10.0,
+    "y": 0.0
+  },
+  "frames": [
+    {
+      "p1": {
+        "x": 9.204,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 8.854,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 8.504,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 8.154,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 2.2,
+        "facing": 1,
+        "action": "jump"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.804,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 3.8,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.804,
+        "y": 2.2,
+        "facing": -1,
+        "action": "jump"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 4.8,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.804,
+        "y": 3.8,
+        "facing": 1,
+        "action": "jump"
+      },
+      "p2": {
+        "x": 7.9303,
+        "y": 5.2,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.804,
+        "y": 4.8,
+        "facing": 1,
+        "action": "jump"
+      },
+      "p2": {
+        "x": 7.9303,
+        "y": 5.0,
+        "facing": -1,
+        "action": "punch"
+      },
+      "events": [
+        "p2_punch"
+      ]
+    },
+    {
+      "p1": {
+        "x": 7.804,
+        "y": 5.2,
+        "facing": 1,
+        "action": "jump"
+      },
+      "p2": {
+        "x": 8.2803,
+        "y": 4.2,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 5.304,
+        "y": 5.0,
+        "facing": 1,
+        "action": "jump"
+      },
+      "p2": {
+        "x": 8.2803,
+        "y": 2.8,
+        "facing": -1,
+        "action": "punch"
+      },
+      "events": [
+        "p2_punch"
+      ]
+    },
+    {
+      "p1": {
+        "x": 5.304,
+        "y": 4.2,
+        "facing": 1,
+        "action": "jump"
+      },
+      "p2": {
+        "x": 7.9303,
+        "y": 0.8,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 4.954,
+        "y": 2.8,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 4.604,
+        "y": 0.8,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.9303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 4.254,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 3.904,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.9303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 3.554,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 3.204,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 2.854,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 2.504,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 2.154,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 1.804,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 1.454,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 1.104,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.754,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.404,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.4803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.054,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.4803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.5803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 7.2303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.8303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.8803,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1803,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 0.0,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.5303,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    }
+  ]
+}
