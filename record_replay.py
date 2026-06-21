@@ -31,7 +31,7 @@ from games.fighter import (
     random_policy,
     scripted_fighter,
 )
-from replay import ReplayBuilder, validate_replay
+from replay import ReplayBuilder, action_name, validate_replay
 
 # Matched to prove_ppo_learns.py / inspect_policy.py CONFIG_A so a recorded
 # trained net is the same arena the Stage-1 milestone trains on.
@@ -75,6 +75,102 @@ def record_match(
         builder.capture(sim, a0, a1)
 
     return builder.to_dict(sim.winner)
+
+
+def record_match_koth(
+    arena,
+    policy_a,
+    policy_b,
+    *,
+    config: str,
+    p1_policy: str,
+    p2_policy: str,
+    seed: int = 0,
+) -> dict:
+    """Roll out one King-of-the-Hill match and return a viewer-compatible replay.
+
+    The same recorder contract as ``record_match`` (one frame per tick, frame 0 =
+    spawn), but driven by ``games.koth.KothSim`` instead of ``FighterSim``. KOTH has
+    no ring-out — the winner is whoever banks the most zone-time over the full step
+    budget — so the per-frame body state is captured directly (x/y/facing/action,
+    identical schema to the fighter) and the match-deciding TARGET ZONE is carried in
+    ``meta.zone`` AND ``meta.game = "koth"`` so the viewer can draw the hill the two
+    Students are fighting to control. The frame schema is byte-identical to the
+    fighter replay, so the existing viewer animates the bodies unchanged and only
+    needs to ADD the zone overlay.
+
+    ``policy_a`` drives player 0 (p1); ``policy_b`` drives player 1 (p2). Reuses the
+    shared ``Action`` action-name table and the same x/y/facing fields the fighter
+    recorder writes, so a KOTH replay is a strict superset of the fighter schema.
+    """
+    from games.koth import KothSim
+
+    sim = KothSim(arena=arena, seed=seed)
+    frames: list[dict] = []
+
+    def _body_dict(body, action: int) -> dict:
+        return {
+            "x": round(float(body.x), 4),
+            "y": round(float(body.y), 4),
+            "facing": int(body.facing),
+            "action": action_name(action),
+        }
+
+    def _capture(a0: int, a1: int) -> None:
+        events: list[str] = []
+        if int(a0) == int(Action.PUNCH):
+            events.append("p1_punch")
+        if int(a1) == int(Action.PUNCH):
+            events.append("p2_punch")
+        frames.append({
+            "p1": _body_dict(sim.f0, a0),
+            "p2": _body_dict(sim.f1, a1),
+            "events": events,
+            # Per-frame zone occupancy + banked zone-time so the viewer can show
+            # who is holding the hill at any scrub position (purely additive).
+            "p1_in_zone": bool(arena.in_zone(sim.f0)),
+            "p2_in_zone": bool(arena.in_zone(sim.f1)),
+            "zone_time": [int(sim.zone_time0), int(sim.zone_time1)],
+        })
+
+    # Frame 0: the spawn, before anyone has acted.
+    _capture(int(Action.IDLE), int(Action.IDLE))
+    while not sim.done:
+        a0 = int(policy_a(sim.observe(ego=0)))
+        a1 = int(policy_b(sim.observe(ego=1)))
+        sim.step(a0, a1)
+        _capture(a0, a1)
+
+    winner_label = {0: "p1", 1: "p2", None: "draw"}[sim.winner]
+    return {
+        "meta": {
+            "game": "koth",
+            "config": config,
+            "winner": winner_label,
+            "frames": len(frames),
+            "p1_policy": p1_policy,
+            "p2_policy": p2_policy,
+            "seed": seed,
+            "schema": 1,
+            # The TARGET ZONE geometry (the hill) in the SAME sim-x space as the
+            # platform, so the viewer maps it straight onto the canvas. This is the
+            # one thing KOTH adds over the fighter replay.
+            "zone": {
+                "center": round(float(arena.zone_center), 4),
+                "half": round(float(arena.zone_half), 4),
+                "lo": round(float(arena.zone_lo), 4),
+                "hi": round(float(arena.zone_hi), 4),
+                "center_frac": round(float(arena.zone_center_frac), 4),
+            },
+            "zone_time_final": [int(sim.zone_time0), int(sim.zone_time1)],
+        },
+        "platform": {
+            "x_left": 0.0,
+            "x_right": round(float(arena.platform_width), 4),
+            "y": 0.0,
+        },
+        "frames": frames,
+    }
 
 
 def _write(name: str, data: dict) -> Path:

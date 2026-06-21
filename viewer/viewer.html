@@ -104,6 +104,7 @@
     </div>
 
     <div class="meta">
+      <span><b>game</b> <span id="mGame">–</span></span>
       <span><b>config</b> <span id="mConfig">–</span></span>
       <span><b>p1</b> <span class="swatch" style="background:var(--p1)"></span><span class="p1c" id="mP1">–</span> · action <b id="aP1">–</b></span>
       <span><b>p2</b> <span class="swatch" style="background:var(--p2)"></span><span class="p2c" id="mP2">–</span> · action <b id="aP2">–</b></span>
@@ -329,6 +330,7 @@ function setReplay(data) {
   scrub.max = data.frames.length - 1;
   scrub.value = 0;
   const m = data.meta || {};
+  $("mGame").textContent = m.game ?? "ring-out-duel";
   $("mConfig").textContent = m.config ?? "?";
   $("mP1").textContent = m.p1_policy ?? "p1";
   $("mP2").textContent = m.p2_policy ?? "p2";
@@ -503,6 +505,99 @@ function drawStage(plat, geo, t) {
   ctx.fillRect(0, groundY + bodyH, W, H - groundY - bodyH);
 }
 
+// ============================================================================
+// KOTH TARGET ZONE — the "hill" the two Students fight to control.
+//   Resolve the zone geometry from the replay (KOTH traces carry it; fighter
+//   traces do not, so this returns null and the overlay is skipped). The zone is
+//   drawn ON the platform, beneath the fighters, as a glowing capture band with a
+//   centre flag — so a KOTH replay reads as King-of-the-Hill, not a plain duel.
+//   Coordinates are the SAME sim-x space as the platform, mapped via geo.sx.
+// ============================================================================
+function zoneGeometry(data, plat) {
+  if (!data) return null;
+  const meta = data.meta || {};
+  const isKoth = (meta.game === "koth" || meta.game === "king-of-the-hill");
+  // Accept several shapes: meta.zone {center,half|lo,hi}, or top-level zone_* fields.
+  let z = meta.zone || data.zone || null;
+  let lo, hi, center;
+  if (z && typeof z === "object") {
+    if (z.lo != null && z.hi != null) { lo = +z.lo; hi = +z.hi; }
+    else if (z.center != null && z.half != null) { lo = +z.center - +z.half; hi = +z.center + +z.half; }
+    else if (z.center_frac != null && z.half != null) {
+      const c = +z.center_frac * (plat.x_right - plat.x_left) + plat.x_left;
+      lo = c - +z.half; hi = c + +z.half;
+    }
+  } else if (data.zone_center != null && data.zone_half != null) {
+    lo = +data.zone_center - +data.zone_half; hi = +data.zone_center + +data.zone_half;
+  } else if (meta.zone_center != null && meta.zone_half != null) {
+    lo = +meta.zone_center - +meta.zone_half; hi = +meta.zone_center + +meta.zone_half;
+  }
+  // Only draw when this is a KOTH trace OR explicit zone fields are present.
+  if (lo == null || hi == null || !isFinite(lo) || !isFinite(hi)) return null;
+  if (!isKoth && !z && data.zone_center == null && meta.zone_center == null) return null;
+  center = (lo + hi) / 2;
+  return { lo, hi, center };
+}
+
+function drawZone(plat, geo, data, t) {
+  const zg = zoneGeometry(data, plat);
+  if (!zg) return;
+  const { sx, groundY } = geo;
+  const topH = 12;                 // matches the grass-cap thickness in drawStage
+  const zL = sx(zg.lo), zR = sx(zg.hi);
+  const zW = Math.max(2, zR - zL);
+  const capY = groundY - topH;     // top of the platform grass
+
+  const pulse = 0.5 + 0.3 * (0.5 + 0.5 * Math.sin(t * 2.2));
+
+  ctx.save();
+  // --- capture band on the platform surface (gold "hill" zone) ---
+  const band = ctx.createLinearGradient(0, capY - 60, 0, groundY + 6);
+  band.addColorStop(0, "rgba(255,210,90,0)");
+  band.addColorStop(0.72, "rgba(255,196,64," + (0.16 * pulse).toFixed(3) + ")");
+  band.addColorStop(1, "rgba(255,176,40," + (0.34 * pulse).toFixed(3) + ")");
+  ctx.fillStyle = band;
+  ctx.fillRect(zL, capY - 60, zW, 60 + topH + 6);
+
+  // bright contact line where the zone meets the grass
+  ctx.fillStyle = "rgba(255,224,120," + (0.85 * pulse).toFixed(3) + ")";
+  ctx.fillRect(zL, capY - 1, zW, 3);
+
+  // zone boundary posts (the edges of the hill)
+  ctx.strokeStyle = "rgba(255,210,90," + (0.7 * pulse).toFixed(3) + ")";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 4]);
+  for (const ex of [zL, zR]) {
+    ctx.beginPath();
+    ctx.moveTo(ex, capY - 54);
+    ctx.lineTo(ex, groundY + 2);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // --- centre flag (marks the hill) ---
+  const cX = sx(zg.center);
+  const poleTop = capY - 50;
+  ctx.strokeStyle = "#ffe9a8";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cX, capY); ctx.lineTo(cX, poleTop); ctx.stroke();
+  const flutter = 3 * Math.sin(t * 4 + 1);
+  ctx.fillStyle = "#ffcf3f";
+  ctx.beginPath();
+  ctx.moveTo(cX, poleTop);
+  ctx.lineTo(cX + 18, poleTop + 5 + flutter);
+  ctx.lineTo(cX, poleTop + 12);
+  ctx.closePath(); ctx.fill();
+
+  // --- label so the viewer reads as King-of-the-Hill ---
+  ctx.fillStyle = "rgba(255,233,168,0.92)";
+  ctx.font = "600 12px ui-sans-serif, system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("HILL", cX, poleTop - 6);
+  ctx.restore();
+}
+
 function cloud(x, y, r) {
   ctx.beginPath();
   ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
@@ -603,6 +698,10 @@ function render() {
   // --- layered, animated stage ---
   drawStage(plat, geo, animClock);
 
+  // --- KOTH target zone (the hill) drawn ON the platform, beneath the fighters.
+  //     No-op for fighter traces (no zone) so the fighter view is unchanged. ---
+  drawZone(plat, geo, replay, animClock);
+
   // interpolated bodies for smooth motion
   const b1 = interpBody("p1", sub);
   const b2 = interpBody("p2", sub);
@@ -630,13 +729,20 @@ function render() {
 
   // --- end banner ---
   if (last) {
-    const w = (replay.meta && replay.meta.winner) || "draw";
+    const meta = replay.meta || {};
+    const w = meta.winner || "draw";
+    const isKoth = (meta.game === "koth" || meta.game === "king-of-the-hill");
     banner.style.display = "block";
     if (w === "draw") {
-      banner.textContent = "Draw — no ring-out within the step budget.";
+      banner.textContent = isKoth
+        ? "Draw — zone-time tied at the step budget."
+        : "Draw — no ring-out within the step budget.";
       banner.style.background = "#1c1f12"; banner.style.borderColor = "#5a4a1f";
     } else {
-      banner.textContent = "Winner: " + w.toUpperCase();
+      const zt = meta.zone_time_final;
+      const heldBy = (isKoth && Array.isArray(zt))
+        ? "  (held the hill " + zt[w === "p1" ? 0 : 1] + " ticks)" : "";
+      banner.textContent = (isKoth ? "Hill held by: " : "Winner: ") + w.toUpperCase() + heldBy;
       banner.style.background = "#11210f"; banner.style.borderColor = "#1f5a23";
     }
   } else {
