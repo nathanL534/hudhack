@@ -16,8 +16,12 @@ Deploy with::
 
 What it mirrors (from ``modal_player.py``):
   * ``train_player_transfer`` -> ``train_tk_player``: train one fresh PPO Player on the
-    payload's arena, score held-out before/after, return the improvement.
+    Teacher's payload arena, score before/after on the FIXED held-out reference set,
+    return the transfer improvement.
   * ``_real_ppo_transfer_result`` -> ``_real_ppo_tk_result``: the shared body.
+  * ``_held_out_reference_arenas`` -> ``_held_out_reference_tk_arenas``: the FIXED,
+    arena-independent held-out reference set (the anti-degeneracy yardstick — the
+    validated d=0.55 learnable band at default TK geometry).
   * ``_capture_trained_replay`` -> ``_capture_trained_tk_replay``: roll out ONE trained
     match and return a viewer-shaped replay dict (it does NOT write to disk; the local
     driver writes the returned dict, keeping the worker filesystem-free).
@@ -34,10 +38,11 @@ unchanged)::
       "curriculum_id": str,
       "arena_scores": [after_winrate],   # held-out AFTER win-rate (the contract score)
       "mean_score": after_winrate,
-      "before_winrate": float,           # untrained-net held-out win-rate
-      "after_winrate": float,            # trained held-out win-rate
-      "improvement": float,              # after - before  (the REAL PPO learning signal)
-      "difficulty": float,
+      "before_winrate": float,           # untrained-net win-rate on the FIXED reference
+      "after_winrate": float,            # trained win-rate on the FIXED reference
+      "improvement": float,              # mean(after_ref) - mean(before_ref) (TRANSFER)
+      "held_out_difficulties": [...],    # the fixed reference difficulties measured on
+      "difficulty": float,               # the TEACHER's emitted training-arena difficulty
       "status": "ppo_tk",
       "replay": {...}                    # only if payload["capture_replay_id"] is set
     }
@@ -52,6 +57,46 @@ try:
     import modal
 except ImportError:  # pragma: no cover - optional integration
     modal = None
+
+
+# ---------------------------------------------------------------------------
+# THE FIXED HELD-OUT REFERENCE TEST SET (the anti-degeneracy fix)
+# ---------------------------------------------------------------------------
+#
+# CRITICAL DESIGN POINT — the TK twin of modal_player.HELD_OUT_REFERENCE_DIFFICULTIES.
+# The nested-RL Teacher reward = how much a Player IMPROVES after training on the
+# Teacher's generated arena. If improvement is measured on the (Teacher-chosen,
+# possibly trivial) TRAINING arena, an EASY arena maxes the reward: the Player starts
+# low and trivially climbs on its own easy arena, so the Teacher games the reward by
+# emitting trivial arenas (e.g. d~0.1) that show big IN-DISTRIBUTION improvement with
+# no real transfer. That is the degeneracy a falsifier found here.
+#
+# Fix: before/after improvement is ALWAYS measured on this FIXED, arena-independent
+# held-out reference set — a couple of STANDARD reference difficulties at DEFAULT TK
+# geometry that sit in the validated LEARNABLE BAND (where a Player has real headroom).
+# The Teacher cannot move this target; it can only generate a TRAINING arena, and the
+# reward is the *transfer* of that training to the standard benchmark. A trivial
+# training arena teaches nothing that transfers; a genuinely good (learnable-band)
+# training arena teaches transferable skill -> higher reward. Same number for every
+# arena, so it is a fair, non-gameable yardstick.
+#
+# The band is taken straight from tk_modal_scale_validation_results.json: d=0.55 is the
+# clean learnable band (improvement mean +0.160, std 0.204, 11/12 seeds improved,
+# training_stabilizes=True). d=0.5 and d=0.6 bracket it (both majority_improved) for a
+# small, stable reference set, mirroring how the fighter uses a couple of reference
+# difficulties. Zone dials (zone_half, zone_center_frac) are held at sensible fixed
+# defaults so the reference geometry is stable and Teacher-independent.
+HELD_OUT_REFERENCE_TK_DIFFICULTIES: tuple[float, ...] = (0.5, 0.55, 0.6)
+
+# Fixed default geometry for the reference arenas. These are the TargetKnockbackArena
+# defaults (platform_width=10.0, zone_half=1.5, zone_center_frac=0.5) — the SAME
+# geometry the d=0.55 scale validation ran at, so the held-out reference reproduces the
+# validated learnable band exactly. Stated explicitly here (rather than reusing the
+# Teacher's emitted geometry) so the reference is a fixed yardstick the Teacher cannot
+# move by widening/narrowing its zone.
+HELD_OUT_REFERENCE_PLATFORM_WIDTH: float = 10.0
+HELD_OUT_REFERENCE_ZONE_HALF: float = 1.5
+HELD_OUT_REFERENCE_ZONE_CENTER_FRAC: float = 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -146,26 +191,84 @@ def _make_policy_from_model(model):
 
 
 # ---------------------------------------------------------------------------
+# The FIXED held-out reference arenas (the anti-degeneracy yardstick)
+# ---------------------------------------------------------------------------
+
+
+def _held_out_reference_tk_arenas(payload: dict):
+    """Build the FIXED held-out TK reference arenas (the standard benchmark).
+
+    These are INDEPENDENT of the Teacher's training arena in ``payload`` — the same
+    fixed set for every Teacher arena under evaluation, so improvement-on-them measures
+    TRANSFER to a yardstick the Teacher cannot move. Mirrors the fighter's
+    ``_held_out_reference_arenas``.
+
+    Two layers, in priority order (so a caller can opt into a custom set, but the
+    DEFAULT is the validated learnable band):
+
+      1. ``held_out_tk_arenas`` — a list of FULL arena-spec dicts (each may carry
+         ``difficulty`` plus the TK geometry dials ``platform_width`` / ``zone_half`` /
+         ``zone_center_frac``; missing knobs fall back to TargetKnockbackArena
+         defaults). Layered behind this explicit key so it changes nothing unless a
+         caller opts in.
+      2. ``held_out_difficulties`` (or the module DEFAULT
+         ``HELD_OUT_REFERENCE_TK_DIFFICULTIES``) — difficulty-only arenas at the FIXED
+         default reference geometry. This is the standard, non-gameable yardstick: the
+         validated d=0.55 learnable band (bracketed by d=0.5/0.6) at default geometry.
+    """
+    from games.target_knockback import TargetKnockbackArena
+
+    specs = payload.get("held_out_tk_arenas")
+    if specs:
+        defaults = TargetKnockbackArena()
+        return [
+            TargetKnockbackArena(
+                platform_width=float(s.get("platform_width", defaults.platform_width)),
+                zone_half=float(s.get("zone_half", defaults.zone_half)),
+                zone_center_frac=float(s.get("zone_center_frac", defaults.zone_center_frac)),
+                difficulty=float(s.get("difficulty", defaults.difficulty)),
+            )
+            for s in specs
+        ]
+
+    diffs = payload.get("held_out_difficulties", HELD_OUT_REFERENCE_TK_DIFFICULTIES)
+    return [
+        TargetKnockbackArena(
+            platform_width=HELD_OUT_REFERENCE_PLATFORM_WIDTH,
+            zone_half=HELD_OUT_REFERENCE_ZONE_HALF,
+            zone_center_frac=HELD_OUT_REFERENCE_ZONE_CENTER_FRAC,
+            difficulty=float(d),
+        )
+        for d in diffs
+    ]
+
+
+# ---------------------------------------------------------------------------
 # The shared body — train one PPO Player, measure held-out before/after.
 # ---------------------------------------------------------------------------
 
 
 def _real_ppo_tk_result(payload: dict, seed: int) -> dict:
-    """Train ONE real PPO Player on the payload's TK arena and measure its learning.
+    """Train ONE real PPO Player on the Teacher arena, measure HELD-OUT TRANSFER.
 
-    Body shared by the Modal worker and the local fallback. Reproduces the
-    ``prove_target_knockback_learns.py`` before/after protocol for a single arena and a
-    single seed, scored through ``TargetKnockbackGameAdapter.evaluate`` (the SAME path
-    the scripted/random references use, so the number is directly comparable):
+    Body shared by the Modal worker and the local fallback. The nested-RL TK reward
+    signal. The Player is TRAINED on the Teacher-generated ``payload`` arena (whatever
+    difficulty/geometry the Teacher emitted), but its before/after win-rate is measured
+    on the FIXED held-out reference set (``_held_out_reference_tk_arenas``), NOT on the
+    training arena. That decoupling is what removes the easy-arena degeneracy: an EASY
+    training arena (e.g. d~0.1) shows big IN-DISTRIBUTION improvement but its policy does
+    NOT transfer to the learnable-band reference, so it can no longer game the reward.
 
-      * BEFORE  — an untrained PPO net (identical architecture) scored on a HELD-OUT
-                  arena of the same config (the adapter's fixed eval-seed set).
-      * AFTER   — train the Player (SB3 PPO, short budget) on the arena, then score the
-                  trained policy on the same held-out arena.
-      * improvement = AFTER - BEFORE  (the real PPO learning signal).
+      * BEFORE  — an untrained PPO net (identical architecture) scored on the FIXED
+                  held-out reference set (the validated d=0.55 learnable band).
+      * AFTER   — train the Player (SB3 PPO, short budget) on the TEACHER arena, then
+                  score the trained policy on the SAME fixed held-out reference set.
+      * improvement = mean(after_ref) - mean(before_ref)  (the TRANSFER learning signal).
 
-    Supports an optional ``capture_replay_id``: if set, roll out ONE trained-Player
-    held-out match and attach a viewer-shaped replay dict.
+    All scoring goes through ``TargetKnockbackGameAdapter.evaluate`` (the SAME path the
+    scripted/random references use, so the number is directly comparable). Supports an
+    optional ``capture_replay_id``: if set, roll out ONE trained-Player held-out match
+    (on the first reference arena) and attach a viewer-shaped replay dict.
     """
     import os
     import warnings
@@ -185,25 +288,28 @@ def _real_ppo_tk_result(payload: dict, seed: int) -> dict:
     min_timesteps = 4_000
     total_timesteps = max(min_timesteps, episodes * steps_per_episode)
 
+    # TRAIN on the Teacher's emitted arena ...
     arena = _tk_arena_from_payload(payload)
-    # Held-out arena = same config family; the adapter scores over its fixed eval-seed
-    # set, which the trainer never sees (training draws its own per-episode seeds).
-    held_out = type(arena)(
-        platform_width=arena.platform_width,
-        zone_half=arena.zone_half,
-        zone_center_frac=arena.zone_center_frac,
-        difficulty=arena.difficulty,
-    )
+    # ... but MEASURE on the FIXED held-out reference set, independent of the training
+    # arena. This is the anti-degeneracy fix: the Teacher cannot move this target, so the
+    # reward reflects transfer, not in-distribution improvement on a trivial arena.
+    held_out_arenas = _held_out_reference_tk_arenas(payload)
 
     cid = payload.get("curriculum_id", "modal-tk")
     adapter = TargetKnockbackGameAdapter(eval_seeds=eval_seeds)
-    held = adapter.arenas_from_configs([held_out], curriculum_id=f"{cid}-heldout")
+    held = adapter.arenas_from_configs(held_out_arenas, curriculum_id=f"{cid}-heldout")
 
     def _label_score(bundle: dict) -> float:
         (entry,) = bundle.values()
         return float(entry["mean_score"])
 
-    # BEFORE: untrained net (random-init, no learning), same architecture, on held-out.
+    def _per_arena(bundle: dict) -> list[float]:
+        (entry,) = bundle.values()
+        return [float(s) for s in entry["per_arena"]]
+
+    # BEFORE: untrained net (random-init, no learning), same architecture, on the FIXED
+    # held-out reference set. The env is built on the TRAINING arena (it only seeds the
+    # net's observation/action spaces; no learning happens), matching the fighter.
     before_env = _make_tk_env(arena, seed)
     before_model = PPO(
         "MlpPolicy",
@@ -214,9 +320,12 @@ def _real_ppo_tk_result(payload: dict, seed: int) -> dict:
         device="cpu",
     )
     before_policy = _make_policy_from_model(before_model)
-    before_winrate = _label_score(adapter.evaluate(before_policy, held))
+    before_bundle = adapter.evaluate(before_policy, held)
+    before_winrate = _label_score(before_bundle)
+    before_per_arena = _per_arena(before_bundle)
 
-    # AFTER: train, then score the trained policy on held-out.
+    # AFTER: train on the TEACHER arena, then score the trained policy on the SAME fixed
+    # held-out reference set.
     train_env = _make_tk_env(arena, seed)
     after_model = PPO(
         "MlpPolicy",
@@ -234,27 +343,39 @@ def _real_ppo_tk_result(payload: dict, seed: int) -> dict:
     )
     after_model.learn(total_timesteps=total_timesteps, progress_bar=False)
     after_policy = _make_policy_from_model(after_model)
-    after_winrate = _label_score(adapter.evaluate(after_policy, held))
+    after_bundle = adapter.evaluate(after_policy, held)
+    after_winrate = _label_score(after_bundle)
+    after_per_arena = _per_arena(after_bundle)
 
     improvement = after_winrate - before_winrate
     result = {
         "seed": int(seed),
         "curriculum_id": cid,
+        # The CONTRACT score for this row is the held-out AFTER win-rate (so anything
+        # built from this carries the transfer signal, not the training-arena number).
         "arena_scores": [float(after_winrate)],
         "mean_score": float(after_winrate),
         "before_winrate": float(before_winrate),
         "after_winrate": float(after_winrate),
         "improvement": float(improvement),
+        # Held-out diagnostics (mirror the fighter's transfer worker), so the run log
+        # SHOWS the reward came from the fixed reference set, not the training arena.
+        "held_out_difficulties": [float(a.difficulty) for a in held_out_arenas],
+        "held_out_before_per_arena": before_per_arena,
+        "held_out_after_per_arena": after_per_arena,
+        # ``difficulty`` still reports the TRAINING arena's difficulty (what the Teacher
+        # emitted), so the run log shows which arena was generated.
         "difficulty": float(arena.difficulty),
         "status": "ppo_tk",
     }
 
-    # Optional replay capture: roll out ONE held-out match of the trained Player and
-    # persist a viewer-ready replay dict (the worker returns it; the driver writes it).
+    # Optional replay capture: roll out ONE held-out match of the trained Player on the
+    # first reference arena and persist a viewer-ready replay dict (the worker returns
+    # it; the driver writes it).
     replay_id = payload.get("capture_replay_id")
     if replay_id:
         result["replay"] = _capture_trained_tk_replay(
-            after_policy, held_out, replay_id=str(replay_id), seed=int(seed)
+            after_policy, held_out_arenas[0], replay_id=str(replay_id), seed=int(seed)
         )
 
     return result
@@ -333,9 +454,10 @@ if modal is not None:  # pragma: no branch
     def train_tk_player(payload: dict, seed: int) -> dict:
         """REAL remote PPO Player training on a Target-Knockback arena (no stub).
 
-        Trains a fresh SB3 PPO Player on the payload's TK arena (difficulty + zone
-        geometry), scores held-out before/after, and returns the learning improvement
-        in the SAME schema the fighter worker returns. With ``capture_replay_id`` set,
-        also returns one trained-Player TK replay.
+        The nested-RL Teacher reward worker: trains a fresh SB3 PPO Player on the
+        Teacher's payload TK arena (difficulty + zone geometry), measures before/after
+        win-rate on the FIXED held-out reference set (NOT the training arena), and
+        returns the transfer improvement in the SAME schema the fighter worker returns.
+        With ``capture_replay_id`` set, also returns one trained-Player TK replay.
         """
         return _real_ppo_tk_result(payload, seed)

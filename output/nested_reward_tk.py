@@ -16,14 +16,21 @@ WHY A SEPARATE MODULE (not a flag on nested_reward.teacher_reward):
     explicit isolation requirement: a live Ring-Out RFT and a TK RFT can run at the
     same time and neither module imports the other's worker.
   * The fighter's broad held-out grid (output/broad_eval_set.py) is fighter-shaped.
-    TK's held-out reference is the SAME arena family the worker already trains/scores
-    against (the worker builds its own held-out arena from the payload), so TK does
-    not need a separate broad-population file to be load-bearing — the worker's
-    before/after IS the held-out transfer signal validated at scale
-    (tk_modal_scale_validation_results.json: d=0.55 is the clean learnable band).
+    TK's held-out reference is a small FIXED set of standard reference arenas the
+    worker builds INDEPENDENTLY of the Teacher's training arena
+    (modal_player_tk._held_out_reference_tk_arenas: the validated d=0.55 learnable band
+    at default geometry, bracketed by d=0.5/0.6). The Player TRAINS on the Teacher's
+    arena but is MEASURED before/after on that fixed reference — so the worker's
+    before/after IS a true HELD-OUT TRANSFER signal, not in-distribution improvement on
+    a (possibly trivial) Teacher arena. This is the anti-degeneracy fix the fighter's
+    HELD_OUT_REFERENCE_DIFFICULTIES gives the Ring-Out reward: an easy training arena
+    (d~0.1) can no longer game the reward, because its policy does not transfer to the
+    learnable-band reference (tk_modal_scale_validation_results.json: d=0.55 is the
+    clean learnable band).
 
-The reward THIS module returns is the SAME number the TK scale validation measured,
-so the integrated round-trip's reward is directly comparable to the d=0.55 band.
+The reward THIS module returns is the held-out transfer of the Teacher's arena to the
+fixed d~0.55 reference band, so it is directly comparable to the d=0.55 scale-validation
+result when the Teacher emits a learnable-band arena.
 
 Run from repo root (.venv has modal + sb3):
 
