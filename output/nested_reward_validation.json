@@ -1,0 +1,177 @@
+{
+  "backend": "modal",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "episodes": 1200,
+  "eval_seeds": 50,
+  "held_out_reference_difficulties": [
+    0.75,
+    0.85
+  ],
+  "wall_clock_s": 519.53,
+  "candidates": [
+    {
+      "candidate_id": "val-00",
+      "difficulty": 0.1,
+      "map_size": 10,
+      "label": "trivial",
+      "note": "very easy opponent (self-edging); the Player trivially wins its own arena but learns little that transfers to the turtle-active references",
+      "reward": 0.0467,
+      "held_out_improvement": 0.0467,
+      "held_out_before": 0.0067,
+      "held_out_after": 0.0533,
+      "train_arena_winrate": 0.9767,
+      "per_seed_improvement": [
+        0.01,
+        0.0,
+        0.17,
+        0.12,
+        0.0,
+        -0.02
+      ],
+      "replays": []
+    },
+    {
+      "candidate_id": "val-01",
+      "difficulty": 0.3,
+      "map_size": 10,
+      "label": "good",
+      "note": "learnable band (calibrated peak): the Player learns transferable skill -> strongest held-out transfer",
+      "reward": 0.2517,
+      "held_out_improvement": 0.2517,
+      "held_out_before": 0.0067,
+      "held_out_after": 0.2583,
+      "train_arena_winrate": 0.6833,
+      "per_seed_improvement": [
+        0.54,
+        0.21,
+        0.02,
+        0.12,
+        0.6,
+        0.02
+      ],
+      "replays": [
+        "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+        "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+        "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+        "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+        "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+        "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json"
+      ]
+    },
+    {
+      "candidate_id": "val-02",
+      "difficulty": 0.5,
+      "map_size": 10,
+      "label": "good",
+      "note": "learnable band: solid transferable skill",
+      "reward": 0.2733,
+      "held_out_improvement": 0.2733,
+      "held_out_before": 0.0067,
+      "held_out_after": 0.28,
+      "train_arena_winrate": 0.52,
+      "per_seed_improvement": [
+        0.95,
+        0.15,
+        0.02,
+        0.52,
+        0.02,
+        -0.02
+      ],
+      "replays": []
+    },
+    {
+      "candidate_id": "val-03",
+      "difficulty": 0.7,
+      "map_size": 10,
+      "label": "good",
+      "note": "upper learnable band: a second transfer mode (timing a partly-engaged turtle)",
+      "reward": 0.0583,
+      "held_out_improvement": 0.0583,
+      "held_out_before": 0.0067,
+      "held_out_after": 0.065,
+      "train_arena_winrate": 0.1533,
+      "per_seed_improvement": [
+        0.03,
+        0.12,
+        0.09,
+        0.0,
+        0.08,
+        0.03
+      ],
+      "replays": []
+    },
+    {
+      "candidate_id": "val-04",
+      "difficulty": 0.85,
+      "map_size": 10,
+      "label": "impossible",
+      "note": "turtle reliably forces draws; the Player can't learn a win here -> ~0 transfer",
+      "reward": 0.0067,
+      "held_out_improvement": 0.0067,
+      "held_out_before": 0.0067,
+      "held_out_after": 0.0133,
+      "train_arena_winrate": 0.0,
+      "per_seed_improvement": [
+        0.01,
+        0.01,
+        0.0,
+        0.0,
+        0.03,
+        -0.01
+      ],
+      "replays": []
+    },
+    {
+      "candidate_id": "val-05",
+      "difficulty": 0.95,
+      "map_size": 10,
+      "label": "impossible",
+      "note": "undefeatable turtle: almost all draws, nothing to learn -> ~0 transfer",
+      "reward": 0.0133,
+      "held_out_improvement": 0.0133,
+      "held_out_before": 0.0067,
+      "held_out_after": 0.02,
+      "train_arena_winrate": 0.0,
+      "per_seed_improvement": [
+        0.03,
+        0.02,
+        0.03,
+        -0.01,
+        0.01,
+        0.0
+      ],
+      "replays": []
+    }
+  ],
+  "mean_reward_good": 0.1944,
+  "mean_reward_impossible": 0.01,
+  "highest_reward_arena": {
+    "difficulty": 0.5,
+    "label": "good",
+    "reward": 0.2733
+  },
+  "easiest_arena": {
+    "difficulty": 0.1,
+    "label": "trivial",
+    "reward": 0.0467
+  },
+  "best_is_good": true,
+  "good_beats_impossible": true,
+  "easiest_is_not_best": true,
+  "degeneracy_fixed": true,
+  "replays_written": [
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json",
+    "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/modal_trained_val-01-d0.3_a0.json"
+  ]
+}

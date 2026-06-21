@@ -48,6 +48,45 @@ except ImportError:  # pragma: no cover - optional integration
 
 
 # ---------------------------------------------------------------------------
+# THE FIXED HELD-OUT REFERENCE TEST SET (the anti-degeneracy fix)
+# ---------------------------------------------------------------------------
+#
+# CRITICAL DESIGN POINT. The nested-RL Teacher reward = how much a Player IMPROVES
+# after training on the Teacher's generated arena. If improvement is measured on
+# the (Teacher-chosen, possibly trivial) TRAINING arena, an EASY arena maxes the
+# reward — the Player starts low and trivially climbs, so the Teacher games the
+# reward by emitting trivial arenas (the degeneracy we observed: d=0.2 gives
+# +0.267 "improvement" on its own easy arena).
+#
+# Fix: before/after improvement is ALWAYS measured on this FIXED, arena-independent
+# held-out reference set — a couple of STANDARD reference difficulties at default
+# geometry that sit in/near the learnable band (where a Player has real headroom).
+# The Teacher cannot move this target; it can only generate a TRAINING arena, and
+# the reward is the *transfer* of that training to the standard benchmark. A
+# trivial training arena teaches nothing that transfers; a genuinely good training
+# arena teaches transferable skill -> higher reward. Same number for every arena,
+# so it is a fair, non-gameable yardstick.
+#
+# Two reference difficulties (d=0.75, d=0.85) sit in the TURTLE-ACTIVE zone of the
+# difficulty->win-rate curve (difficulty_sweep_results.json: the jump_turtle
+# opponent is engaging, scripted still wins ~0.85 so there IS headroom, but only a
+# Player that learned to time/bait a DODGING opponent scores — basic
+# approach-and-punch draws). This band is calibrated against the degeneracy (the
+# whole point): training arenas trivial/good/hard/impossible were each trained at
+# the real budget and their TRANSFER to candidate reference sets measured. At an
+# EASY reference (0.4-0.6), a TRIVIAL training arena's basic approach-and-punch
+# policy (which trains to ~1.0 win-rate on its own easy arena) ALREADY transfers
+# and maxes the reward — the degeneracy is back. At these turtle-active references
+# the trivial-arena policy CANNOT transfer (it never faced a turtle, +0.05/+0.20),
+# while a learnable-band arena (d~0.65) transfers real skill (+0.36) — the highest
+# reward, and NOT the easiest arena. An IMPOSSIBLE arena (undefeatable turtle)
+# teaches nothing transferable (+0.00). So good > trivial > impossible, and the
+# easy arena does NOT max the reward. Default geometry -> a stable, arena-
+# independent yardstick the Teacher cannot move.
+HELD_OUT_REFERENCE_DIFFICULTIES: tuple[float, ...] = (0.75, 0.85)
+
+
+# ---------------------------------------------------------------------------
 # Payload -> FighterArena (the arena under test)
 # ---------------------------------------------------------------------------
 
@@ -172,6 +211,186 @@ def local_worker(payload: dict, seed: int) -> dict:
     return _real_ppo_result(payload, seed)
 
 
+# ---------------------------------------------------------------------------
+# HELD-OUT TRANSFER worker — the nested-RL Teacher reward signal
+# ---------------------------------------------------------------------------
+
+
+def _held_out_reference_arenas(payload: dict):
+    """Build the FIXED held-out reference arenas (the standard benchmark).
+
+    These are INDEPENDENT of the training arena in ``payload`` — the same fixed
+    set for every Teacher arena under evaluation, so improvement-on-them measures
+    transfer to a yardstick the Teacher cannot move. Default fighter geometry; the
+    difficulties come from ``HELD_OUT_REFERENCE_DIFFICULTIES`` (overridable via the
+    payload for experiments, but the DEFAULT is fixed and that is the point).
+    """
+    from games.fighter import FighterArena
+
+    diffs = payload.get("held_out_difficulties", HELD_OUT_REFERENCE_DIFFICULTIES)
+    return [FighterArena(difficulty=float(d)) for d in diffs]
+
+
+def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
+    """Train ONE real PPO Player on the Teacher arena, measure HELD-OUT TRANSFER.
+
+    The nested-RL reward signal. Identical PPO training to ``_real_ppo_result``
+    (SB3 PPO, short budget, on the Teacher-generated ``payload`` arena vs the
+    difficulty-scaled parametric opponent), but the BEFORE/AFTER win-rate is
+    scored on the FIXED held-out reference set (``_held_out_reference_arenas``),
+    NOT on the training arena. That decoupling is what removes the easy-arena
+    degeneracy: the Teacher trains the Player wherever it likes, but is graded on
+    how much that training transfers to a standard benchmark it cannot game.
+
+      * BEFORE — an untrained PPO net (identical architecture) scored on the fixed
+                 held-out reference set.
+      * AFTER  — train the Player on the Teacher arena, score the trained policy
+                 on the SAME fixed held-out reference set.
+      * held_out_improvement = AFTER - BEFORE  (the transfer learning signal).
+
+    All scoring goes through ``FighterGameAdapter.evaluate`` (the reference path).
+    """
+    import warnings
+
+    warnings.filterwarnings("ignore")
+
+    from contracts import PlayerConfig, TrainingBudget
+    from harness.fighter_adapter import FighterGameAdapter
+    from harness.ppo_trainer import (
+        PPOPlayerTrainer,
+        _MultiArenaFighterEnv,
+        _make_policy_from_model,
+    )
+
+    episodes = int(payload.get("ppo_episodes", 1000))
+    eval_seeds = int(payload.get("eval_seeds", 50))
+
+    train_arena = _arena_from_payload(payload)
+    held_out_arenas = _held_out_reference_arenas(payload)
+
+    adapter = FighterGameAdapter(eval_seeds=eval_seeds)
+    cid = payload.get("curriculum_id", "modal")
+    held = adapter.arenas_from_configs(held_out_arenas, curriculum_id=f"{cid}-heldout")
+    train_arenas = adapter.arenas_from_configs([train_arena], curriculum_id=cid)
+
+    def _label_score(bundle: dict) -> float:
+        (entry,) = bundle.values()
+        return float(entry["mean_score"])
+
+    def _per_arena(bundle: dict) -> list[float]:
+        (entry,) = bundle.values()
+        return [float(s) for s in entry["per_arena"]]
+
+    # BEFORE: untrained net on the FIXED held-out reference set.
+    from stable_baselines3 import PPO
+
+    before_env = _MultiArenaFighterEnv([train_arena], seed=seed)
+    before_model = PPO(
+        "MlpPolicy",
+        before_env,
+        seed=seed,
+        verbose=0,
+        policy_kwargs={"net_arch": [64, 64]},
+        device="cpu",
+    )
+    before_policy = _make_policy_from_model(before_model)
+    before_bundle = adapter.evaluate(before_policy, held)
+    before_winrate = _label_score(before_bundle)
+    before_per_arena = _per_arena(before_bundle)
+
+    # AFTER: train on the Teacher arena, then score on the SAME held-out set.
+    trainer = PPOPlayerTrainer(eval_seeds=eval_seeds)
+    config = PlayerConfig(
+        architecture=str(payload.get("architecture", "mlp")),
+        num_seeds=1,
+        budget=TrainingBudget(episodes=episodes),
+        seed=int(seed),
+        modal_parallel=False,  # we ARE the remote worker; train in-container.
+    )
+    job = trainer.submit(config, train_arenas)
+    train_result = job.result()  # in-distribution MatchResult (training-arena win-rate)
+    after_bundle = adapter.evaluate(job.policy, held)
+    after_winrate = _label_score(after_bundle)
+    after_per_arena = _per_arena(after_bundle)
+
+    held_out_improvement = after_winrate - before_winrate
+
+    result = {
+        "seed": int(seed),
+        "curriculum_id": cid,
+        # The CONTRACT score for this row is the held-out AFTER win-rate (so a
+        # MatchResult built from this carries the transfer signal, not the
+        # training-arena number).
+        "arena_scores": [float(after_winrate)],
+        "mean_score": float(after_winrate),
+        "before_winrate": float(before_winrate),
+        "after_winrate": float(after_winrate),
+        "held_out_improvement": float(held_out_improvement),
+        # Keep ``improvement`` as an alias so the fan-out plumbing that reads
+        # ``improvement`` (modal_fanout / proxy_sweep) sees the HELD-OUT number.
+        "improvement": float(held_out_improvement),
+        "held_out_difficulties": [float(a.difficulty) for a in held_out_arenas],
+        "held_out_before_per_arena": before_per_arena,
+        "held_out_after_per_arena": after_per_arena,
+        # Diagnostic: how the Player did on its OWN (training) arena, to SHOW the
+        # degeneracy is gone — easy training arenas score high in-distribution but
+        # transfer little to the held-out set.
+        "train_arena_winrate": float(train_result.mean_score),
+        "difficulty": float(train_arena.difficulty),
+        "status": "ppo_transfer",
+    }
+
+    # Optional replay capture: roll out ONE held-out match of the trained Player
+    # and persist it so the viewer can play the actual Modal-trained fighter.
+    replay_id = payload.get("capture_replay_id")
+    if replay_id:
+        result["replay"] = _capture_trained_replay(
+            job.policy, held_out_arenas[0], replay_id=str(replay_id), seed=int(seed)
+        )
+
+    return result
+
+
+def _capture_trained_replay(policy, arena, *, replay_id: str, seed: int) -> dict:
+    """Roll out ONE held-out match of the trained Player vs the parametric
+    opponent and return a viewer-ready replay dict (schema-validated).
+
+    Reads the fighter through its public interface only (FighterSim + observe +
+    step, the same loop ``play_match`` / ``record_replay`` use). The caller writes
+    it to ``replays/modal_trained_<id>.json`` once the row returns — keeping the
+    Modal worker filesystem-free (it returns the dict, the local driver writes it).
+    """
+    from games.fighter import Action, FighterSim, parametric_fighter
+    from replay import ReplayBuilder, validate_replay
+
+    opponent = parametric_fighter(arena, ego=1, seed=10_000 + seed)
+    sim = FighterSim(arena=arena, seed=seed)
+    builder = ReplayBuilder(
+        arena=arena,
+        config=f"d{arena.difficulty}",
+        p1_policy="modal_trained_ppo",
+        p2_policy="parametric",
+        seed=seed,
+    )
+    builder.capture(sim, int(Action.IDLE), int(Action.IDLE))
+    while not sim.done:
+        a0 = int(policy(sim.observe(ego=0)))
+        a1 = int(opponent(sim.observe(ego=1)))
+        sim.step(a0, a1)
+        builder.capture(sim, a0, a1)
+
+    data = builder.to_dict(sim.winner)
+    problems = validate_replay(data)
+    if problems:  # pragma: no cover - defensive; builder produces valid frames
+        raise ValueError(f"captured replay {replay_id!r} failed validation: {problems}")
+    return {"replay_id": replay_id, "data": data}
+
+
+def local_transfer_worker(payload: dict, seed: int) -> dict:
+    """Credential-free local fallback: the HELD-OUT TRANSFER body, no Modal."""
+    return _real_ppo_transfer_result(payload, seed)
+
+
 def _smoke_result(payload: dict, seed: int) -> dict:
     """Deterministic, torch-free smoke result (shape-only).
 
@@ -207,10 +426,26 @@ if modal is not None:  # pragma: no branch
         # Ship the local game + harness packages into the image so the container
         # can import games.fighter / harness.ppo_trainer / harness.fighter_adapter
         # / contracts — exactly the bridge fix (without this: ModuleNotFoundError).
-        .add_local_python_source("games", "harness", "contracts")
+        # ``replay`` is needed by the held-out transfer worker's replay-capture
+        # branch (it builds a viewer-ready replay of the trained Player in-container).
+        .add_local_python_source("games", "harness", "contracts", "replay")
     )
 
     @app.function(image=image, timeout=1800)
     def train_player(payload: dict, seed: int) -> dict:
-        """REAL remote PPO Player training (no stub). Returns learning improvement."""
+        """REAL remote PPO Player training (no stub). Returns learning improvement.
+
+        Same-config held-out (in-distribution) improvement — kept for the
+        correlation gate / difficulty sweep that already consume it.
+        """
         return _real_ppo_result(payload, seed)
+
+    @app.function(image=image, timeout=1800)
+    def train_player_transfer(payload: dict, seed: int) -> dict:
+        """REAL remote PPO training, scored on the FIXED HELD-OUT reference set.
+
+        The nested-RL Teacher reward worker: trains a Player on the Teacher's
+        ``payload`` arena, measures before/after win-rate on the standard held-out
+        benchmark (NOT the training arena), and returns the transfer improvement.
+        """
+        return _real_ppo_transfer_result(payload, seed)
