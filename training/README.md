@@ -8,7 +8,11 @@ Credential-free scaffolding for the RFT loop. Everything here runs and is tested
 | File | Role | Live dependency |
 |------|------|-----------------|
 | `training/fireworks_teacher.py` | Fireworks Qwen3-4B Teacher; offline mock; `CurriculumSpec` bridge | `FIREWORKS_API_KEY` |
-| `training/reward_service.py` | Async `/init` reward service (the Eval-Protocol seam) | eval-protocol hookup |
+| `training/reward_service.py` | Internal async scoring service used by existing harness tests | local/debug use |
+| `training/hud_teacher_env.py` | HUD task and shared Teacher grader | HUD task/reward boundary |
+| `training/ep_remote_server.py` | Real Eval Protocol `/init` bridge | Fireworks RFT hookup |
+| `training/fireworks_rft_eval.py` | Copies HUD reward into Eval Protocol's result | Fireworks evaluator |
+| `training/modal_ep_bridge.py` | Deploys the bridge as a Modal ASGI endpoint | public `/init` endpoint |
 | `eval/proxy_sweep.py` | Proxy-vs-PPO-gain correlation sweep | (none; fakes) |
 | `harness/modal_fanout.py` | Local/Modal seed fan-out + `PlayerTrainer` bridge + `ExperimentResult` aggregation | Modal creds (Modal mode only) |
 | `modal_player.py` | Deployable Modal worker + `local_smoke_worker` fallback | Modal creds + real PPO body |
@@ -61,7 +65,33 @@ credential; the rest is wiring.
       it runs is being finalized by the fighter dev.)
 - [ ] Run the service: `uvicorn` an app from `create_fastapi_app(...)` (needs
       `fastapi` + `uvicorn`, already in `requirements.txt`).
-- [ ] Point the Fireworks RFT **RemoteRolloutProcessor** at `POST /init`, sending
+- [ ] Point the Fireworks RFT **RemoteRolloutProcessor** at
+      `training.ep_remote_server:app`'s `POST /init`. Eval Protocol sends the
+      current checkpoint URL and messages; the bridge calls that Teacher,
+      grades the JSON through HUD's grading core, and publishes the reward to
+      Fireworks tracing. `reward_service.py`'s `/result` route is only a local
+      debug collector and is not the Fireworks training transport.
+
+## Fireworks -> HUD -> Modal path
+
+1. Deploy the bridge after creating a Modal secret:
+
+   ```bash
+   modal secret create crucible-fireworks FIREWORKS_API_KEY=...
+   modal deploy training/modal_ep_bridge.py
+   ```
+
+2. Configure `RemoteRolloutProcessor(remote_base_url=<modal URL>)`.
+3. Fireworks calls `POST /init` with the current Qwen checkpoint URL.
+4. The bridge asks Qwen for curriculum JSON, validates/clamps it, and invokes
+   the HUD grading core.
+5. The scorer may fan out PPO work on Modal. It returns one numeric reward.
+6. The bridge logs `hud_reward` with `Status.rollout_finished()`. Eval Protocol
+   polls Fireworks tracing and `apply_hud_reward()` returns that score to RFT.
+
+The temporary scorer in `modal_ep_bridge.py` is deliberately cheap. It proves
+transport wiring only. Do not launch Teacher RFT against it; replace it with the
+fighter proxy after the proxy/PPO correlation gate passes.
       `{"params": {...}, "metadata": {"rollout_id": "<id>"}}` (or `curriculum`),
       then collecting `GET /result/{rollout_id}`.
 - [ ] Decide the persistence story for `app.state.results`: it's an in-process
