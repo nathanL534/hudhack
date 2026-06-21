@@ -1,0 +1,485 @@
+/* =====================================================================
+   theme.css — premium drop-in theme for the Dojo "Sensei vs Sensei"
+   replay viewer.
+
+   HOW TO USE: link this AFTER the viewer's existing <style> block. It
+   re-declares the same selectors with stronger values and adds a small
+   token layer. Zero markup changes required. Two optional one-line JS
+   hooks unlock the full effect (see THEME_NOTES.md):
+     - .spec-panel.is-winner / .is-loser  -> win/loss emphasis
+     - --scrub-pct on #scrub               -> filled scrubber track
+
+   Fonts: tasteful Google display faces, fetched at the top. If offline,
+   the stack falls back to the system serif/sans already used by the
+   viewer, so nothing breaks.
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Zen+Antique&family=Marcellus&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* --------------------------------------------------------------- tokens
+   Layer on top of the viewer's :root. We never remove an existing token
+   (viewer JS reads --trained/--base/--accent via getCSS), only refine
+   and extend. */
+:root {
+  /* refined sumi-ink ground — a touch warmer + deeper for contrast range */
+  --bg:        #0b0907;
+  --bg2:       #060504;
+  --panel:     #161109;     /* lacquered plate base */
+  --panel2:    #1d1710;     /* inner surface */
+  --line:      #2c2419;     /* quiet hairline */
+  --line2:     #423626;     /* lit hairline */
+  --ink:       #f3ead9;
+  --muted:     #b0a085;
+  --muted2:    #7a6850;
+
+  /* rationed accents — the only "energy" colors on the page */
+  --accent-orange: #e8893a;
+  --accent-gold:   #d6a23a;
+  --orange:        #e8893a;   /* keep viewer alias in sync */
+  --gold:          #d6a23a;
+  --accent:        #d6a23a;
+
+  /* belt colors stay muted; keep the rgb channels for glows/washes */
+  --trained:     #cf4a40;     /* red — Player 2 Trained */
+  --base:        #5570c4;     /* blue — Player 1 Base */
+  --trained-rgb: 207, 74, 64;
+  --base-rgb:    85, 112, 196;
+  --gold-rgb:    214, 162, 58;
+
+  /* elevation system — three deliberate steps of depth */
+  --elev-1: 0 1px 0 rgba(0,0,0,.5);
+  --elev-2: 0 10px 30px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.03) inset;
+  --elev-3: 0 22px 60px rgba(0,0,0,.62), 0 0 0 1px rgba(0,0,0,.4),
+            0 1px 0 rgba(255,255,255,.05) inset;
+
+  /* warm top-light that makes a surface read as a physical plate */
+  --plate-light: linear-gradient(180deg, rgba(255,238,210,.055), rgba(255,238,210,0) 38%);
+
+  --scrub-pct: 0%;          /* driven by JS; falls back to 0 (unfilled) */
+
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* --------------------------------------------------------------- ground */
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background:
+    /* warm lantern glow top-center */
+    radial-gradient(1100px 520px at 50% -10%, rgba(232,137,58,.10), rgba(232,137,58,0) 60%),
+    /* paper-grain vignette */
+    radial-gradient(1400px 800px at 50% -14%, #1a130c 0%, var(--bg) 50%, var(--bg2) 100%);
+  letter-spacing: .1px;
+}
+
+/* ============================================================== HEADER */
+header {
+  padding: 26px 40px 22px;
+  border-bottom: 0;               /* single divider only — the ::after hairline below */
+  background:
+    linear-gradient(180deg, rgba(232,137,58,.05), rgba(0,0,0,0) 70%),
+    linear-gradient(180deg, #110c07, #0c0805);
+  box-shadow: var(--elev-2);
+  position: relative;
+}
+/* ONE warm hairline of light under the header — lantern spill. This is the only
+   divider; the old solid border-bottom is removed so the line never doubles. */
+header::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg,
+    rgba(232,137,58,0) 0%, rgba(232,137,58,.40) 22%,
+    rgba(214,162,58,.42) 50%, rgba(232,137,58,.40) 78%, rgba(232,137,58,0) 100%);
+  opacity: .7;
+}
+
+.brand { gap: 22px; }
+
+.kanji {
+  font-family: "Zen Antique", "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif;
+  font-size: 56px; line-height: .9; font-weight: 400;
+  color: var(--accent-orange);
+  letter-spacing: 2px;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.5),
+    0 0 22px rgba(232,137,58,.40),
+    0 0 44px rgba(232,137,58,.18);
+}
+
+header h1 {
+  font-family: "Marcellus", "Inter", serif;
+  font-size: 30px; font-weight: 600; letter-spacing: .4px;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,.4);
+}
+header h1 .lite { font-weight: 400; color: var(--muted); letter-spacing: .6px; }
+header h1 .dim  { color: var(--muted2); margin: 0 10px; font-weight: 300; }
+header .sub {
+  color: var(--muted); font-size: 14px; margin-top: 6px;
+  letter-spacing: .3px; font-weight: 400;
+}
+
+.legend { gap: 34px; font-size: 13.5px; }
+.legend .dot {
+  width: 9px; height: 9px; margin-right: 10px;
+  box-shadow: 0 0 0 3px rgba(0,0,0,.35), 0 0 10px currentColor;
+}
+.legend > span:nth-child(1) .dot { color: var(--trained); }
+.legend > span:nth-child(2) .dot { color: var(--base); }
+.legend b { color: var(--ink); font-weight: 600; }
+
+/* ====================================================== CONTROLS / TRANSPORT */
+.controls-bar { gap: 12px; }
+.controls-bar .lbl {
+  color: var(--accent-orange); font-weight: 700; font-size: 13px;
+  letter-spacing: 1.4px; text-transform: uppercase;
+}
+
+select, button, label.file {
+  background: linear-gradient(180deg, #1b150e, #15100a);
+  border: 1px solid var(--line2);
+  border-radius: 11px;
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  color: var(--ink);
+  box-shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 2px 8px rgba(0,0,0,.3);
+  transition: border-color .16s var(--ease-out), background .16s var(--ease-out),
+              color .16s var(--ease-out), box-shadow .16s var(--ease-out),
+              transform .08s var(--ease-out);
+}
+select:hover, button:hover, label.file:hover {
+  border-color: #5a4a32;
+  background: linear-gradient(180deg, #221a11, #1a140d);
+  box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 4px 14px rgba(0,0,0,.4);
+}
+select:focus-visible, button:focus-visible, label.file:focus-visible {
+  outline: none; border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(232,137,58,.25), 0 1px 0 rgba(255,255,255,.05) inset;
+}
+button:active, label.file:active { transform: translateY(1px); }
+select optgroup { color: var(--accent-gold); background: #100c08; }
+
+/* transport pills */
+.transport-cluster { gap: 8px; }
+.transport-cluster .tb {
+  background: linear-gradient(180deg, #1b150e, #15100a);
+  border: 1px solid var(--line2);
+  border-radius: 11px; padding: 10px 15px;
+  color: var(--ink); font-weight: 600; font-size: 13px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 2px 8px rgba(0,0,0,.3);
+  transition: border-color .16s var(--ease-out), background .16s var(--ease-out),
+              color .16s var(--ease-out), box-shadow .16s var(--ease-out),
+              transform .08s var(--ease-out);
+}
+.transport-cluster .tb:hover {
+  border-color: #5a4a32; color: #fff;
+  background: linear-gradient(180deg, #241b12, #1b140d);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 6px 16px rgba(0,0,0,.45);
+}
+.transport-cluster .tb:active { transform: translateY(1px); }
+.transport-cluster .tb .gl,
+.transport-cluster .tb .gl-chev,
+.transport-cluster .tb .gl-bar { opacity: .85; }
+
+/* the live Play control — the one warm, raised, glowing button */
+.transport-cluster .tb.play {
+  color: #2a1a08; font-weight: 800; padding: 10px 24px;
+  border: 1px solid #e6a24a;
+  background: linear-gradient(180deg, #f3b35a, var(--accent-gold) 55%, #c78c2c);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.45) inset,
+    0 0 0 1px rgba(232,137,58,.25),
+    0 6px 18px rgba(214,162,58,.40),
+    0 0 26px rgba(232,137,58,.22);
+}
+.transport-cluster .tb.play:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, #f8bd64, #dca93a 55%, #cf942f);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.5) inset,
+    0 8px 22px rgba(214,162,58,.5),
+    0 0 34px rgba(232,137,58,.32);
+}
+.transport-cluster .tb.play:active { transform: translateY(0); }
+.transport-cluster .tb.play .gl { opacity: 1; }
+
+/* ============================================================== ARENA */
+.arena { gap: 22px; margin-top: 18px; }
+
+/* ---- spec panels: lacquered plates with real depth ---- */
+.spec-panel {
+  background:
+    var(--plate-light),
+    linear-gradient(180deg, var(--panel2), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 22px 22px;
+  box-shadow: var(--elev-3);
+  transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out),
+              filter .35s var(--ease-out), border-color .35s var(--ease-out);
+}
+/* inner hairline so the plate reads as inlaid, not printed */
+.spec-panel::after {
+  content: ""; position: absolute; inset: 1px; border-radius: 17px;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.035) inset;
+}
+
+/* the single team-color energy edge (keeps the viewer's ::before edge) */
+.spec-panel.left::before  { width: 4px; background: linear-gradient(180deg, var(--trained), #6e221c); }
+.spec-panel.right::before { width: 4px; background: linear-gradient(180deg, var(--base), #2b3a6a); }
+
+/* -------------------------------------------------- panel head: name / avatar
+   The text column (role + name + sensei) and the avatar share the head row.
+   We give the head a fixed right gutter the width of the avatar so the name
+   NEVER runs under the portrait, and let the name wrap to two lines instead of
+   clipping. The avatar drops into the pill band so it clears the name entirely. */
+.panel-head {
+  min-height: 104px;
+  padding-right: 0;               /* the gutter is applied per-row, not globally */
+}
+.spec-panel .role {
+  font-size: 10.5px; letter-spacing: 2.4px; font-weight: 700;
+  white-space: nowrap;            /* short label — keep it on one clean line */
+}
+.spec-panel.left  .role { color: #e0958c; }
+.spec-panel.right .role { color: #9bafe6; }
+.spec-panel .name {
+  font-family: "Marcellus", "Inter", serif;
+  font-size: 22px; font-weight: 600; margin-top: 11px; letter-spacing: .3px;
+  line-height: 1.16;
+  padding-right: 82px;            /* reserve the avatar lane so the name never clips */
+  white-space: normal;            /* wrap long names instead of clipping them */
+  overflow-wrap: break-word;
+}
+.spec-panel .sensei {
+  font-size: 13px; color: var(--muted); margin-top: 6px;
+  padding-right: 82px;            /* keep the sensei line clear of the avatar too */
+}
+
+/* avatar portrait ring — team-tinted glow. Smaller + dropped below the name. */
+.avatar {
+  width: 72px; height: 72px;
+  bottom: 4px; right: 0;
+  border: 1px solid var(--line2);
+  background: radial-gradient(70% 70% at 50% 30%, #2a2016 0%, #14100b 100%);
+}
+.avatar canvas { width: 72px; height: 72px; }
+.spec-panel.left  .avatar {
+  box-shadow: inset 0 0 0 4px rgba(0,0,0,.3),
+              0 0 0 2px rgba(var(--trained-rgb), .55),
+              0 0 18px rgba(var(--trained-rgb), .22);
+}
+.spec-panel.right .avatar {
+  box-shadow: inset 0 0 0 4px rgba(0,0,0,.3),
+              0 0 0 2px rgba(var(--base-rgb), .55),
+              0 0 18px rgba(var(--base-rgb), .22);
+}
+
+/* side pill */
+.side-pill {
+  margin-top: 16px; padding: 5px 16px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.side-pill.trained {
+  color: #f0a59d; border-color: rgba(var(--trained-rgb), .55);
+  background: rgba(var(--trained-rgb), .12);
+  box-shadow: 0 0 14px rgba(var(--trained-rgb), .14) inset;
+}
+.side-pill.base {
+  color: #aab9ec; border-color: rgba(var(--base-rgb), .55);
+  background: rgba(var(--base-rgb), .12);
+  box-shadow: 0 0 14px rgba(var(--base-rgb), .14) inset;
+}
+
+/* stat rows — tighter rhythm, clearer key/value pairing */
+.spec-rows { margin-top: 22px; }
+.spec-row {
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+  transition: background .15s var(--ease-out);
+}
+.spec-row:hover { background: rgba(255,238,210,.02); }
+.spec-row .k { color: var(--muted); font-weight: 500; letter-spacing: .2px; }
+.spec-row .v { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.spec-row .v.dimv { color: var(--muted2); font-weight: 500; }
+.spec-section {
+  font-size: 10px; letter-spacing: 1.8px; color: var(--muted2);
+  font-weight: 700; padding: 16px 0 2px;
+}
+
+/* the small inline 勝 win mark stays subtle in losing/neutral context */
+.spec-row .v .win-mark {
+  font-family: "Zen Antique", serif;
+  color: var(--accent-gold); font-weight: 700; margin-left: 8px;
+  text-shadow: 0 0 10px rgba(var(--gold-rgb), .4);
+}
+
+/* View Details */
+.details-btn {
+  border: 1px solid var(--line2); border-radius: 11px;
+  color: var(--accent-gold); font-weight: 600;
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,0));
+  transition: background .16s var(--ease-out), color .16s var(--ease-out),
+              border-color .16s var(--ease-out);
+}
+.details-btn:hover {
+  background: linear-gradient(180deg, #221a11, #1a140d);
+  color: var(--ink); border-color: #5a4a32;
+}
+
+/* ================================================== WINNER / LOSER EMPHASIS
+   Requires .is-winner / .is-loser on the panel (one-line JS hook).
+   Degrades gracefully if absent. */
+.spec-panel.is-winner {
+  transform: translateY(-4px);
+  border-color: rgba(var(--gold-rgb), .45);
+  box-shadow:
+    var(--elev-3),
+    0 0 0 1px rgba(var(--gold-rgb), .35),
+    0 18px 50px rgba(var(--gold-rgb), .14),
+    0 0 60px rgba(232,137,58,.10);
+}
+/* warm winner wash, tinted toward the winning side's team color */
+.spec-panel.is-winner::before { width: 5px; box-shadow: 0 0 16px rgba(var(--gold-rgb), .5); }
+.spec-panel.left.is-winner {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(var(--trained-rgb), .10), rgba(0,0,0,0) 55%),
+    var(--plate-light),
+    linear-gradient(180deg, var(--panel2), var(--panel));
+}
+.spec-panel.right.is-winner {
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(var(--base-rgb), .10), rgba(0,0,0,0) 55%),
+    var(--plate-light),
+    linear-gradient(180deg, var(--panel2), var(--panel));
+}
+
+/* the loser recedes a plane and desaturates */
+.spec-panel.is-loser {
+  transform: translateY(2px) scale(.992);
+  filter: saturate(.6) brightness(.86);
+  border-color: var(--line);
+  box-shadow: var(--elev-2);
+}
+.spec-panel.is-loser::before { opacity: .55; }
+
+/* WIN plaque: a "勝 WINS" badge on the winning panel.
+   Pinned to the panel-head's top-right corner as a free badge via ::after — no
+   markup needed. It lives in the top-right negative space ABOVE the avatar (the
+   avatar sits at the bottom of the head), so it never overlaps the name, the
+   role line, or the portrait. */
+.spec-panel.is-winner .panel-head::after {
+  content: "勝 WINS";
+  position: absolute; top: -2px; right: 0; z-index: 2;
+  padding: 4px 9px; border-radius: 7px;
+  font-family: "Inter", sans-serif; font-size: 10px; letter-spacing: 1.4px; font-weight: 800;
+  color: #2a1a08; white-space: nowrap;
+  background: linear-gradient(180deg, #f3b35a, var(--accent-gold));
+  box-shadow: 0 0 0 1px rgba(232,137,58,.4), 0 2px 10px rgba(var(--gold-rgb), .4);
+}
+/* keep the role line clear of the plaque's corner so "STUDENT" never tucks under it */
+.spec-panel.is-winner .role { padding-right: 62px; }
+
+/* ============================================================== STAGE */
+.stage-wrap {
+  background:
+    var(--plate-light),
+    linear-gradient(180deg, var(--panel2), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 18px; padding: 16px;
+  box-shadow: var(--elev-3);
+}
+.canvas-frame {
+  border-radius: 13px;
+  border: 1px solid #0c0805;
+  box-shadow:
+    0 0 0 1px rgba(255,238,210,.04) inset,
+    0 18px 40px rgba(0,0,0,.55),
+    0 0 50px rgba(232,137,58,.05) inset;
+}
+/* subtle inner vignette over the canvas so fighters pop off the floor */
+.canvas-frame::after {
+  content: ""; position: absolute; inset: 0; border-radius: 13px; pointer-events: none;
+  box-shadow: inset 0 -60px 80px rgba(0,0,0,.45), inset 0 30px 60px rgba(0,0,0,.3);
+}
+
+/* ---- transport row + real scrubber ---- */
+.transport { gap: 16px; margin-top: 18px; padding: 4px 6px 0; }
+.transport .ts {
+  font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px;
+  letter-spacing: .4px;
+}
+
+/* the styled track: filled (played) amber -> unfilled dark, split at --scrub-pct */
+.transport input[type=range]#scrub,
+.transport input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  height: 6px; border-radius: 6px; cursor: pointer;
+  background:
+    linear-gradient(90deg,
+      var(--accent-gold) 0%, var(--accent-orange) var(--scrub-pct),
+      #2c2419 var(--scrub-pct), #2c2419 100%);
+  box-shadow: 0 1px 2px rgba(0,0,0,.5) inset;
+  transition: height .15s var(--ease-out);
+}
+.transport input[type=range]:hover { height: 8px; }
+.transport input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--accent-gold));
+  border: 2px solid #fff3dc;
+  box-shadow: 0 0 0 4px rgba(232,137,58,.18), 0 2px 6px rgba(0,0,0,.55),
+              0 0 14px rgba(232,137,58,.5);
+  transition: transform .12s var(--ease-out), box-shadow .12s var(--ease-out);
+}
+.transport input[type=range]:hover::-webkit-slider-thumb,
+.transport input[type=range]:active::-webkit-slider-thumb { transform: scale(1.18); }
+.transport input[type=range]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 5px rgba(232,137,58,.3), 0 2px 6px rgba(0,0,0,.55),
+              0 0 18px rgba(232,137,58,.6);
+}
+.transport input[type=range]::-moz-range-thumb {
+  width: 15px; height: 15px; border-radius: 50%; border: 2px solid #fff3dc;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--accent-gold));
+  box-shadow: 0 0 0 4px rgba(232,137,58,.18), 0 2px 6px rgba(0,0,0,.55),
+              0 0 14px rgba(232,137,58,.5);
+}
+.transport input[type=range]::-moz-range-progress {
+  height: 6px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-orange));
+}
+.transport input[type=range]::-moz-range-track {
+  height: 6px; border-radius: 6px; background: #2c2419;
+}
+
+/* fullscreen toggle */
+.fs-btn { color: var(--muted); transition: color .15s var(--ease-out); }
+.fs-btn:hover { color: var(--accent-orange); }
+
+/* ============================================================== RESULT BANNER
+   The viewer hides #banner by design. If a future build re-enables it for a
+   result plaque, this gives it a premium treatment instead of a flat bar.
+   (Harmless while #banner stays display:none.) */
+#banner.show {
+  display: flex !important; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 14px; padding: 14px 24px; border-radius: 14px;
+  font-family: "Marcellus", serif; font-size: 18px; letter-spacing: 1px; color: var(--ink);
+  background: linear-gradient(180deg, rgba(232,137,58,.10), rgba(0,0,0,.2));
+  border: 1px solid rgba(var(--gold-rgb), .35);
+  box-shadow: 0 0 0 1px rgba(var(--gold-rgb), .2) inset, 0 10px 30px rgba(0,0,0,.5),
+              0 0 40px rgba(232,137,58,.12);
+  animation: bannerIn .5s var(--ease-out) both;
+}
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ============================================================== MOTION SAFETY */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .spec-panel.is-winner { transform: none; }
+  .spec-panel.is-loser  { transform: none; }
+}

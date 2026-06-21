@@ -875,6 +875,13 @@ function fillPanel(side, slot, m, dash, fam) {
 
   // outcome for this slot
   const oc = slotOutcome(m, slot);
+  // theme hook #1: lift+glow the winning panel, recede+dim the losing one. A
+  // draw leaves both neutral. (theme.css degrades gracefully if these are absent.)
+  const panel = $("panel" + side);   // panelL / panelR
+  if (panel) {
+    panel.classList.toggle("is-winner", oc === "win");
+    panel.classList.toggle("is-loser",  oc === "loss");
+  }
   // physical side derives from which panel rendered this slot (L = left, R = right)
   const physicalSide = (side === "L") ? "Left" : "Right";
   const sideLabel = slot.toUpperCase() + " (" + physicalSide + ")";
@@ -1469,62 +1476,151 @@ function render(ts) {
 
   ctx.clearRect(0, 0, W, H);
 
-  // ---- DOJO backdrop ----
-  drawDojo(W, H, groundY);
+  // advance the FX clock (decays shake, ages particles) once per repaint.
+  if (fx) fx.tick(now);
 
-  // ---- platform: a tatami/wood dueling deck on the floor ----
-  drawPlatformDeck(geo, plat);
-
-  // ---- KOTH zone (only when present) ----
-  const zone = m.zone || zoneFromFrame(fr);
-  const isKoth = gameKey(m) === "koth" || !!zone;
-  if (isKoth && zone) drawZone(geo, plat, zone, fr);
-
-  // ---- fighters (gi) ----
+  // team identity / per-frame contact flags (needed before the scene draw so
+  // FX can be triggered as the world is painted).
   const ts2 = trainedSlot(m);
   const p1Trained = ts2 === "p1";
   const p2Trained = ts2 === "p2";
   const p1Color = ts2 ? (p1Trained ? getCSS("--trained") : getCSS("--base")) : getCSS("--trained");
   const p2Color = ts2 ? (p2Trained ? getCSS("--trained") : getCSS("--base")) : getCSS("--base");
-
-  // draw shadows first so fighters sit on the deck
-  drawShadow(fr.p1, geo, plat);
-  drawShadow(fr.p2, geo, plat);
-
   const evs = fr.events || [];
   const p1Hit = evs.includes("p1_punch");
   const p2Hit = evs.includes("p2_punch");
   const p1KO  = evs.includes("p1_ringout") || isOffEdge(fr.p1, plat);
   const p2KO  = evs.includes("p2_ringout") || isOffEdge(fr.p2, plat);
-
-  // team identity per slot: trained side -> red sprite, base side -> blue.
-  // ts2 may be null for non-h2h traces; then P1 reads as "trained"-styled, P2 "base".
+  // team identity per slot: trained side -> red figure, base side -> blue.
   const p1Team = p2Trained ? "base" : "trained";   // p1 is base only when p2 is the trained slot
   const p2Team = p2Trained ? "trained" : "base";
+
+  // fire one-shot FX on the *frame the contact happens*, edge-detected so the
+  // continuous repaint loop doesn't re-trigger them every frame.
+  maybeFireFX(fr, geo, plat, p1Hit, p2Hit, p1KO, p2KO, p1Color, p2Color, m);
+
+  // ---- WORLD (shaken) : everything that should react to camera shake ----
+  ctx.save();
+  if (fx) fx.applyShake(ctx);
+
+  // DOJO backdrop
+  drawDojo(W, H, groundY);
+  // platform: a tatami/wood dueling deck on the floor
+  drawPlatformDeck(geo, plat);
+  // KOTH zone (only when present)
+  const zone = m.zone || zoneFromFrame(fr);
+  const isKoth = gameKey(m) === "koth" || !!zone;
+  if (isKoth && zone) drawZone(geo, plat, zone, fr);
+
+  // draw shadows first so fighters sit on the deck
+  drawShadow(fr.p1, geo, plat);
+  drawShadow(fr.p2, geo, plat);
 
   drawFighter(fr.p1, "p1", p1Team, p1Color, geo, plat, now, p1Hit, p1KO);
   drawFighter(fr.p2, "p2", p2Team, p2Color, geo, plat, now, p2Hit, p2KO);
 
-  // ---- punch impact bursts ----
-  if (p1Hit) impactBurst(fr.p1, p1Color, geo, plat);
-  if (p2Hit) impactBurst(fr.p2, p2Color, geo, plat);
+  // game-feel particles (impacts / streaks / dust) live in world space so they
+  // shake with the scene; this replaces the old hand-rolled impactBurst.
+  if (fx) fx.drawWorld(ctx, now);
+  ctx.restore();   // close the shaken transform
+
+  // ---- ATMOSPHERE (screen space) : drifting dust + breathing lantern glow.
+  // lanterns/vignette are off — drawDojo already paints those, no doubling.
+  if (fx) fx.ambient(ctx, now, { groundY, lanterns: false, vignette: false });
 
   // ---- floating player tags (eased follow) ----
   drawTag("p1", fr.p1, slotLabel(m, "p1"), p1Color, geo, plat, dt, p1Hit, p1KO);
   drawTag("p2", fr.p2, slotLabel(m, "p2"), p2Color, geo, plat, dt, p2Hit, p2KO);
 
+  // ---- RING-OUT stinger (K.O. / RING OUT! flash) — screen space, on top ----
+  if (fx) fx.drawHud(ctx, now);
+
   // ---- HUD / scrubber ----
   if (timeCur) timeCur.textContent = fmtTime(frame);
   if (timeTot) timeTot.textContent = fmtTime(replay.frames.length - 1);
   scrub.value = frame;
+  paintScrub();   // theme hook: fill the played portion of the track
 
   // No on-stage victory banner by design — the outcome reads quietly in the
   // side panels (Outcome row + a small 勝 mark on the winner). This matches the
   // approved reference and avoids the "really AI" saturated win bar.
 
-  // keep animating (sprite idle/run cycles, tag easing) — sprites animate from
-  // wall-clock, so we keep a gentle render loop alive whenever a replay is shown.
-  if (tagsSettling() || playing || replay) requestRender();
+  // keep animating (procedural idle/walk cycles, FX particles, tag easing) — the
+  // figures + FX animate from wall-clock, so keep a gentle loop alive whenever a
+  // replay is shown, or while FX are still settling.
+  if (tagsSettling() || playing || replay || (fx && (fx.isShaking() || fx.hasStinger()))) requestRender();
+}
+
+// Theme hook #2 — paint the scrubber's played/remaining split via --scrub-pct.
+function paintScrub() {
+  const max = +scrub.max || 0;
+  const pct = max > 0 ? (+scrub.value / max) * 100 : 0;
+  scrub.style.setProperty("--scrub-pct", pct + "%");
+}
+
+// ===================================================================== FX triggers
+// Edge-detected so each contact fires its impact/knockback exactly once, even
+// though render() repaints continuously for the idle/walk cycles.
+function maybeFireFX(fr, geo, plat, p1Hit, p2Hit, p1KO, p2KO, p1Color, p2Color, m) {
+  if (!fx) return;
+  const { sx, sy } = geo;
+  const fxRgb = (hex) => { const c = hexToRgb(hex); return c ? [c.r, c.g, c.b] : undefined; };
+
+  // ---- punch contact -> impact star + a little shake (once per frame index) ----
+  // The latch stores the frame index a slot last fired on; a continuous repaint
+  // of the same frame won't re-fire, but advancing to a new punch frame will.
+  const handlePunch = (slot, b, hit, color) => {
+    const st = fxState[slot];
+    if (hit) {
+      if (st.lastPunchFrame !== frame) {
+        st.lastPunchFrame = frame;
+        const dir = (b.facing < 0) ? -1 : 1;
+        // land the star at the extended fist: forward of the body, torso height
+        fx.spawnImpact(sx(b.x) + dir * 34, sy(b.y) - 96, { facing: dir, color: fxRgb(color) });
+      }
+    } else {
+      st.lastPunchFrame = -1;                    // re-arm once the punch frame passes
+    }
+  };
+  handlePunch("p1", fr.p1, p1Hit, p1Color);
+  handlePunch("p2", fr.p2, p2Hit, p2Color);
+
+  // ---- big launch / ring-out edge -> knockback streaks + heavy shake ----
+  const fireKO = (slot, b, ko, color) => {
+    const st = fxState[slot];
+    if (ko && !st.lastKO) {
+      const dir = (b.x > (plat.x_left + plat.x_right) / 2) ? 1 : -1;  // launched outward
+      fx.knockback(sx(b.x), sy(b.y) - 70, {
+        dir, intensity: 16, color: fxRgb(color), groundY: geo.groundY,
+      });
+    }
+    st.lastKO = ko;
+  };
+  fireKO("p1", fr.p1, p1KO, p1Color);
+  fireKO("p2", fr.p2, p2KO, p2Color);
+
+  // ---- ring-out / final-frame -> the K.O. stinger, fired once ----
+  const isLast = frame === (replay.frames.length - 1);
+  const anyKO = p1KO || p2KO;
+  if ((anyKO || isLast) && lastRingOutFrame !== frame) {
+    // only stinger on a real decisive ending: a KO this frame, or the last frame
+    // of a match that actually has a winner (skip pure draws to avoid a false KO).
+    const winnerSlot = p1KO ? "p2" : p2KO ? "p1" : decisiveWinnerSlot(m);
+    if (anyKO || winnerSlot) {
+      const label = winnerSlot ? slotLabel(m, winnerSlot) : null;
+      const wColor = winnerSlot === "p1" ? p1Color : winnerSlot === "p2" ? p2Color : p1Color;
+      fx.ringOut(label, { color: fxRgb(wColor) });
+      lastRingOutFrame = frame;
+    }
+  }
+  if (!anyKO && !isLast) lastRingOutFrame = -1;   // re-arm when scrubbing back
+}
+
+// Which slot won, if the match has a decisive (non-draw) outcome — else null.
+function decisiveWinnerSlot(m) {
+  if (slotOutcome(m, "p1") === "win") return "p1";
+  if (slotOutcome(m, "p2") === "win") return "p2";
+  return null;
 }
 
 function tagsSettling() {
@@ -2170,7 +2266,7 @@ function step(d) { pause(); frame += d; requestRender(); }
 playBtn.onclick = togglePlay;
 $("stepFwd").onclick = () => step(1);
 $("stepBack").onclick = () => step(-1);
-scrub.oninput = () => { pause(); frame = parseInt(scrub.value, 10); requestRender(); };
+scrub.oninput = () => { pause(); frame = parseInt(scrub.value, 10); paintScrub(); requestRender(); };
 $("speed").onchange = () => { if (playing) play(); };
 sel.onchange = () => { if (sel.value) loadExample(sel.value); };
 $("fileInput").onchange = (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); };
@@ -2194,9 +2290,8 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener("resize", requestRender);
 
 // ===================================================================== boot
-// Real-art fighter sprite sheets (LuizMelo "Martial Hero", CC0) — start loading
-// immediately; the renderer falls back to the procedural figure until ready.
-loadSprites();
+// Fighters are the procedural karate figures from sprite_anim.js — no sheets to
+// preload; getAnimator() builds them lazily once the ES module is live.
 
 // Optional real-art backdrop (assets/dojo.png) — used if it loads.
 (function tryDojoArt() {
