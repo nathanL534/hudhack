@@ -1,8 +1,13 @@
 pydantic
 pytest
 
-# --- For later phases (real Teacher / Players / eval) ---
-# numpy             # gridworld engine + rollouts
+# --- Stage-1 headless fighter + PPO Player (games/, harness/ppo_trainer.py) ---
+numpy               # deterministic fighter sim + rollouts
+gymnasium           # single-agent env API (opponent baked into step)
+stable-baselines3   # PPO Player (small MLP, short budget)
+torch               # SB3 backend (CPU)
+
+# --- For later phases (real Teacher / eval / scale) ---
 # matplotlib        # demo plots (p*(1-p) histogram, anti-gaming co-rise)
 # hud-python        # HUD harness / RemoteRolloutProcessor wiring
 # fireworks-ai      # Fireworks RFT API (Qwen3-4B Teacher)
