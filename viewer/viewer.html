@@ -11,8 +11,8 @@
     --line: #2a313c;
     --ink: #e6edf3;
     --muted: #8b949e;
-    --p1: #58a6ff;
-    --p2: #f78166;
+    --p1: #59c2ff;
+    --p2: #ff8a5c;
     --accent: #3fb950;
     --warn: #d29922;
   }
@@ -44,6 +44,7 @@
   #canvas {
     background: #0a0d12; border: 1px solid var(--line); border-radius: 8px;
     display: block; width: 100%; max-width: 920px;
+    image-rendering: pixelated; image-rendering: crisp-edges;
   }
   #drop {
     border: 1.5px dashed var(--line); border-radius: 8px; padding: 10px 14px;
@@ -140,6 +141,199 @@ const REPLAY_BASE = "../replays/";
 // zero-dependency fallback. (Source: replays/scripted_vs_scripted.json.)
 const DEFAULT_REPLAY = {"meta":{"game":"ring-out-duel","config":"A","winner":"p1","frames":15,"p1_policy":"scripted","p2_policy":"scripted","seed":3,"schema":1},"platform":{"x_left":0.0,"x_right":10.0,"y":0.0},"frames":[{"p1":{"x":2.9586,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":6.9737,"y":0.0,"facing":-1,"action":"idle"},"events":[]},{"p1":{"x":3.3086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.6237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.6586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.2737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.0086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.9237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.5737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":8.0737,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":4.7086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.7237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.0586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.3737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.0237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":9.5237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":5.7586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":9.1737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.1086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.8237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.4586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.4737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.1237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":10.6237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch","p2_ringout"]}]};
 
+// ================================================================== PIXEL ART
+// Everything below is self-contained: no external image files, no data-URIs,
+// no network. Each fighter is a 16x16 grid of single-char palette keys, drawn
+// as scaled rectangles on the canvas, so the viewer is zero-dependency and
+// works straight off file://. The two fighters are deliberately different
+// designs + palettes: P1 = "Frost Knight" (blue armor, horned helm, sword arm),
+// P2 = "Ember Brawler" (orange/red, mohawk, big gloves).
+// Art is original/generated for this project (no third-party assets).
+//
+// Grid legend per fighter: '.' = transparent. Other chars index into that
+// fighter's PALETTE map. Rows are top->bottom; columns left->right and assume
+// the fighter faces RIGHT. We flip horizontally when facing === -1.
+
+const SPR = 16;            // sprite grid is 16x16 logical pixels
+const PX = 5.5;            // on-canvas size of one logical pixel (scaled at draw)
+
+// ---- P1: Frost Knight -------------------------------------------------------
+// k=outline/dark, b=mid armor blue, l=light armor highlight, c=cyan crest/eye,
+// s=steel/silver (sword + trim), w=face/skin, f=fist
+const P1_PAL = {
+  k: "#0b1b33", b: "#2a6fd6", l: "#74b6ff", c: "#aef0ff",
+  s: "#cfe6ff", w: "#f2d2b0", f: "#9fd0ff",
+};
+// idle / stance frames (16 rows x 16 cols). Two idle frames give a breathing bob.
+const P1_IDLE = [
+  "......kkkk......",
+  ".....kccck......",
+  "....kbllbk......",
+  "....kblwbk......",
+  "....kbwwbk......",
+  ".....kbbk.......",
+  "....kbllbk......",
+  "...kbllllbk.....",
+  "..kbllllllbk..ss",
+  "..kbllllllbkkssk",
+  "..kbblllbbk.ksk.",
+  "...kfbbbfk......",
+  "...kf.k.fk......",
+  "...kk...kk......",
+  "..kk.....kk.....",
+  ".kk.......kk....",
+];
+// move/run: leaning forward, sword arm out
+const P1_MOVE = [
+  "......kkkk......",
+  ".....kccck......",
+  "....kbllbk......",
+  "....kblwbk......",
+  "....kbwwbk......",
+  ".....kbbk.......",
+  "....kbllbksss...",
+  "...kbllllbksk...",
+  "..kbllllllbksk..",
+  "..kbllllllbk....",
+  "..kbblllbbk.....",
+  "...kfbbbfk......",
+  "...kfk.kfk......",
+  "..kk.....kk.....",
+  ".kk.......kk....",
+  "kk.........kk...",
+];
+// jump: tucked, sword raised high
+const P1_JUMP = [
+  ".........kss....",
+  "......kkkksk....",
+  ".....kccck.k....",
+  "....kbllbk......",
+  "....kblwbk......",
+  "....kbwwbk......",
+  ".....kbbk.......",
+  "....kbllbk......",
+  "...kbllllbk.....",
+  "..kbllllllbk....",
+  "..kbllllllbk....",
+  "...kfbbbfk......",
+  "..kkf...fkk.....",
+  ".kk.......kk....",
+  "kk.........kk...",
+  "...............",
+];
+// punch: sword arm fully extended forward
+const P1_PUNCH = [
+  "......kkkk......",
+  ".....kccck......",
+  "....kbllbk......",
+  "....kblwbk......",
+  "....kbwwbk......",
+  ".....kbbk.......",
+  "....kbllbk......",
+  "...kbllllbk.....",
+  "..kbllllllbkssss",
+  "..kbllllllbksssk",
+  "..kbblllbbk.....",
+  "...kfbbbk.......",
+  "...kf.fk........",
+  "...kk.kk........",
+  "..kk...kk.......",
+  ".kk.....kk......",
+];
+
+// ---- P2: Ember Brawler ------------------------------------------------------
+// k=outline, o=orange body, r=red shade, y=yellow highlight/mohawk,
+// w=face/skin, g=glove (dark red), e=eye
+const P2_PAL = {
+  k: "#3a0d08", o: "#ff8a3c", r: "#e3431f", y: "#ffd23c",
+  w: "#f2c39a", g: "#c21d1d", e: "#fff2b0",
+};
+const P2_IDLE = [
+  ".....y.y.y......",
+  ".....kykyk......",
+  "....kywywk......",
+  "....kwewwk......",  // face + eye
+  "....kwwwwk......",
+  ".....korr.......",
+  "....korroork....",
+  "...koorrroork...",
+  "..gkoorrroorkg..",
+  "..gkoorrroorkg..",
+  "...koorrroork...",
+  "....korrrork....",
+  "....ko...ok.....",
+  "....ko...ok.....",
+  "...kk.....kk....",
+  "..kk.......kk...",
+];
+const P2_MOVE = [
+  ".....y.y.y......",
+  ".....kykyk......",
+  "....kywywk......",
+  "....kwewwk......",
+  "....kwwwwk......",
+  ".....korr.......",
+  "...gkorroork....",
+  "..gkoorrroork...",
+  "...koorrroorkg..",
+  "...koorrroork...",
+  "....korrroork...",
+  "....korrrork....",
+  "...ko....ok.....",
+  "..kk.....ok.....",
+  ".kk.......kk....",
+  "kk.........kk...",
+];
+const P2_JUMP = [
+  "..g..y.y.y..g...",
+  "..gk.kykyk.kg...",
+  "...kkywywkk.....",
+  "....kwewwk......",
+  "....kwwwwk......",
+  ".....korr.......",
+  "....korroork....",
+  "...koorrroork...",
+  "...koorrroork...",
+  "....korrrork....",
+  "....korrrok.....",
+  "...ko....ok.....",
+  "..kk......kk....",
+  ".kk........kk...",
+  "kk..........kk..",
+  "...............",
+];
+const P2_PUNCH = [
+  ".....y.y.y......",
+  ".....kykyk......",
+  "....kywywk......",
+  "....kwewwk......",
+  "....kwwwwk......",
+  ".....korr.......",
+  "....korroork....",
+  "...koorrroorkggg",
+  "..gkoorrroorkggk",
+  "..gkoorrroorkggg",
+  "...koorrroork...",
+  "....korrrork....",
+  "....ko..ok......",
+  "...kk...kk......",
+  "..kk.....kk.....",
+  ".kk.......kk....",
+];
+
+const FIGHTERS = {
+  p1: { pal: P1_PAL, idle: P1_IDLE, move: P1_MOVE, jump: P1_JUMP, punch: P1_PUNCH },
+  p2: { pal: P2_PAL, idle: P2_IDLE, move: P2_MOVE, jump: P2_JUMP, punch: P2_PUNCH },
+};
+
+// Map a replay action -> which sprite pose to use.
+function poseFor(action) {
+  if (action === "punch") return "punch";
+  if (action === "jump") return "jump";
+  if (action === "left" || action === "right") return "move";
+  return "idle";
+}
+
 // ------------------------------------------------------------------ state
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -223,39 +417,150 @@ function worldToScreen(plat) {
   return { sx, sy, groundY, padX, W, H };
 }
 
+// ------------------------------------------------------------------ stage art
+// A layered parallax stage: gradient sky, drifting clouds, distant mountains,
+// then the platform itself (grass cap + dirt body + glowing danger edges) and
+// the bottomless void below.
+function drawStage(plat, geo) {
+  const { sx, groundY, W, H } = geo;
+
+  // sky gradient — dusk arena
+  const sky = ctx.createLinearGradient(0, 0, 0, groundY + 40);
+  sky.addColorStop(0.0, "#1a1140");
+  sky.addColorStop(0.45, "#3b2363");
+  sky.addColorStop(0.8, "#7b3b6e");
+  sky.addColorStop(1.0, "#c66a4e");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, groundY + 40);
+
+  // a soft sun/moon glow
+  const cx = W * 0.74, cy = groundY * 0.42;
+  const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, 120);
+  glow.addColorStop(0, "rgba(255,233,180,0.9)");
+  glow.addColorStop(0.25, "rgba(255,200,120,0.45)");
+  glow.addColorStop(1, "rgba(255,200,120,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(cx - 120, cy - 120, 240, 240);
+  ctx.fillStyle = "#ffe9b4";
+  ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.fill();
+
+  // drifting clouds (deterministic positions; static per render = perf-cheap)
+  ctx.fillStyle = "rgba(255,225,235,0.18)";
+  cloud(W * 0.18, groundY * 0.28, 46);
+  cloud(W * 0.46, groundY * 0.20, 34);
+  cloud(W * 0.90, groundY * 0.34, 40);
+
+  // distant mountain silhouettes (two parallax bands)
+  mountains(W, groundY, groundY * 0.62, "#2c2150", [0.0, 0.22, 0.40, 0.63, 0.82, 1.0]);
+  mountains(W, groundY, groundY * 0.78, "#241a44", [0.1, 0.30, 0.55, 0.74, 0.92]);
+
+  // ---- the platform -----------------------------------------------------
+  const platL = sx(plat.x_left), platR = sx(plat.x_right);
+  const platW = platR - platL;
+  const topH = 10;          // grass cap thickness
+  const bodyH = 46;         // dirt body that hangs below the play line
+
+  // dirt body
+  const dirt = ctx.createLinearGradient(0, groundY, 0, groundY + bodyH);
+  dirt.addColorStop(0, "#6a4a2b");
+  dirt.addColorStop(1, "#3a2716");
+  ctx.fillStyle = dirt;
+  ctx.fillRect(platL, groundY, platW, bodyH);
+
+  // dirt speckle (cheap fixed pattern)
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  for (let i = 0; i < platW; i += 18) {
+    const dx = platL + i + ((i * 7) % 11);
+    ctx.fillRect(dx, groundY + 14 + ((i * 13) % 20), 3, 3);
+    ctx.fillRect(dx + 7, groundY + 28 + ((i * 5) % 12), 2, 2);
+  }
+
+  // grass cap
+  const grass = ctx.createLinearGradient(0, groundY - topH, 0, groundY);
+  grass.addColorStop(0, "#7bd86b");
+  grass.addColorStop(1, "#3f9a3a");
+  ctx.fillStyle = grass;
+  ctx.fillRect(platL, groundY - topH, platW, topH);
+  // grass blades along the top edge
+  ctx.fillStyle = "#9bf07f";
+  for (let i = 0; i < platW; i += 7) {
+    ctx.fillRect(platL + i, groundY - topH - 3, 2, 3);
+  }
+
+  // glowing danger edges (the ring-out cliffs)
+  for (const [ex, dir] of [[platL, -1], [platR, 1]]) {
+    const eg = ctx.createLinearGradient(ex, 0, ex + dir * 22, 0);
+    eg.addColorStop(0, "rgba(255,90,70,0.55)");
+    eg.addColorStop(1, "rgba(255,90,70,0)");
+    ctx.fillStyle = eg;
+    ctx.fillRect(dir < 0 ? ex - 22 : ex, groundY - topH, 22, topH + bodyH);
+    // chevron edge ticks
+    ctx.fillStyle = "#ffcf3f";
+    ctx.fillRect(ex + (dir < 0 ? -3 : 0), groundY - topH - 6, 3, 18);
+  }
+
+  // void below the platform body
+  const void_ = ctx.createLinearGradient(0, groundY + bodyH, 0, H);
+  void_.addColorStop(0, "#0a0712");
+  void_.addColorStop(1, "#000000");
+  ctx.fillStyle = void_;
+  ctx.fillRect(0, groundY + bodyH, W, H - groundY - bodyH);
+}
+
+function cloud(x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
+  ctx.arc(x + r * 0.6, y + 4, r * 0.5, 0, Math.PI * 2);
+  ctx.arc(x - r * 0.6, y + 5, r * 0.45, 0, Math.PI * 2);
+  ctx.arc(x + r * 0.1, y + 8, r * 0.7, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function mountains(W, groundY, baseY, color, peaks) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  for (let i = 0; i < peaks.length; i++) {
+    const x = peaks[i] * W;
+    const h = baseY * (0.55 + ((i * 0.27) % 0.45));
+    ctx.lineTo(x, groundY - h);
+    if (i < peaks.length - 1) {
+      const nx = peaks[i + 1] * W;
+      ctx.lineTo((x + nx) / 2, groundY - h * 0.45);
+    }
+  }
+  ctx.lineTo(W, groundY);
+  ctx.closePath();
+  ctx.fill();
+}
+
 // ------------------------------------------------------------------ render
 function render() {
   if (!replay) return;
   frame = Math.max(0, Math.min(frame, replay.frames.length - 1));
   const fr = replay.frames[frame];
   const plat = replay.platform || { x_left: 0, x_right: 10, y: 0 };
-  const { sx, sy, groundY, padX, W } = worldToScreen(plat);
+  const geo = worldToScreen(plat);
+  const { sx, sy, groundY, W } = geo;
 
   ctx.clearRect(0, 0, W, canvas.height);
 
-  // --- void below platform (ring-out zone)
-  ctx.fillStyle = "#070a0e";
-  ctx.fillRect(0, groundY + 6, W, canvas.height - groundY - 6);
+  // crisp pixel-art scaling for the sprites
+  ctx.imageSmoothingEnabled = false;
 
-  // --- platform segment [x_left, x_right]
-  const platL = sx(plat.x_left), platR = sx(plat.x_right);
-  ctx.fillStyle = "#30363d";
-  ctx.fillRect(platL, groundY, platR - platL, 8);
-  // edge ticks
-  ctx.fillStyle = "#d29922";
-  ctx.fillRect(platL - 3, groundY - 4, 3, 16);
-  ctx.fillRect(platR, groundY - 4, 3, 16);
+  // --- layered stage (sky, mountains, platform, void)
+  drawStage(plat, geo);
 
   // --- fighters
-  drawFighter(fr.p1, "#58a6ff", sx, sy, plat, groundY, "p1");
-  drawFighter(fr.p2, "#f78166", sx, sy, plat, groundY, "p2");
+  drawFighter(fr.p1, "p1", sx, sy, plat, groundY, frame);
+  drawFighter(fr.p2, "p2", sx, sy, plat, groundY, frame);
 
   // --- punch flashes (from events)
   const evs = fr.events || [];
-  if (evs.includes("p1_punch")) punchFlash(fr.p1, "#58a6ff", sx, sy);
-  if (evs.includes("p2_punch")) punchFlash(fr.p2, "#f78166", sx, sy);
+  if (evs.includes("p1_punch")) punchFlash(fr.p1, "#aef0ff", sx, sy, plat, groundY);
+  if (evs.includes("p2_punch")) punchFlash(fr.p2, "#ffd23c", sx, sy, plat, groundY);
 
-  // --- ring-out marker
+  // --- ring-out effect
   if (evs.includes("p1_ringout")) ringOutMark(fr.p1, sx, groundY, "p1");
   if (evs.includes("p2_ringout")) ringOutMark(fr.p2, sx, groundY, "p2");
 
@@ -282,63 +587,172 @@ function render() {
   }
 }
 
-function drawFighter(b, color, sx, sy, plat, groundY, who) {
+// Draw one fighter's pixel sprite. `who` is "p1"/"p2"; `b` is the body state
+// {x,y,facing,action}. The sprite anchors its FEET on the platform line (or
+// drops into the void when off-edge), bobs on idle, squashes on jump, etc.
+function drawFighter(b, who, sx, sy, plat, groundY, frameIdx) {
+  const fighter = FIGHTERS[who];
   const onPlatform = b.x >= plat.x_left && b.x <= plat.x_right;
+  const flip = (b.facing < 0) ? -1 : 1;
+
   const cx = sx(b.x);
-  const cy = onPlatform ? sy(b.y) - 16 : groundY + 40; // fall into void if off-edge
-  const r = 16;
+  // feet baseline: on the grass when on platform; falling into void if off-edge
+  const feetY = onPlatform ? sy(b.y) : groundY + 70;
 
-  // body
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = onPlatform ? color : "#555b63";
-  ctx.fill();
-  ctx.lineWidth = 2; ctx.strokeStyle = "#0a0d12"; ctx.stroke();
+  // pick pose
+  const pose = poseFor(b.action);
+  let grid = fighter[pose];
 
-  // facing indicator: a wedge/nose pointing in facing dir
-  const dir = (b.facing < 0) ? -1 : 1;
-  ctx.beginPath();
-  ctx.moveTo(cx + dir * r, cy);
-  ctx.lineTo(cx + dir * (r + 12), cy - 6);
-  ctx.lineTo(cx + dir * (r + 12), cy + 6);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
+  // small life: idle/breathing bob + jump squash-stretch
+  let bob = 0, squash = 1;
+  if (pose === "idle") bob = Math.sin(frameIdx * 0.9) * 1.2;     // gentle breathe
+  if (pose === "move") bob = Math.abs(Math.sin(frameIdx * 1.6)) * 1.5; // step bounce
+  if (pose === "jump") squash = 1.06;                            // stretched in air
 
-  // label
-  ctx.fillStyle = "#e6edf3";
-  ctx.font = "bold 12px ui-sans-serif, system-ui";
+  const w = SPR * PX;
+  const h = SPR * PX * squash;
+  const left = cx - w / 2;
+  const top = feetY - h + bob;     // anchor feet at feetY
+
+  // soft shadow on the platform (skip when airborne high or off-edge)
+  if (onPlatform && b.y < 1.2) {
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.ellipse(cx, sy(0) + 2, w * 0.34, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // when knocked off the platform, gray the sprite (defeated) + spin handled in ringOutMark
+  const dim = !onPlatform;
+  drawSprite(grid, fighter.pal, left, top, PX, PX * squash, flip, dim);
+
+  // tiny floating tag above the head so p1/p2 stay legible
+  ctx.save();
+  ctx.font = "bold 11px ui-sans-serif, system-ui";
   ctx.textAlign = "center";
-  ctx.fillText(who, cx, cy + 4);
+  ctx.fillStyle = who === "p1" ? "#cfe9ff" : "#ffd9c0";
+  ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.lineWidth = 3;
+  ctx.strokeText(who.toUpperCase(), cx, top - 4);
+  ctx.fillText(who.toUpperCase(), cx, top - 4);
+  ctx.restore();
 }
 
-function punchFlash(b, color, sx, sy) {
+// Render a 16-row pixel grid as scaled rects. `flip` mirrors horizontally so
+// the same right-facing art works left-facing. `dim` grays it (knocked out).
+function drawSprite(grid, pal, left, top, pxw, pxh, flip, dim) {
+  const cols = grid[0].length;
+  for (let r = 0; r < grid.length; r++) {
+    const row = grid[r];
+    for (let c = 0; c < cols; c++) {
+      const key = row[c];
+      if (key === "." || key === " ") continue;
+      let col = pal[key];
+      if (!col) continue;
+      if (dim) col = grayish(col);
+      // flip: map column c -> (cols-1-c) when facing left
+      const cc = flip < 0 ? (cols - 1 - c) : c;
+      ctx.fillStyle = col;
+      // +0.5 overdraw kills hairline seams between scaled rects
+      ctx.fillRect(left + cc * pxw, top + r * pxh, pxw + 0.6, pxh + 0.6);
+    }
+  }
+}
+
+// desaturate toward gray for the "defeated / falling" look
+function grayish(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const lum = Math.round(0.3 * r + 0.59 * g + 0.11 * b);
+  const mix = (ch) => Math.round(ch * 0.35 + lum * 0.65);
+  const h = (v) => v.toString(16).padStart(2, "0");
+  return "#" + h(mix(r)) + h(mix(g)) + h(mix(b));
+}
+
+// Impact burst at the fist when a punch event fires.
+function punchFlash(b, color, sx, sy, plat, groundY) {
+  const onPlatform = b.x >= plat.x_left && b.x <= plat.x_right;
   const dir = (b.facing < 0) ? -1 : 1;
-  const cx = sx(b.x) + dir * 26;
-  const cy = sy(b.y) - 16;
+  const feetY = onPlatform ? sy(b.y) : groundY + 70;
+  const cx = sx(b.x) + dir * (SPR * PX * 0.42);
+  const cy = feetY - SPR * PX * 0.52;    // roughly fist height
+
   ctx.save();
-  ctx.globalAlpha = 0.85;
+  // radial glow
+  const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 26);
+  g.addColorStop(0, "rgba(255,255,255,0.95)");
+  g.addColorStop(0.4, color);
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.fill();
+
+  // spark spikes
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineCap = "round";
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
+    const r0 = 8, r1 = 20 + (i % 2) * 8;
     ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + Math.cos(a) * 14, cy + Math.sin(a) * 14);
-    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+    ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    ctx.stroke();
   }
-  ctx.beginPath();
-  ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-  ctx.fillStyle = "#fff"; ctx.fill();
+  // hot core
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
+// Ring-out: a streaking "KO!" star where the fighter was launched, plus a bold
+// RING-OUT banner pinned to the edge they flew off.
 function ringOutMark(b, sx, groundY, who) {
-  const cx = sx(b.x);
+  const cx = Math.max(60, Math.min(sx(b.x), canvas.width - 60));
   ctx.save();
-  ctx.fillStyle = "#f85149";
-  ctx.font = "bold 13px ui-sans-serif, system-ui";
+
+  // launch streak
+  ctx.globalAlpha = 0.9;
+  const dir = b.x > 5 ? 1 : -1;
+  const streak = ctx.createLinearGradient(cx - dir * 60, groundY, cx, groundY + 30);
+  streak.addColorStop(0, "rgba(255,210,60,0)");
+  streak.addColorStop(1, "rgba(255,210,60,0.85)");
+  ctx.strokeStyle = streak; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx - dir * 60, groundY - 10);
+  ctx.lineTo(cx, groundY + 36);
+  ctx.stroke();
+
+  // burst star at the launch point
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#ffd23c";
+  star(cx, groundY + 8, 5, 16, 7);
+  ctx.fillStyle = "#fff";
+  star(cx, groundY + 8, 5, 8, 3);
+
+  // RING-OUT! banner
+  ctx.font = "900 22px ui-sans-serif, system-ui";
   ctx.textAlign = "center";
-  ctx.fillText("RING-OUT", Math.max(50, Math.min(cx, canvas.width - 50)), groundY + 64);
+  ctx.lineWidth = 5; ctx.strokeStyle = "#2a0606";
+  ctx.strokeText("RING-OUT!", cx, groundY + 70);
+  const bg = ctx.createLinearGradient(cx - 60, 0, cx + 60, 0);
+  bg.addColorStop(0, "#ff5a46"); bg.addColorStop(1, "#ffd23c");
+  ctx.fillStyle = bg;
+  ctx.fillText("RING-OUT!", cx, groundY + 70);
+
   ctx.restore();
+}
+
+function star(cx, cy, spikes, outer, inner) {
+  let rot = -Math.PI / 2;
+  const step = Math.PI / spikes;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outer);
+  for (let i = 0; i < spikes; i++) {
+    ctx.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer); rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner); rot += step;
+  }
+  ctx.closePath();
+  ctx.fill();
 }
 
 // ------------------------------------------------------------------ transport
