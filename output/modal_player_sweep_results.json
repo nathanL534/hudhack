@@ -1,0 +1,298 @@
+{
+  "n_jobs": 18,
+  "difficulties": [
+    0.2,
+    0.4,
+    0.6,
+    0.75,
+    0.85,
+    0.9
+  ],
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "episodes": 800,
+  "eval_seeds": 40,
+  "wall_clock_s": 219.05,
+  "single_call_s": 38.35,
+  "sequential_estimate_s": 690.3,
+  "speedup_vs_sequential": 3.15,
+  "parallel_beat_sequential": true,
+  "mean_improvement": 0.1861,
+  "rows": [
+    {
+      "seed": 1,
+      "curriculum_id": "d0.2",
+      "arena_scores": [
+        0.95
+      ],
+      "mean_score": 0.95,
+      "before_winrate": 0.875,
+      "after_winrate": 0.95,
+      "improvement": 0.07499999999999996,
+      "difficulty": 0.2,
+      "status": "ppo"
+    },
+    {
+      "seed": 2,
+      "curriculum_id": "d0.2",
+      "arena_scores": [
+        0.95
+      ],
+      "mean_score": 0.95,
+      "before_winrate": 0.7,
+      "after_winrate": 0.95,
+      "improvement": 0.25,
+      "difficulty": 0.2,
+      "status": "ppo"
+    },
+    {
+      "seed": 3,
+      "curriculum_id": "d0.2",
+      "arena_scores": [
+        1.0
+      ],
+      "mean_score": 1.0,
+      "before_winrate": 0.525,
+      "after_winrate": 1.0,
+      "improvement": 0.475,
+      "difficulty": 0.2,
+      "status": "ppo"
+    },
+    {
+      "seed": 1,
+      "curriculum_id": "d0.4",
+      "arena_scores": [
+        0.175
+      ],
+      "mean_score": 0.175,
+      "before_winrate": 0.25,
+      "after_winrate": 0.175,
+      "improvement": -0.07500000000000001,
+      "difficulty": 0.4,
+      "status": "ppo"
+    },
+    {
+      "seed": 2,
+      "curriculum_id": "d0.4",
+      "arena_scores": [
+        0.45
+      ],
+      "mean_score": 0.45,
+      "before_winrate": 0.05,
+      "after_winrate": 0.45,
+      "improvement": 0.4,
+      "difficulty": 0.4,
+      "status": "ppo"
+    },
+    {
+      "seed": 3,
+      "curriculum_id": "d0.4",
+      "arena_scores": [
+        0.575
+      ],
+      "mean_score": 0.575,
+      "before_winrate": 0.0,
+      "after_winrate": 0.575,
+      "improvement": 0.575,
+      "difficulty": 0.4,
+      "status": "ppo"
+    },
+    {
+      "seed": 1,
+      "curriculum_id": "d0.6",
+      "arena_scores": [
+        0.025
+      ],
+      "mean_score": 0.025,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025,
+      "difficulty": 0.6,
+      "status": "ppo"
+    },
+    {
+      "seed": 2,
+      "curriculum_id": "d0.6",
+      "arena_scores": [
+        0.025
+      ],
+      "mean_score": 0.025,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025,
+      "difficulty": 0.6,
+      "status": "ppo"
+    },
+    {
+      "seed": 3,
+      "curriculum_id": "d0.6",
+      "arena_scores": [
+        0.025
+      ],
+      "mean_score": 0.025,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025,
+      "difficulty": 0.6,
+      "status": "ppo"
+    },
+    {
+      "seed": 1,
+      "curriculum_id": "d0.75",
+      "arena_scores": [
+        0.35
+      ],
+      "mean_score": 0.35,
+      "before_winrate": 0.0,
+      "after_winrate": 0.35,
+      "improvement": 0.35,
+      "difficulty": 0.75,
+      "status": "ppo"
+    },
+    {
+      "seed": 2,
+      "curriculum_id": "d0.75",
+      "arena_scores": [
+        0.875
+      ],
+      "mean_score": 0.875,
+      "before_winrate": 0.0,
+      "after_winrate": 0.875,
+      "improvement": 0.875,
+      "difficulty": 0.75,
+      "status": "ppo"
+    },
+    {
+      "seed": 3,
+      "curriculum_id": "d0.75",
+      "arena_scores": [
+        0.05
+      ],
+      "mean_score": 0.05,
+      "before_winrate": 0.0,
+      "after_winrate": 0.05,
+      "improvement": 0.05,
+      "difficulty": 0.75,
+      "status": "ppo"
+    },
+    {
+      "seed": 1,
+      "curriculum_id": "d0.85",
+      "arena_scores": [
+        0.3
+      ],
+      "mean_score": 0.3,
+      "before_winrate": 0.0,
+      "after_winrate": 0.3,
+      "improvement": 0.3,
+      "difficulty": 0.85,
+      "status": "ppo"
+    },
+    {
+      "seed": 2,
+      "curriculum_id": "d0.85",
+      "arena_scores": [
+        0.0
+      ],
+      "mean_score": 0.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0,
+      "difficulty": 0.85,
+      "status": "ppo"
+    },
+    {
+      "seed": 3,
+      "curriculum_id": "d0.85",
+      "arena_scores": [
+        0.0
+      ],
+      "mean_score": 0.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0,
+      "difficulty": 0.85,
+      "status": "ppo"
+    },
+    {
+      "seed": 1,
+      "curriculum_id": "d0.9",
+      "arena_scores": [
+        0.0
+      ],
+      "mean_score": 0.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0,
+      "difficulty": 0.9,
+      "status": "ppo"
+    },
+    {
+      "seed": 2,
+      "curriculum_id": "d0.9",
+      "arena_scores": [
+        0.0
+      ],
+      "mean_score": 0.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0,
+      "difficulty": 0.9,
+      "status": "ppo"
+    },
+    {
+      "seed": 3,
+      "curriculum_id": "d0.9",
+      "arena_scores": [
+        0.0
+      ],
+      "mean_score": 0.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0,
+      "difficulty": 0.9,
+      "status": "ppo"
+    }
+  ],
+  "experiment_result": {
+    "per_seed_scores": {
+      "mlp": [
+        0.95,
+        0.95,
+        1.0,
+        0.175,
+        0.45,
+        0.575,
+        0.025,
+        0.025,
+        0.025,
+        0.35,
+        0.875,
+        0.05,
+        0.3,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "delta_per_arch": {
+      "mlp": 0.319444
+    },
+    "n_seeds_completed": 18,
+    "p_value": 1.0,
+    "curricula_ids": [
+      "d0.2",
+      "d0.4",
+      "d0.6",
+      "d0.75",
+      "d0.85",
+      "d0.9"
+    ],
+    "reward": 0.18611111111111112
+  }
+}
