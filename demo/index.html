@@ -114,21 +114,21 @@
         <button class="btn" id="playBtn">Pause replays</button></div>
       <div class="arenas">
         <div class="arena">
-          <div class="arena-title"><b>Base Teacher's Student</b><span class="tag">trained on base curricula</span></div>
+          <div class="arena-title"><b>Base Teacher's Student</b><span class="tag" id="baseMatchTag">example match</span></div>
           <canvas id="baseCanvas" width="660" height="330"></canvas>
-          <div class="arena-foot"><span>Head-to-head win-rate</span><b id="baseArenaScore">Awaiting evaluation</b></div>
+          <div class="arena-foot"><span id="baseMatchLabel">Captured head-to-head replay</span><b id="baseArenaScore">Awaiting evaluation</b></div>
         </div>
         <div class="arena">
-          <div class="arena-title"><b>Trained Teacher's Student</b><span class="tag win">trained on trained curricula</span></div>
+          <div class="arena-title"><b>Trained Teacher's Student</b><span class="tag win" id="trainedMatchTag">example match</span></div>
           <canvas id="trainedCanvas" width="660" height="330"></canvas>
-          <div class="arena-foot"><span>Head-to-head win-rate</span><b id="trainedArenaScore">Awaiting evaluation</b></div>
+          <div class="arena-foot"><span id="trainedMatchLabel">Captured head-to-head replay</span><b id="trainedArenaScore">Awaiting evaluation</b></div>
         </div>
       </div>
     </div>
 
     <aside class="side">
       <div class="card knobs">
-        <div class="card-head"><div><h3>Generated environment</h3><div class="subtle">Validated before execution</div></div><span class="tag win">0 clamped</span></div>
+        <div class="card-head"><div><h3>Generated environment</h3><div class="subtle">Validated before execution</div></div><span class="tag" id="clampBadge">Awaiting evaluation</span></div>
         <div id="knobs"></div>
       </div>
       <div class="card games">
@@ -152,22 +152,26 @@
 </div>
 <div class="toast" id="toast">Challenge started</div>
 
+<!-- Real captured artifacts, embedded so the page plays from file:// with no fetch.
+     Generated from output/stage6_report/dashboard.json + replays/h2h_fighter_*.json
+     (see demo/README.md). No values are authored here; they are copied verbatim. -->
+<script src="replays.js"></script>
 <script>
-// NO fabricated metrics. Until a real eval JSON exists, every value reads
-// "Awaiting evaluation". The dashboard consumes output/.../dashboard.json (written
-// by report.generate_report) for the PRIMARY Student-vs-Student headline, and the
-// captured head-to-head replays for the visual.
+// NO fabricated metrics. Headline numbers come from the REAL dashboard.json
+// (embedded via replays.js, or live-fetched in "Live artifacts" mode). Any value
+// that is genuinely absent renders "Awaiting evaluation" — never a hardcoded score.
+// The two canvases REPLAY real captured head-to-head matches frame by frame.
 const AWAIT = "Awaiting evaluation";
+const EMBED = (window.CRUCIBLE_DATA || null);          // real artifacts, embedded
+const EMBED_REPLAYS = EMBED?.replays || {};
+// Live-fetch fallbacks (only reachable when served over http, not file://).
 const REPLAY_CANDIDATES = {
-  // Real captured head-to-head replays (written by the eval); base-win and
-  // trained-win matches. Fall back to whatever exists.
-  base: ["/replays/h2h_fighter_base_win_trained_as_P0.json"],
+  base:    ["/replays/h2h_fighter_base_win_trained_as_P0.json"],
   trained: ["/replays/h2h_fighter_trained_win_trained_as_P0.json",
             "/replays/h2h_fighter_draw_trained_as_P0.json"]
 };
-const bounds={difficulty:[0,1],platform_width:[8,30],gravity:[.2,1.2],knockback:[.5,6],spawn_gap:[1,12]};
-const labels={difficulty:"Opponent",platform_width:"Platform",gravity:"Gravity",knockback:"Knockback",spawn_gap:"Spawn gap"};
-let data=null, playing=true, frame=0, timer=null, baseReplay=null, trainedReplay=null;
+let data=null, playing=true, timer=null;
+let baseReplay=null, trainedReplay=null;   // each: {trace, frame, hold}
 const $=id=>document.getElementById(id);
 const pct3=v=>(v==null?AWAIT:Number(v).toFixed(3));
 
@@ -175,7 +179,8 @@ function renderMetrics(){
   const d=data;
   if(!d){
     ["baseScore","trainedScore","liftScore","baseArenaScore","trainedArenaScore",
-     "proofSide","proofCI","proofReps","proofAnti","proofKoth"].forEach(id=>$(id).textContent=AWAIT);
+     "proofSide","proofCI","proofReps","proofAnti","proofKoth","clampBadge"].forEach(id=>$(id).textContent=AWAIT);
+    $("clampBadge").className="tag";
     $("knobs").innerHTML="";
     return;
   }
@@ -196,6 +201,10 @@ function renderMetrics(){
   $("proofKoth").textContent=!cg?AWAIT:(cg.supported?
     (cg.mean_paired_advantage==null?"Supported":`adv ${cg.mean_paired_advantage>=0?"+":""}${Number(cg.mean_paired_advantage).toFixed(3)}`):
     "Unsupported");
+  // Clamp badge: only show a count when the eval actually reported one.
+  const clamp=(d.n_clamped!=null)?d.n_clamped:(d.clamped!=null?d.clamped:null);
+  if(clamp==null){$("clampBadge").textContent=AWAIT;$("clampBadge").className="tag";}
+  else{$("clampBadge").textContent=`${clamp} clamped`;$("clampBadge").className=clamp===0?"tag win":"tag";}
   // Knobs: show the first held-out arena family advantages if present.
   const fam=d.per_arena_family_advantage||{};
   $("knobs").innerHTML=Object.entries(fam).map(([k,v])=>{
@@ -205,12 +214,47 @@ function renderMetrics(){
 }
 async function loadJSON(path){const r=await fetch(path,{cache:"no-store"});if(!r.ok)throw Error(r.status);return r.json()}
 async function firstReplay(cands){for(const p of cands){try{return await loadJSON(p)}catch(_){}}return null}
+
+// A "match" wraps a real trace plus a per-canvas frame cursor so the two
+// canvases animate independently (different match lengths).
+function makeMatch(trace){ return trace ? {trace, frame:0, hold:0} : null; }
+
+// Pick which captured match each canvas plays. We always show a head-to-head
+// where the trained Student WON in the "Trained" canvas and one where the base
+// Student won in the "Base" canvas, so each panel illustrates its own side.
+// Falls back to the draw (the long, lively 201-frame match) if a side is absent.
+function pickMatches(){
+  const r=EMBED_REPLAYS;
+  const trainedTrace = r.trained_win_P0 || r.draw_P0 || r.base_win_P0 || null;
+  const baseTrace    = r.base_win_P1 || r.base_win_P0 || r.draw_P0 || null;
+  return {baseTrace, trainedTrace};
+}
+
+// In a trace, p1/p2 may be EITHER policy (side-swapped). Resolve which body is
+// the trained student from the trace's own metadata — never assume p1.
+function sides(trace){
+  const m=trace?.meta||{};
+  const trainedIsP1 = m.p1_policy==="trained_student";
+  return {
+    trained: trainedIsP1 ? "p1" : "p2",
+    base:    trainedIsP1 ? "p2" : "p1",
+  };
+}
+function outcomeLabel(trace){
+  const m=trace?.meta||{}, s=sides(trace), w=m.winner;
+  let who="Draw";
+  if(w==="p1"||w==="p2") who=(w===s.trained)?"Trained Student wins":"Base Student wins";
+  const side = m.p1_policy==="trained_student" ? "trained played P0" : "trained played P1";
+  return {who, side, frames:(trace?.frames?.length||0)};
+}
+
 async function loadArtifacts(){
   data=null;
-  if($("mode").value==="live"){
+  const live=$("mode").value==="live";
+  if(live){
     try{
       data=await loadJSON("/output/stage6_report/dashboard.json");
-      $("artifactStatus").textContent="Loaded stage6_report/dashboard.json";
+      $("artifactStatus").textContent="Loaded stage6_report/dashboard.json (live)";
       $("modeLabel").textContent="Live artifacts";
     }catch(e){
       try{ // fall back to the full result JSON's primary block
@@ -223,34 +267,114 @@ async function loadArtifacts(){
               per_arena_family_advantage:p.per_arena_family_advantage,cross_game_koth:full.cross_game_koth};
         $("artifactStatus").textContent="Loaded eval_base_vs_trained.json (primary block)";
         $("modeLabel").textContent="Live artifacts";
-      }catch(_){data=null;$("artifactStatus").textContent="No eval artifact yet — Awaiting evaluation";$("modeLabel").textContent="Awaiting eval"}
+      }catch(_){data=EMBED?.dashboard||null;
+        $("artifactStatus").textContent=data?"Live fetch failed — showing embedded dashboard.json":"No eval artifact — Awaiting evaluation";
+        $("modeLabel").textContent=data?"Embedded artifacts":"Awaiting eval";}
     }
-  }else{$("artifactStatus").textContent="Demo mode — no fabricated metrics, run an eval for numbers";$("modeLabel").textContent="Awaiting eval"}
-  baseReplay=await firstReplay(REPLAY_CANDIDATES.base);
-  trainedReplay=await firstReplay(REPLAY_CANDIDATES.trained);
+  }else{
+    // Demo (default): real metrics straight from the embedded dashboard.json.
+    data=EMBED?.dashboard||null;
+    $("artifactStatus").textContent=data?"Embedded artifacts — real dashboard.json + captured replays":"No artifact — Awaiting evaluation";
+    $("modeLabel").textContent=data?"Demo ready":"Awaiting eval";
+  }
+
+  // Replays: prefer embedded (works on file://), else live-fetch.
+  const m=pickMatches();
+  let bt=m.baseTrace, tt=m.trainedTrace;
+  if(!bt) bt=await firstReplay(REPLAY_CANDIDATES.base);
+  if(!tt) tt=await firstReplay(REPLAY_CANDIDATES.trained);
+  baseReplay=makeMatch(bt); trainedReplay=makeMatch(tt);
+
+  // Caption each canvas with its real, captured outcome.
+  if(bt){const o=outcomeLabel(bt);$("baseMatchTag").textContent=o.who;$("baseMatchTag").className=o.who.startsWith("Base")?"tag win":"tag";
+    $("baseMatchLabel").textContent=`Captured match · ${o.side} · ${o.frames} frames`;}
+  if(tt){const o=outcomeLabel(tt);$("trainedMatchTag").textContent=o.who;$("trainedMatchTag").className=o.who.startsWith("Trained")?"tag win":"tag";
+    $("trainedMatchLabel").textContent=`Captured match · ${o.side} · ${o.frames} frames`;}
+
   renderMetrics(); drawBoth();
 }
-function drawArena(canvas,replay,accent,label){
+// Draw a single fighter body at canvas coords. `hot` = highlight (trained
+// student in the trained panel / base student in the base panel); the opponent
+// is rendered dim so the eye tracks the panel's own fighter.
+function drawBody(c,x,ground,b,col,hot,ringout){
+  const face=b.facing||1, y=ground-(b.y||0)*35;
+  c.save();c.translate(x,y);
+  if(ringout){ // grey out + fall a touch when this body just ringed out
+    c.globalAlpha=.45;c.translate(0,18);
+  }
+  // shadow on the platform
+  c.save();c.globalAlpha*=.5;c.fillStyle="#000";c.beginPath();c.ellipse(0,2,15,4,0,0,Math.PI*2);c.fill();c.restore();
+  // body
+  c.shadowBlur=hot?22:8;c.shadowColor=col;
+  c.fillStyle=col;c.beginPath();c.arc(0,-28,hot?19:16,0,Math.PI*2);c.fill();
+  c.shadowBlur=0;
+  // eye in facing direction
+  c.fillStyle="#0a0d16";c.beginPath();c.arc(face*8,-32,3.5,0,Math.PI*2);c.fill();
+  // action read-outs from the real frame
+  if(b.action==="punch"){c.strokeStyle="#fff";c.lineWidth=8;c.lineCap="round";
+    c.beginPath();c.moveTo(face*12,-27);c.lineTo(face*36,-27);c.stroke();
+    c.fillStyle="#fff";c.beginPath();c.arc(face*40,-27,5,0,Math.PI*2);c.fill();}
+  else if(b.action==="left"||b.action==="right"){const d=b.action==="left"?-1:1;
+    c.strokeStyle="#cfe0ff";c.lineWidth=3;c.beginPath();c.moveTo(0,-12);c.lineTo(d*14,-10);c.stroke();}
+  else if(b.action==="jump"){c.strokeStyle="#cfe0ff";c.lineWidth=3;
+    c.beginPath();c.moveTo(-9,-46);c.lineTo(0,-52);c.lineTo(9,-46);c.stroke();}
+  c.restore();
+}
+
+// Render the current frame of a real captured match. `which` = which body
+// THIS panel is about ("trained" | "base"); that body is highlighted.
+function drawArena(canvas,match,accent,label,which){
   const c=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
   const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,"#111a39");g.addColorStop(.65,"#182038");g.addColorStop(1,"#080b12");c.fillStyle=g;c.fillRect(0,0,W,H);
-  for(let i=0;i<38;i++){const x=(i*83)%W,y=(i*47)%180;c.fillStyle=i%4?"#ffffff24":"#8feaff66";c.fillRect(x,y,1.5,1.5)}
-  const fr=replay?.frames?.[frame%replay.frames.length],p=replay?.platform||{x_left:0,x_right:12,y:0};
-  const left=54,right=W-54,ground=H-67;c.fillStyle="#262e44";c.fillRect(left,ground,right-left,25);c.fillStyle="#6b7ba7";c.fillRect(left,ground,right-left,5);
-  c.fillStyle="#0b0e18";c.fillRect(0,ground+25,W,H-ground-25);
-  const sx=x=>left+(x-p.x_left)/Math.max(1,p.x_right-p.x_left)*(right-left), sy=y=>ground-y*35;
-  const fallback=[{x:p.x_left+(p.x_right-p.x_left)*.34,y:0,action:"right"},{x:p.x_left+(p.x_right-p.x_left)*.66,y:0,action:"left"}];
-  [fr?.p1||fallback[0],fr?.p2||fallback[1]].forEach((b,i)=>{
-    const x=sx(b.x),y=sy(b.y),col=i? "#ff8e58":accent;c.save();c.translate(x,y);
-    c.shadowBlur=18;c.shadowColor=col;c.fillStyle=col;c.beginPath();c.arc(0,-28,19,0,Math.PI*2);c.fill();
-    c.fillStyle="#eaf3ff";c.beginPath();c.arc((b.facing||1)*8,-32,3.5,0,Math.PI*2);c.fill();
-    if(b.action==="punch"){c.strokeStyle="#fff";c.lineWidth=8;c.beginPath();c.moveTo((b.facing||1)*12,-27);c.lineTo((b.facing||1)*35,-27);c.stroke()}
-    c.restore();
-  });
+  for(let i=0;i<38;i++){const x=(i*83)%W,y=(i*47)%180;c.fillStyle=i%4?"#ffffff20":"#8feaff44";c.fillRect(x,y,1.5,1.5)}
+
+  if(!match||!match.trace?.frames?.length){
+    c.fillStyle="#dbe5ff";c.font="700 13px system-ui";c.fillText(label,18,25);
+    c.fillStyle="#8290ad";c.font="11px system-ui";c.fillText("No captured replay found",18,43);
+    return;
+  }
+  const tr=match.trace, frames=tr.frames, idx=match.frame%frames.length, fr=frames[idx];
+  const p=tr.platform||{x_left:0,x_right:7,y:0};
+  const s=sides(tr);                       // which p-body is trained vs base
+  const left=54,right=W-54,ground=H-72;
+
+  // platform (the ring) + the void below it
+  c.fillStyle="#262e44";c.fillRect(left,ground,right-left,25);
+  c.fillStyle="#6b7ba7";c.fillRect(left,ground,right-left,5);
+  c.fillStyle="#0a0d18";c.fillRect(0,ground+25,W,H-ground-25);
+  // edge glow so ring-outs read
+  c.fillStyle="#ff667d33";c.fillRect(left,ground,4,25);c.fillRect(right-4,ground,4,25);
+
+  const sx=x=>left+(x-p.x_left)/Math.max(1e-6,p.x_right-p.x_left)*(right-left);
+  const ev=fr.events||[];
+  const trainedRing=ev.includes(s.trained+"_ringout"), baseRing=ev.includes(s.base+"_ringout");
+
+  // Draw the opponent first (dim), then this panel's fighter (hot) on top.
+  const hotKey = which==="trained" ? s.trained : s.base;
+  const dimKey = which==="trained" ? s.base    : s.trained;
+  const hotRing = hotKey===s.trained ? trainedRing : baseRing;
+  const dimRing = dimKey===s.trained ? trainedRing : baseRing;
+  drawBody(c,sx(fr[dimKey].x),ground,fr[dimKey],"#5b6480",false,dimRing);
+  drawBody(c,sx(fr[hotKey].x),ground,fr[hotKey],accent,true,hotRing);
+
+  // labels + honest frame read-out from the real trace
   c.fillStyle="#dbe5ff";c.font="700 13px system-ui";c.fillText(label,18,25);
-  c.fillStyle="#8290ad";c.font="11px system-ui";c.fillText(fr?`frame ${frame%replay.frames.length} · ${fr.p1.action} vs ${fr.p2.action}`:"saved replay loads in live server mode",18,43);
+  c.fillStyle="#8290ad";c.font="11px system-ui";
+  const ringTxt=ev.some(e=>e.endsWith("ringout"))?" · RING-OUT":(ev.some(e=>e.endsWith("punch"))?" · punch":"");
+  c.fillText(`frame ${idx+1}/${frames.length} · trained:${fr[s.trained].action} vs base:${fr[s.base].action}${ringTxt}`,18,43);
 }
-function drawBoth(){drawArena($("baseCanvas"),baseReplay,"#8fa1c8","BASE TEACHER'S STUDENT");drawArena($("trainedCanvas"),trainedReplay,"#56e5ff","TRAINED TEACHER'S STUDENT")}
-function animate(){clearInterval(timer);if(playing)timer=setInterval(()=>{frame++;drawBoth()},95)}
+function drawBoth(){
+  drawArena($("baseCanvas"),baseReplay,"#9fb0d8","BASE TEACHER'S STUDENT","base");
+  drawArena($("trainedCanvas"),trainedReplay,"#56e5ff","TRAINED TEACHER'S STUDENT","trained");
+}
+// Advance each match's own cursor; hold a beat on the final frame (so short
+// 2-3 frame ring-out matches don't strobe) then loop the captured replay.
+function step(m){ if(!m?.trace?.frames?.length) return;
+  const n=m.trace.frames.length, last=m.frame>=n-1;
+  if(last){ if(m.hold++>=8){m.frame=0;m.hold=0;} }
+  else { m.frame++; }
+}
+function animate(){clearInterval(timer);if(playing)timer=setInterval(()=>{step(baseReplay);step(trainedReplay);drawBoth()},95)}
 function runChallenge(){
   const stages=[...document.querySelectorAll(".stage")];stages.forEach(x=>x.className="stage");let i=0;
   const tick=()=>{if(i)stages[i-1].className="stage done";if(i<stages.length){stages[i].className="stage active";i++;setTimeout(tick,i===3?900:560)}else{showToast("Challenge complete · Student-vs-Student head-to-head")}};tick();
