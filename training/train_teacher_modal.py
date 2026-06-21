@@ -58,16 +58,33 @@ ARCHITECTURE (why split host <-> GPU):
     where it is auditable) and hands them to the GPU's ``update_multi``; the GPU step is
     purely mechanical (concat logprobs, one backward). No nested Modal-from-Modal map.
 
+RIGOR (this version):
+  * SIGNED reward: TK's per-game reward is the RAW SIGNED held-out improvement (can be
+    negative); we do NOT re-clamp it to [0,1] before GRPO. Per-game advantage norm
+    ``(r-mean)/(std+eps)`` is shift-invariant, so a signed reward is strictly more
+    informative — a "this arena hurt transfer" sample still pushes the Teacher away
+    instead of collapsing to the 0.0 floor.
+  * ROTATED training seeds + RESERVED validation seeds: the PPO reward seeds VARY per
+    update (distinct block each step, anti-overfit) and a SEPARATE fixed validation pool
+    (disjoint from every training block) is used ONLY for the final-adapter scoring pass.
+  * FINAL-ADAPTER scoring pass: after the last update, the SAVED final adapter is
+    sampled + scored on the validation seeds and recorded in summary.json as the TRUE
+    final-adapter reward (the per-update logs are PRE-update by construction).
+
 RUN (from repo root; .env sourced; ~/.modal.toml profile njlee007):
 
     set -a && source .env && set +a
     unset MODAL_TOKEN_ID MODAL_TOKEN_SECRET
-    # multi-game (default): both games every step, G per game
-    .venv/bin/python3 training/train_teacher_modal.py --updates 2 --group-size 5 --temperature 1.1
+    # rank-32 rerun (Nathan's default now): both games, signed reward, rotated seeds
+    .venv/bin/python3 training/train_teacher_modal.py --updates 15 --group-size 5 --temperature 1.1
+    # (defaults are already --lora-r 32 --lora-alpha 64; pass them explicitly to be sure)
+    .venv/bin/python3 training/train_teacher_modal.py --updates 15 --group-size 5 --lora-r 32 --lora-alpha 64
     # scale to a fuller run: just raise --updates (e.g. 4-5)
     .venv/bin/python3 training/train_teacher_modal.py --updates 5 --group-size 5 --temperature 1.1
     # single-game (legacy): just Ring-Out
     .venv/bin/python3 training/train_teacher_modal.py --games ring_out --updates 2 --group-size 8
+    # disable seed rotation (legacy: reuse update-1's block every step)
+    .venv/bin/python3 training/train_teacher_modal.py --updates 5 --no-seed-rotation
     .venv/bin/python3 training/train_teacher_modal.py --gpu-smoke  # GPU-only: load+sample+fake-update, no reward
     .venv/bin/python3 training/train_teacher_modal.py --model Qwen/Qwen3-1.7B  # smaller/faster
 
@@ -542,6 +559,20 @@ def _score_tk(answer: str, *, seeds, episodes, eval_seeds) -> tuple[float, dict 
     asserts ``status=="ppo_tk"``). Invalid -> reward 0. TK does NOT use the fighter's
     broad held-out grid: the TK worker builds its own held-out reference, so no
     held_out_arenas is passed (that is the TK reward's load-bearing yardstick).
+
+    RIGOR FIX (signed reward): GRPO normalizes per-game advantages as
+    ``(r - mean) / (std + eps)``, which is SHIFT-invariant — so feeding the RAW SIGNED
+    held-out improvement (which CAN be negative when an arena hurts transfer) is
+    strictly more informative than the [0,1]-clamped reward. A clamp collapses every
+    "this arena made the Player WORSE" sample to the same 0.0 floor, erasing the
+    gradient that should push the Teacher AWAY from those arenas. We therefore read the
+    SIGNED ``mean_improvement`` and do NOT re-clamp it here.
+
+    Source of the signed value: ``tk_teacher_reward`` exposes the raw signed mean via
+    its ``_detail_sink["mean_improvement"]`` regardless of whether the return value is
+    clamped (a parallel change is removing the return-side clamp in
+    ``output/nested_reward_tk.py``). We read the detail sink so this is correct under
+    BOTH states — clamped or unclamped return — and never re-clamps negatives away.
     """
     from output.nested_reward_tk import tk_teacher_reward
     from training.hud_teacher_env import parse_teacher_params
@@ -551,15 +582,23 @@ def _score_tk(answer: str, *, seeds, episodes, eval_seeds) -> tuple[float, dict 
     except Exception as exc:
         return 0.0, None, f"invalid:{type(exc).__name__}"
 
-    reward = tk_teacher_reward(
+    detail: dict = {}
+    reward_ret = tk_teacher_reward(
         params,
         backend="modal",
         seeds=tuple(seeds),
         episodes=episodes,
         eval_seeds=eval_seeds,
         curriculum_id="contingency-rft-tk",
+        _detail_sink=detail,
     )
-    return float(max(0.0, min(1.0, reward))), params, "ok"
+    # Prefer the RAW SIGNED held-out improvement (can be negative). The detail sink's
+    # ``mean_improvement`` is the unclamped signed mean today; if the parallel change
+    # makes the return value itself signed, both agree. Fall back to the return value
+    # only if the sink is somehow absent. NO re-clamp on negatives.
+    signed = detail.get("mean_improvement")
+    reward = float(signed) if signed is not None else float(reward_ret)
+    return reward, params, "ok"
 
 
 def _score_all_games(
@@ -615,6 +654,70 @@ def _build_held_out() -> list[dict]:
     from output.broad_eval_set import build_broad_eval_arenas, payload_arenas
 
     return payload_arenas(build_broad_eval_arenas(grid="full"))
+
+
+# ---------------------------------------------------------------------------
+# Seed rotation + reserved validation seeds (anti-overfit)
+# ---------------------------------------------------------------------------
+#
+# Original behavior scored EVERY update against the SAME 3 PPO seeds (1,2,3), so the
+# Teacher could overfit those specific PPO populations rather than learning arenas that
+# transfer. The fix has two halves:
+#   1. TRAINING seeds rotate per update — each update consumes a DISTINCT contiguous
+#      block in a HIGH range derived from ``seed_base`` + a per-game offset + the
+#      update index, so no PPO population is ever scored against twice.
+#   2. VALIDATION seeds are a SEPARATE fixed low-range pool, never used to compute a
+#      training reward — reserved purely for the final-adapter scoring pass.
+# The two pools are asserted DISJOINT before the run starts.
+
+# Per-game offset into the high training-seed range, so ring_out and target_knockback
+# rotate through NON-overlapping sub-ranges (they index by GAME_KEYS order).
+_GAME_SEED_OFFSET = {game: gi * 1_000_000 for gi, game in enumerate(GAME_KEYS)}
+
+
+def _train_seeds_for(game: str, update_index: int, n_seeds: int, seed_base: int) -> list[int]:
+    """The rotated TRAINING PPO seeds for ``game`` at ``update_index`` (1-based).
+
+    Each update gets a fresh, distinct, contiguous block of ``n_seeds`` integers:
+        block_start = seed_base + game_offset + (update_index - 1) * n_seeds
+    Distinct (game, update) -> distinct block, so the Teacher never re-scores against a
+    PPO population it has already seen, and ring/tk blocks never collide (per-game
+    offset). All blocks sit in the HIGH range (>= seed_base), disjoint from the
+    low-range validation pools.
+    """
+    start = seed_base + _GAME_SEED_OFFSET[game] + (update_index - 1) * n_seeds
+    return [start + j for j in range(n_seeds)]
+
+
+def _all_training_seeds(game: str, updates: int, n_seeds: int, seed_base: int,
+                        rotation: bool) -> set[int]:
+    """Every training seed ``game`` will EVER use across the whole run.
+
+    With rotation off, all updates reuse the first block (legacy behavior), so the union
+    is just that one block. Used to assert the train/validation pools never intersect.
+    """
+    if updates <= 0:
+        return set()
+    span = updates if rotation else 1
+    seeds: set[int] = set()
+    for u in range(1, span + 1):
+        seeds.update(_train_seeds_for(game, u, n_seeds, seed_base))
+    return seeds
+
+
+def _assert_seed_pools_disjoint(game: str, train_seeds: set[int], val_seeds) -> None:
+    """Fail fast if a game's rotated training seeds overlap its validation seeds.
+
+    Disjoint train/validation pools are the whole point of fix #2 — a leaked seed would
+    let the Teacher train on a population it is later 'validated' on. We verify rather
+    than trust the ranges (a low --seed-base or hand-set --val-seeds could collide).
+    """
+    overlap = train_seeds & set(val_seeds)
+    assert not overlap, (
+        f"{game}: training seeds overlap validation seeds {sorted(overlap)} — raise "
+        f"--seed-base or change --{'tk-' if game == 'target_knockback' else ''}val-seeds "
+        f"so the pools stay disjoint"
+    )
 
 
 def _mean(xs):
@@ -687,8 +790,19 @@ def run_train(args) -> int:
     _assert_registry_parity()
     multi = len(games) > 1
 
-    ring_seeds = tuple(args.seeds)
-    tk_seeds = tuple(args.tk_seeds)
+    # --- Seed pools: rotated TRAINING seeds (per update) + reserved VALIDATION seeds ---
+    # Training-reward seeds rotate per update (distinct PPO populations each step ->
+    # anti-overfit). Validation seeds are a SEPARATE fixed pool used ONLY by the final
+    # scoring pass. We assert the two pools are disjoint up front so a leak is a loud
+    # error, never a silent train-on-your-validation-set.
+    n_seeds = {"ring_out": args.ring_n_seeds, "target_knockback": args.tk_n_seeds}
+    val_seeds = {"ring_out": list(args.val_seeds), "target_knockback": list(args.tk_val_seeds)}
+    for game in games:
+        train_union = _all_training_seeds(
+            game, args.updates, n_seeds[game], args.seed_base, args.seed_rotation
+        )
+        _assert_seed_pools_disjoint(game, train_union, val_seeds[game])
+
     ring_held_out = _build_held_out() if "ring_out" in games else []
     out_dir = _REPO_ROOT / "output" / "contingency_rft_multigame"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -698,15 +812,26 @@ def run_train(args) -> int:
     print(f"    games={games}  (one COMBINED GRPO update per step over all games)", flush=True)
     print(f"    updates={args.updates}  group_size={args.group_size}/game  "
           f"temperature={args.temperature}  lr={args.lr}", flush=True)
+    print(f"    seed_rotation={args.seed_rotation}  seed_base={args.seed_base}  "
+          f"(training seeds VARY per update; validation seeds are reserved + disjoint)", flush=True)
     if "ring_out" in games:
-        print(f"    ring_out reward: teacher_reward (crucible-player) | seeds={ring_seeds} "
+        ro_blocks = [_train_seeds_for("ring_out", u, n_seeds["ring_out"], args.seed_base)
+                     for u in range(1, args.updates + 1)] if args.seed_rotation else \
+                    [_train_seeds_for("ring_out", 1, n_seeds["ring_out"], args.seed_base)]
+        print(f"    ring_out reward: teacher_reward (crucible-player) | "
+              f"train_seed_blocks={ro_blocks} val_seeds={val_seeds['ring_out']} "
               f"episodes={args.episodes} eval_seeds={args.eval_seeds} | "
               f"held_out={len(ring_held_out)} arenas", flush=True)
     if "target_knockback" in games:
-        print(f"    tk reward:       tk_teacher_reward (crucible-player-tk) | seeds={tk_seeds} "
+        tk_blocks = [_train_seeds_for("target_knockback", u, n_seeds["target_knockback"], args.seed_base)
+                     for u in range(1, args.updates + 1)] if args.seed_rotation else \
+                    [_train_seeds_for("target_knockback", 1, n_seeds["target_knockback"], args.seed_base)]
+        print(f"    tk reward:       tk_teacher_reward (crucible-player-tk) | "
+              f"train_seed_blocks={tk_blocks} val_seeds={val_seeds['target_knockback']} "
               f"episodes={args.tk_episodes} eval_seeds={args.tk_eval_seeds} | "
               f"worker-built held-out", flush=True)
     print("    ADVANTAGES ARE PER-GAME (no cross-game reward pooling) -> unbiased combined step", flush=True)
+    print("    REWARDS ARE SIGNED (TK held-out improvement can be negative; GRPO norm is shift-invariant)", flush=True)
     print(flush=True)
 
     history: list = []
@@ -737,14 +862,24 @@ def run_train(args) -> int:
                 )
 
             # --- 2+3) validate + score ALL games' completions in ONE parallel fan-out ---
+            # ROTATED TRAINING SEEDS: each step uses a DISTINCT PPO seed block (anti-
+            # overfit). step 0 (base) and step k both index by max(step,1) so the base
+            # measurement reuses update-1's block; updates 1..N each get their own. With
+            # --no-seed-rotation every step falls back to the update-1 block (legacy).
+            seed_update_idx = step if (args.seed_rotation and step >= 1) else 1
+            step_ring_seeds = tuple(_train_seeds_for(
+                "ring_out", seed_update_idx, n_seeds["ring_out"], args.seed_base))
+            step_tk_seeds = tuple(_train_seeds_for(
+                "target_knockback", seed_update_idx, n_seeds["target_knockback"], args.seed_base))
             t_score = time.time()
             print(f"[{tag}] scoring {sum(len(c) for c in completions_by_game.values())} "
-                  f"completions across {len(games)} game(s) (parallel) ...", flush=True)
+                  f"completions across {len(games)} game(s) (parallel) | "
+                  f"train seeds ring={list(step_ring_seeds)} tk={list(step_tk_seeds)} ...", flush=True)
             scored_by_game = _score_all_games(
                 completions_by_game,
-                ring_seeds=ring_seeds, ring_episodes=args.episodes,
+                ring_seeds=step_ring_seeds, ring_episodes=args.episodes,
                 ring_eval_seeds=args.eval_seeds, ring_held_out=ring_held_out,
-                tk_seeds=tk_seeds, tk_episodes=args.tk_episodes,
+                tk_seeds=step_tk_seeds, tk_episodes=args.tk_episodes,
                 tk_eval_seeds=args.tk_eval_seeds,
                 max_workers=args.group_size * len(games),
             )
@@ -781,6 +916,10 @@ def run_train(args) -> int:
                 "step": step, "tag": tag,
                 "per_game": per_game,
                 "score_wall_s": round(score_wall, 1),
+                "train_seeds": {
+                    "ring_out": list(step_ring_seeds),
+                    "target_knockback": list(step_tk_seeds),
+                },
             }
 
             if step == 0:
@@ -797,6 +936,80 @@ def run_train(args) -> int:
 
             history.append(rec)
             (out_dir / "history.json").write_text(json.dumps(history, indent=2))
+
+        # ---------------------------------------------------------------------
+        # FINAL-ADAPTER SCORING PASS (fix #3) — score the SAVED final adapter.
+        # ---------------------------------------------------------------------
+        # The per-update logged reward is the PRE-update policy (we sample+score BEFORE
+        # applying that update), so the SAVED update-N adapter — the one a rerun ships —
+        # was never itself scored. After the last update_multi above, the warm
+        # container's IN-MEMORY policy IS exactly the post-update-N weights that
+        # save_adapter wrote as ``update{N}`` (same model object, no reload needed), so
+        # we sample + score it here. This pass uses the RESERVED VALIDATION seeds (never
+        # touched during training-reward computation) and DISTINCT sample seeds, and is
+        # recorded SEPARATELY as the TRUE final-adapter reward — not mixed into the
+        # per-update logs.
+        final_adapter_eval: dict | None = None
+        if args.updates >= 1:
+            final_tag = f"update{args.updates}"
+            print(f"=== FINAL-ADAPTER SCORING PASS ({final_tag}, validation seeds) ===", flush=True)
+            final_completions: dict = {}
+            for gi, game in enumerate(games):
+                vseed = 9000 + gi  # distinct from the 1000-range training sample seeds
+                print(f"[final/{final_tag}] sampling {args.group_size} {game} completions "
+                      f"from the FINAL adapter (seed={vseed}) ...", flush=True)
+                final_completions[game] = trainer.sample.remote(
+                    game=game, group_size=args.group_size, temperature=args.temperature,
+                    max_new_tokens=args.max_new_tokens, seed=vseed,
+                )
+
+            t_val = time.time()
+            print(f"[final/{final_tag}] scoring on VALIDATION seeds "
+                  f"ring={val_seeds['ring_out']} tk={val_seeds['target_knockback']} (parallel) ...",
+                  flush=True)
+            val_scored = _score_all_games(
+                final_completions,
+                ring_seeds=tuple(val_seeds["ring_out"]), ring_episodes=args.episodes,
+                ring_eval_seeds=args.eval_seeds, ring_held_out=ring_held_out,
+                tk_seeds=tuple(val_seeds["target_knockback"]), tk_episodes=args.tk_episodes,
+                tk_eval_seeds=args.tk_eval_seeds,
+                max_workers=args.group_size * len(games),
+            )
+            val_wall = time.time() - t_val
+
+            final_per_game: dict = {}
+            for game in games:
+                scored = val_scored[game]
+                rewards = [s[0] for s in scored]
+                statuses = [s[2] for s in scored]
+                params = [s[1] for s in scored]
+                n_valid = sum(1 for st in statuses if st == "ok")
+                final_per_game[game] = {
+                    "rewards": [round(r, 4) for r in rewards],
+                    "statuses": statuses,
+                    "n_valid": n_valid,
+                    "reward_mean": round(_mean(rewards), 4),
+                    "reward_std": round(_std(rewards), 4),
+                    "params": params,
+                    "completions_preview": [c[:200] for c in final_completions[game]],
+                    "arena_diversity": _arena_diversity(params),
+                }
+                print(f"[final/{final_tag}] {game}: rewards={[round(r,4) for r in rewards]}  "
+                      f"valid={n_valid}/{len(rewards)}  mean={_mean(rewards):.4f}  "
+                      f"std={_std(rewards):.4f}", flush=True)
+            print(f"[final/{final_tag}] final-adapter scored in {val_wall:.0f}s\n", flush=True)
+
+            final_adapter_eval = {
+                "label": "TRUE final-adapter reward (post-update policy on RESERVED "
+                         "validation seeds; distinct from the per-update PRE-update logs)",
+                "adapter_tag": final_tag,
+                "validation_seeds": {
+                    "ring_out": list(val_seeds["ring_out"]),
+                    "target_knockback": list(val_seeds["target_knockback"]),
+                },
+                "per_game": final_per_game,
+                "val_wall_s": round(val_wall, 1),
+            }
 
     # --- final verdict: per-game before (step 0) vs after (last step) ---
     base_rec = history[0]
@@ -816,6 +1029,12 @@ def run_train(args) -> int:
             "after_arena_diversity": final_rec["per_game"][game]["arena_diversity"],
         }
 
+    # Training seed BLOCKS actually used per update (for the record / audit).
+    def _blocks(game: str) -> list[list[int]]:
+        span = args.updates if args.seed_rotation else 1
+        return [_train_seeds_for(game, max(u, 1), n_seeds[game], args.seed_base)
+                for u in range(1, max(span, 1) + 1)]
+
     summary = {
         "experiment": "contingency_teacher_rft_modal_lora_grpo_multigame",
         "model": args.model,
@@ -823,18 +1042,36 @@ def run_train(args) -> int:
         "games": games,
         "combined_update": multi,
         "advantage_normalization": "per_game (no cross-game reward pooling)",
+        "reward_sign": "signed (TK held-out improvement NOT re-clamped; GRPO norm is shift-invariant)",
         "updates": args.updates,
         "group_size_per_game": args.group_size,
         "temperature": args.temperature,
+        "lora_r": args.lora_r,
+        "lora_alpha": args.lora_alpha,
+        "seed_scheme": {
+            "seed_rotation": args.seed_rotation,
+            "seed_base": args.seed_base,
+            "description": "training PPO reward seeds rotate per update (distinct block "
+                           "each step); validation seeds are a SEPARATE fixed pool, "
+                           "disjoint from every training block, used only by the "
+                           "final-adapter scoring pass.",
+            "train_seed_blocks": {game: _blocks(game) for game in games},
+            "validation_seeds": {game: list(val_seeds[game]) for game in games},
+        },
         "ring_out": {
-            "reward_seeds": list(ring_seeds), "ppo_episodes": args.episodes,
+            "n_reward_seeds": args.ring_n_seeds, "train_seed_blocks": _blocks("ring_out"),
+            "validation_seeds": list(val_seeds["ring_out"]),
+            "ppo_episodes": args.episodes,
             "eval_seeds": args.eval_seeds, "n_held_out_arenas": len(ring_held_out),
         } if "ring_out" in games else None,
         "target_knockback": {
-            "reward_seeds": list(tk_seeds), "ppo_episodes": args.tk_episodes,
+            "n_reward_seeds": args.tk_n_seeds, "train_seed_blocks": _blocks("target_knockback"),
+            "validation_seeds": list(val_seeds["target_knockback"]),
+            "ppo_episodes": args.tk_episodes,
             "eval_seeds": args.tk_eval_seeds,
         } if "target_knockback" in games else None,
         "per_game": per_game_summary,
+        "final_adapter_eval": final_adapter_eval,
         "grad_norms": [
             h.get("update_stats", {}).get("grad_norm") for h in history if "update_stats" in h
         ],
@@ -845,7 +1082,7 @@ def run_train(args) -> int:
     out_path = out_dir / "summary.json"
     out_path.write_text(json.dumps(summary, indent=2))
 
-    print("    === BEFORE vs AFTER (per game; this trainer's own policy) ===", flush=True)
+    print("    === BEFORE vs AFTER (per game; PRE-update logged rewards, rotated train seeds) ===", flush=True)
     for game in games:
         s = per_game_summary[game]
         print(f"    [{game}] before={s['before_reward_mean']:+.4f}  "
@@ -853,6 +1090,14 @@ def run_train(args) -> int:
               f"delta={s['delta_before_after']:+.4f}  "
               f"(std {s['before_reward_std']:.4f}->{s['after_reward_std']:.4f}, "
               f"valid {s['before_valid']}->{s['after_valid']})", flush=True)
+    if final_adapter_eval is not None:
+        print(f"    === TRUE FINAL-ADAPTER REWARD ({final_adapter_eval['adapter_tag']}, "
+              f"validation seeds; distinct from the per-update logs above) ===", flush=True)
+        for game in games:
+            fp = final_adapter_eval["per_game"][game]
+            print(f"    [{game}] final_adapter_reward={fp['reward_mean']:+.4f}  "
+                  f"(std {fp['reward_std']:.4f}, valid {fp['n_valid']}/{args.group_size}, "
+                  f"val_seeds={final_adapter_eval['validation_seeds'][game]})", flush=True)
     print(f"    grad_norms: {[round(g,3) for g in summary['grad_norms'] if g is not None]}", flush=True)
     print(f"\n    wrote {out_path}", flush=True)
     print(f"    adapters on Modal Volume '{VOLUME_NAME}' "
@@ -873,22 +1118,47 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--group-size", dest="group_size", type=int, default=5,
                    help="G completions sampled PER GAME per update (4-6 keeps cost ~like single-game G=8)")
     p.add_argument("--lr", type=float, default=1e-4)
-    p.add_argument("--lora-r", dest="lora_r", type=int, default=16)
-    p.add_argument("--lora-alpha", dest="lora_alpha", type=int, default=32)
+    # Default LoRA rank 32 / alpha 64 (Nathan's choice for the rerun: more adapter
+    # capacity than the original r=16/alpha=32). alpha=2*r keeps the LoRA scaling
+    # (alpha/r) at 2.0, matching the original ratio, so the effective update magnitude
+    # is unchanged — only the rank (expressiveness) grows.
+    p.add_argument("--lora-r", dest="lora_r", type=int, default=32)
+    p.add_argument("--lora-alpha", dest="lora_alpha", type=int, default=64)
     p.add_argument("--temperature", type=float, default=1.1,
                    help="sampling temperature (1.1 was the variance-fixed single-game setting)")
     p.add_argument("--max-new-tokens", dest="max_new_tokens", type=int, default=512)
     # Ring-Out reward config — defaults mirror the dry-loop / bridge nested reward.
-    p.add_argument("--seeds", type=int, nargs="+", default=[1, 2, 3],
-                   help="Ring-Out PPO seeds per reward")
+    # NOTE: --seeds / --tk-seeds are now the COUNT of PPO seeds per reward (an int N),
+    # NOT a literal seed list, because the training seeds ROTATE per update (see the
+    # seed-rotation block below). Validation uses the FIXED --val-seeds / --tk-val-seeds
+    # pools, which are kept DISJOINT from every rotated training block.
+    p.add_argument("--seeds", dest="ring_n_seeds", type=int, default=3,
+                   help="Ring-Out: number of PPO seeds per reward (rotated per update during training)")
     p.add_argument("--episodes", type=int, default=1000, help="Ring-Out PPO episodes per seed")
     p.add_argument("--eval-seeds", dest="eval_seeds", type=int, default=50)
     # Target-Knockback reward config — defaults mirror nested_reward_tk.
-    p.add_argument("--tk-seeds", dest="tk_seeds", type=int, nargs="+", default=[1, 2, 3],
-                   help="Target-Knockback PPO seeds per reward")
+    p.add_argument("--tk-seeds", dest="tk_n_seeds", type=int, default=3,
+                   help="Target-Knockback: number of PPO seeds per reward (rotated per update during training)")
     p.add_argument("--tk-episodes", dest="tk_episodes", type=int, default=2000,
                    help="TK PPO episodes per seed (TK's validated budget)")
     p.add_argument("--tk-eval-seeds", dest="tk_eval_seeds", type=int, default=50)
+    # --- Seed rotation + reserved validation seeds (anti-overfit) ---------------
+    # Training-reward seeds VARY per update: each update consumes a distinct contiguous
+    # block in a HIGH range (--seed-base + per-game offset + update_index*block), so the
+    # Teacher never re-scores against the same PPO populations twice and cannot overfit
+    # one fixed seed set. Validation uses a SEPARATE fixed low-range pool, never seen
+    # during training-reward computation. The two pools are asserted disjoint at runtime.
+    p.add_argument("--seed-rotation", dest="seed_rotation", action="store_true", default=True,
+                   help="rotate training PPO reward seeds per update (default ON; anti-overfit)")
+    p.add_argument("--no-seed-rotation", dest="seed_rotation", action="store_false",
+                   help="disable rotation: reuse the first training block every update (legacy behavior)")
+    p.add_argument("--seed-base", dest="seed_base", type=int, default=10000,
+                   help="base of the HIGH-range training-seed space (rotated blocks live here; "
+                        "kept disjoint from the low-range validation pools)")
+    p.add_argument("--val-seeds", dest="val_seeds", type=int, nargs="+", default=[1, 2, 3],
+                   help="Ring-Out FIXED validation seeds (held out of training; final-adapter scoring only)")
+    p.add_argument("--tk-val-seeds", dest="tk_val_seeds", type=int, nargs="+", default=[1, 2, 3],
+                   help="Target-Knockback FIXED validation seeds (held out of training; final-adapter scoring only)")
     p.add_argument("--gpu-smoke", dest="gpu_smoke", action="store_true",
                    help="GPU-only check: load+sample(both games)+fake-update+save, NO reward compute")
     args = p.parse_args(argv)
