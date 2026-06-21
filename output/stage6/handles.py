@@ -13,6 +13,14 @@ Fireworks checkpoint:
   2. a LOCAL LoRA adapter path
        e.g. ``local:/abs/path/to/adapter``  or a bare existing directory path
             containing ``adapter_config.json`` (a PEFT adapter dir).
+  3. a MODAL Teacher-generation handle (the working path on this account, since
+     Fireworks gives a 404 for serverless qwen3-4b inference and the host venv has
+     no transformers/peft):
+       e.g. ``modal:base``         -> Qwen3-4B base weights, NO adapter, on Modal GPU
+            ``modal:update2``      -> base + the LoRA adapter at Volume subdir update2
+            ``modal:`` (bare)      -> base, no adapter (same as ``modal:base``)
+     Generation runs in the ``crucible-teacher-gen`` Modal app (transformers+peft
+     live in its image); the host needs only Modal auth, not a GPU or HF stack.
 
 Design
 ------
@@ -43,6 +51,16 @@ TeacherFactory = Callable[[], "object"]
 FIREWORKS_DEFAULT_MODEL = "accounts/fireworks/models/qwen3-4b"
 FIREWORKS_BASE_URL = "https://api.fireworks.ai/inference/v1"
 
+# The HuggingFace base-model id the LOCAL and MODAL backends load. The trained GRPO
+# LoRA adapters (Modal Volume ``crucible-teacher-lora``) target THIS id, not the
+# Fireworks id, so a ``local:``/``modal:`` handle must default here — passing the
+# Fireworks id (``accounts/...``) to transformers/peft would 404 / not resolve.
+HF_DEFAULT_MODEL = "Qwen/Qwen3-4B"
+
+# The Modal generation app + LoRA adapter Volume (see training/teacher_gen_modal.py).
+MODAL_GEN_APP = "crucible-teacher-gen"
+MODAL_GEN_CLS = "TeacherGenerator"
+
 
 @dataclass(frozen=True)
 class ResolvedTeacher:
@@ -68,6 +86,11 @@ def _looks_like_fireworks(handle: str) -> bool:
         or "accounts/" in h
         or h.endswith("#deployment")  # tolerated shorthand
     )
+
+
+def _looks_like_modal(handle: str) -> bool:
+    """A Modal Teacher-generation handle carries the explicit ``modal:`` prefix."""
+    return handle.strip().startswith("modal:")
 
 
 def _looks_like_local_path(handle: str) -> bool:
@@ -272,6 +295,192 @@ class LocalAdapterTeacher:
 
 
 # ---------------------------------------------------------------------------
+# Modal Teacher-generation resolution (the working path on this account)
+# ---------------------------------------------------------------------------
+
+
+def resolve_modal(
+    label: str,
+    handle: str,
+    *,
+    base_model: str = HF_DEFAULT_MODEL,
+) -> ResolvedTeacher:
+    """Resolve a ``modal:`` handle to a Teacher that GENERATES on a Modal GPU.
+
+    The handle's payload selects the adapter:
+      * ``modal:base`` / ``modal:`` -> Qwen3-4B base weights, NO adapter.
+      * ``modal:<tag>``             -> base + the LoRA adapter at Volume subdir
+                                       ``<tag>`` (e.g. ``modal:update2``).
+
+    Resolution is cheap (records the adapter tag + base model); the heavy GPU work
+    happens lazily inside ``ModalTeacher.generate`` via the deployed/ephemeral
+    ``crucible-teacher-gen`` app. The base/trained fairness invariant holds because
+    BOTH use the SAME ``base_model`` + prompt + sampling — only the adapter tag
+    differs, which is exactly what we want to attribute the delta to.
+    """
+    tag = _strip_prefix(handle, "modal:").strip()
+    if tag in ("", "base", "none"):
+        tag = ""  # base weights, no adapter
+    resolved_id = f"modal:{base_model}" if not tag else f"modal:{base_model}+{tag}"
+
+    def _build() -> object:
+        return ModalTeacher(adapter_tag=tag, base_model=base_model)
+
+    return ResolvedTeacher(
+        label=label,
+        handle=handle,
+        resolved_id=resolved_id,
+        kind="modal",
+        _build=_build,
+    )
+
+
+class ModalTeacher:
+    """A Teacher that generates arena JSONs on a Modal GPU (base or base+LoRA).
+
+    Conforms to the Teacher contract (``generate(game) -> dict``) using the SAME
+    prompt construction + strict-validate/clamp machinery as ``FireworksTeacher`` so
+    base and trained prompts stay byte-identical regardless of backend. The expensive
+    GPU generation is BATCHED: the first ``generate`` call samples a buffer of
+    completions in ONE remote round-trip and serves them one per call, refilling in
+    batches only if the evaluator asks for more than the buffer. ``transformers`` /
+    ``peft`` never load on the host — they live in the Modal image.
+    """
+
+    # How many completions to pull per remote round-trip. The evaluator asks for
+    # ``arenas_per_model`` arenas (typically 2-5), so one batch usually suffices.
+    _BATCH = 8
+
+    def __init__(self, *, adapter_tag: str = "", base_model: str = HF_DEFAULT_MODEL,
+                 temperature: float = 0.8, top_p: float = 0.95, max_new_tokens: int = 512,
+                 seed: int = 0, batch: int | None = None):
+        self.adapter_tag = adapter_tag or ""
+        self.base_model = base_model
+        self.temperature = temperature
+        self.top_p = top_p
+        self.max_new_tokens = max_new_tokens
+        self.seed = seed
+        self._batch = batch or self._BATCH
+        self._buffer: list[str] = []      # decoded completions awaiting parse
+        self._refills = 0                  # how many remote batches we've pulled
+        self._cls = None                   # resolved Modal class (lazy)
+
+    def _ensure_cls(self):
+        if self._cls is not None:
+            return
+        import modal
+
+        self._cls = modal.Cls.from_name(MODAL_GEN_APP, MODAL_GEN_CLS)
+
+    @staticmethod
+    def _prompt_messages(game) -> tuple[str, str]:
+        """Build the IDENTICAL (system, user) the FireworksTeacher would send.
+
+        Reuses FireworksTeacher's prompt JSON so base/trained/local/modal all prompt
+        the model with one coherent schema surface (the schema is the game's
+        ``param_schema``).
+        """
+        import json as _json
+
+        prompt = {
+            "game": game.name,
+            "parameter_schema": {
+                key: {"minimum": low, "maximum": high}
+                for key, (low, high) in game.param_schema.items()
+            },
+            "instruction": (
+                "Return one JSON object containing only parameter keys. "
+                "Choose a potentially learnable environment."
+            ),
+        }
+        system = (
+            "You design RL training environments. Output strict JSON only; never "
+            "output code or alter the true objective."
+        )
+        return system, _json.dumps(prompt)
+
+    def _refill(self, game) -> None:
+        self._ensure_cls()
+        system, user = self._prompt_messages(game)
+        inst = self._cls(model_name=self.base_model, adapter_tag=self.adapter_tag)
+        # Vary the seed per refill so a second batch isn't an exact replay.
+        comps = inst.generate.remote(
+            n=self._batch, system=system, user=user,
+            temperature=self.temperature, top_p=self.top_p,
+            max_new_tokens=self.max_new_tokens, seed=self.seed + self._refills,
+        )
+        self._refills += 1
+        self._buffer.extend(comps)
+
+    def generate(self, game) -> dict:
+        """Return ONE validated+clamped param set, served from the batched buffer."""
+        from training.fireworks_teacher import _strict_validate_params
+
+        # Pull a fresh batch if the buffer is empty.
+        if not self._buffer:
+            self._refill(game)
+        last_error: Exception | None = None
+        # Drain completions until one validates (mirrors FireworksTeacher's retry),
+        # refilling once if the whole buffer is exhausted by invalid outputs.
+        attempts = 0
+        while attempts < (self._batch * 2):
+            if not self._buffer:
+                self._refill(game)
+            raw_text = self._buffer.pop(0)
+            attempts += 1
+            try:
+                parsed = _extract_json_object(raw_text)
+                return _strict_validate_params(parsed, game)
+            except (KeyError, TypeError, ValueError) as exc:
+                last_error = exc
+                continue
+        raise ValueError(f"Modal Teacher returned no valid JSON after {attempts} completions: {last_error}")
+
+
+def _extract_json_object(text: str) -> object:
+    """Parse the first balanced JSON object out of a (possibly reasoning) completion.
+
+    ``enable_thinking=False`` makes Qwen3 emit JSON-first, but we still defensively
+    strip a ``<think>`` block / ```` ```json ```` fence and extract the first
+    brace-balanced object so a trailing prose sentence does not break parsing. A
+    completion with no object falls through to ``json.loads`` and is rejected as a
+    non-object by ``_strict_validate_params`` (keeps the strict contract intact).
+    """
+    import json as _json
+    import re
+
+    s = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+    fence = re.match(r"^```(?:json)?\s*(.*?)\s*```$", s, flags=re.DOTALL)
+    if fence:
+        s = fence.group(1).strip()
+    start = s.find("{")
+    if start == -1:
+        return _json.loads(s)  # no object -> let the strict validator reject it
+    depth = 0
+    in_str = False
+    escape = False
+    for i in range(start, len(s)):
+        ch = s[i]
+        if in_str:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return _json.loads(s[start : i + 1])
+    return _json.loads(s[start:])  # unbalanced -> json.loads raises a clear error
+
+
+# ---------------------------------------------------------------------------
 # Offline resolution (credential-free; for the cheap local smoke)
 # ---------------------------------------------------------------------------
 
@@ -328,18 +537,28 @@ def resolve_handle(
     account: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> ResolvedTeacher:
-    """Resolve ANY handle to a ``ResolvedTeacher`` (Fireworks id OR local adapter).
+    """Resolve ANY handle to a ``ResolvedTeacher`` (Modal / Fireworks id / local).
 
-    Dispatch order: an explicit ``local:``/``file:`` prefix or an existing on-disk
-    path is treated as a local adapter; anything that looks like a Fireworks id
-    (``accounts/`` / ``fw:`` / ``fireworks:``) goes to Fireworks. A bare token that
-    is neither an existing path nor obviously Fireworks is treated as a Fireworks
+    Dispatch order: an explicit ``modal:`` prefix -> Modal GPU generation (the
+    working path on this account); an explicit ``local:``/``file:`` prefix or an
+    existing on-disk path -> a local adapter; anything that looks like a Fireworks id
+    (``accounts/`` / ``fw:`` / ``fireworks:``) -> Fireworks. A bare token that is
+    neither an existing path nor obviously Fireworks is treated as a Fireworks
     *deployment id* (the common ``--trained qwen3-4b-rft`` case).
+
+    For the Modal/local HF backends, a caller that left ``base_model`` at the
+    Fireworks default gets the HF id (``Qwen/Qwen3-4B``) instead — the
+    transformers/peft stack cannot load an ``accounts/...`` Fireworks id, and the
+    trained adapters target the HF id.
     """
     if handle.strip().startswith("offline:") or handle.strip() == "offline":
         return resolve_offline(label, handle)
+    if _looks_like_modal(handle):
+        hf_base = HF_DEFAULT_MODEL if base_model == FIREWORKS_DEFAULT_MODEL else base_model
+        return resolve_modal(label, handle, base_model=hf_base)
     if _looks_like_local_path(handle):
-        return resolve_local_adapter(label, handle, base_model=base_model)
+        hf_base = HF_DEFAULT_MODEL if base_model == FIREWORKS_DEFAULT_MODEL else base_model
+        return resolve_local_adapter(label, handle, base_model=hf_base)
     if _looks_like_fireworks(handle):
         return resolve_fireworks(
             label, handle, base_model=base_model, base_url=base_url,

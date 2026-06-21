@@ -71,7 +71,11 @@ from output.stage6.config import EvalConfig, smoke_config  # noqa: E402
 from output.stage6.evaluator import EvalRequest, OUTPUT_DIR, run_eval, write_result  # noqa: E402
 from output.stage6.games import all_games, get_game  # noqa: E402
 
-DEFAULT_BASE = "accounts/fireworks/models/qwen3-4b"
+# The default BASE handle is the MODAL base-no-adapter Teacher: Fireworks gives a 404
+# for serverless qwen3-4b inference on this account and the host venv has no
+# transformers/peft, so ``modal:base`` is the only base Teacher that actually
+# generates. (Pass ``--base accounts/fireworks/models/qwen3-4b`` to force Fireworks.)
+DEFAULT_BASE = "modal:base"
 RESULT_PATH = OUTPUT_DIR / "eval_base_vs_trained.json"
 REPORT_DIR = OUTPUT_DIR / "stage6_report"
 
@@ -171,6 +175,7 @@ def _cmd_run(args) -> int:
         config=cfg,
         is_smoke=smoke,
         enable_hud_traces=bool(args.hud_traces),
+        base_model=args.base_model,
         verbose=True,
     )
     summary = run_eval(req)
@@ -194,9 +199,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--game", default="fighter", help="game name (default: fighter / Ring-Out Duel)")
     p.add_argument("--backend", choices=["modal", "local"], default="modal")
     p.add_argument("--base", default=None,
-                   help="BASE Teacher handle (Fireworks id/deployment OR local:adapter path)")
+                   help="BASE Teacher handle (default modal:base = Qwen3-4B base on Modal; "
+                        "also accepts a Fireworks id/deployment OR local:adapter path)")
     p.add_argument("--trained", default=None,
-                   help="TRAINED Teacher handle (Fireworks id/deployment OR local:adapter path)")
+                   help="TRAINED Teacher handle (modal:<adapter-tag> e.g. modal:update2, "
+                        "OR a Fireworks deployment id OR a local:adapter path)")
+    p.add_argument("--base-model", dest="base_model", default=None,
+                   help="HF base-model id the modal:/local: backends load and the trained "
+                        "LoRA adapter attaches to (default Qwen/Qwen3-4B via the backend; "
+                        "ignored by Fireworks handles, which keep their own model id)")
     p.add_argument("--arenas", type=int, default=None, help="arenas generated per model")
     p.add_argument("--seeds", type=int, nargs="+", default=None, help="fresh PPO Player seeds")
     p.add_argument("--episodes", type=int, default=None, help="PPO episodes per Player")

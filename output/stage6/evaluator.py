@@ -160,6 +160,11 @@ class EvalRequest:
     cost_per_job_usd: float = COST_PER_JOB_USD_DEFAULT
     enable_hud_traces: bool = False
     verbose: bool = True
+    # The HF/Fireworks base-model id the resolvers load under the handle. The
+    # resolvers already accept ``base_model`` — this just threads it from the CLI so
+    # a ``modal:``/``local:`` adapter loads ``Qwen/Qwen3-4B`` (the adapter's target),
+    # not the Fireworks id. ``None`` -> each backend's own default.
+    base_model: str | None = None
 
 
 def run_eval(req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs) -> dict:
@@ -180,9 +185,14 @@ def run_eval(req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs)
             f"train a Teacher (use it as a probe instead)"
         )
 
-    # --- 0. resolve handles (Fireworks id OR local adapter), record verbatim ---
-    base = resolve("base", req.base_handle)
-    trained = resolve("trained" if not req.is_smoke else "base(smoke)", req.trained_handle)
+    # --- 0. resolve handles (Modal / Fireworks id / local adapter), recorded verbatim ---
+    # Thread the base-model id (when set) so a modal:/local: adapter loads its real
+    # target (Qwen/Qwen3-4B). The injectable stub resolvers swallow it via **kw.
+    resolve_kw = {"base_model": req.base_model} if req.base_model else {}
+    base = resolve("base", req.base_handle, **resolve_kw)
+    trained = resolve(
+        "trained" if not req.is_smoke else "base(smoke)", req.trained_handle, **resolve_kw
+    )
 
     # --- the held-out yardstick: IDENTICAL for both models (fairness invariant) ---
     eval_arenas = game.build_held_out(grid=cfg.held_out_grid)
