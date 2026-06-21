@@ -1,0 +1,6 @@
+numpy
+matplotlib
+
+# --- For later (training + eval against real services) ---
+# hud-python        # HUD harness / RemoteRolloutProcessor wiring
+# fireworks-ai      # Fireworks RFT API (Qwen3-4B Teacher)
