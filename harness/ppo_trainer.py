@@ -138,9 +138,14 @@ class _PPOTrainingJob(TrainingJob):
     ``MatchResult`` so the milestone can score the Player on held-out arenas.
     """
 
-    def __init__(self, result: MatchResult, policy: Callable[[np.ndarray], int]):
+    def __init__(self, result: MatchResult, policy: Callable[[np.ndarray], int],
+                 model=None):
         self._result = result
         self.policy = policy
+        # The trained SB3 model is exposed so callers that need the raw weights
+        # (e.g. Stage-6 policy serialization for Student-vs-Student) can pull
+        # ``job.model.policy.state_dict()``. ``None`` for jobs that predate this.
+        self.model = model
 
     def is_done(self) -> bool:
         return True
@@ -210,7 +215,7 @@ class PPOPlayerTrainer(PlayerTrainer):
             arena_scores=arena_scores,
             mean_score=mean_score,
         )
-        return _PPOTrainingJob(result, policy)
+        return _PPOTrainingJob(result, policy, model=model)
 
     def _winrate(self, arena: FighterArena, policy: Callable[[np.ndarray], int]) -> float:
         # Score against the SAME parametric opponent the Player trained on, with

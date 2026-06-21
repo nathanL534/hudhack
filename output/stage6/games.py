@@ -158,23 +158,59 @@ def _koth_installed() -> bool:
         return False
 
 
-def _koth_held_out(*, grid: str = "full") -> list[dict]:
-    """The FIXED KOTH probe arena specs (deterministic, structurally diverse).
+# KOTH's REAL param schema (what a KOTH Student trains on / a held-out arena clamps
+# to). Used by ``generate_arenas`` to validate+clamp the Teacher-mapped curricula.
+KOTH_BOUNDS: dict[str, tuple[float, float]] = {
+    "difficulty": (0.0, 1.0),
+    "platform_width": (8.0, 30.0),
+    "zone_half": (0.6, 4.0),
+    "zone_center_frac": (0.2, 0.8),
+}
 
-    KOTH is a DIFFERENT sim from the fighter (obs dim 16 vs 11), so a fighter-trained
-    PPO policy cannot be scored directly through the fighter worker's held-out path.
-    KOTH therefore serves as an *independent* held-out transfer probe: its arena
-    specs (map_size + difficulty, which ``harness.koth_adapter`` maps to KOTH
-    geometry) are emitted here so a future probe runner can train/score KOTH Players
-    on the Teacher's curriculum and feed the resulting delta into the
-    ``train_game_only`` anti-gaming check. Until that probe runner is wired, KOTH is
-    registered (role='probe') but not auto-run, and the check correctly SKIPs.
+
+def _koth_teacher_game() -> object:
+    """The KOTH 'teacher game' — only its ``param_schema`` is used (for clamping the
+    KOTH-mapped curricula). The cross-game mapping Teacher generates in the FIGHTER
+    schema and maps the result, so this schema validates the MAPPED KOTH arenas."""
+    from engine.games import Game
+
+    defaults = {"difficulty": 0.5, "platform_width": 12.0, "zone_half": 1.5,
+                "zone_center_frac": 0.5}
+    return Game(
+        name="koth",
+        param_schema=KOTH_BOUNDS,
+        to_gridworld_params=lambda p: dict(p),
+        description="King of the Hill cross-game (zone geometry).",
+        defaults=defaults,
+    )
+
+
+def _koth_held_out(*, grid: str = "full") -> list[dict]:
+    """The FIXED KOTH held-out arena population (real KOTH params, structurally diverse).
+
+    KOTH is the cross-game test: FRESH KOTH Students (obs_dim=16) are trained from
+    each Teacher's KOTH-mapped curricula and fought head-to-head HERE. These specs
+    are in KOTH's REAL param schema (platform_width + zone_half + zone_center_frac +
+    difficulty), varied across BOTH zone geometry and difficulty so a per-arena-
+    family breakdown is meaningful. ``diagonal`` is the cheap 4-arena set; ``full``
+    is the 8-arena population for the headline cross-game run. Disjoint by
+    construction from the Teacher-mapped curricula (which centre on the default
+    width-12 mapping at the Teacher's difficulties).
     """
-    return [
-        {"name": "koth_tight", "map_size": 8, "difficulty": 0.4},
-        {"name": "koth_wide", "map_size": 16, "difficulty": 0.6},
-        {"name": "koth_hard", "map_size": 12, "difficulty": 0.8},
-    ]
+    families = (
+        {"name": "koth_tight", "platform_width": 9.0, "zone_half": 1.0, "zone_center_frac": 0.5},
+        {"name": "koth_wide", "platform_width": 16.0, "zone_half": 2.2, "zone_center_frac": 0.5},
+        {"name": "koth_offcentre", "platform_width": 12.0, "zone_half": 1.4, "zone_center_frac": 0.68},
+        {"name": "koth_pinhole", "platform_width": 13.0, "zone_half": 0.8, "zone_center_frac": 0.5},
+    )
+    diffs = (0.35, 0.65)
+    if grid == "diagonal":
+        return [dict(families[i], difficulty=diffs[i % len(diffs)]) for i in range(len(families))]
+    return [dict(f, difficulty=d) for f in families for d in diffs]
+
+
+def _koth_payload_arenas(arenas: list[dict]) -> list[dict]:
+    return [{k: v for k, v in a.items() if k != "name"} for a in arenas]
 
 
 # ---------------------------------------------------------------------------
@@ -244,10 +280,12 @@ def _build_registry() -> dict[str, GameEntry]:
             name="koth",
             role="probe",
             installed=koth_ok,
-            param_keys=("difficulty", "map_size"),
-            description="King of the Hill — held-out transfer PROBE only.",
+            param_keys=("difficulty", "platform_width", "zone_half", "zone_center_frac"),
+            description="King of the Hill — cross-game Student-vs-Student test (fresh KOTH students).",
             not_installed_reason="" if koth_ok else "games.koth / harness.koth_adapter import failed",
+            _teacher_game=_koth_teacher_game,
             _build_held_out=_koth_held_out,
+            _payload_arenas=_koth_payload_arenas,
         ),
         "target_knockback": GameEntry(
             name="target_knockback",
