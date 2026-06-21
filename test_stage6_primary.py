@@ -440,6 +440,108 @@ def test_koth_cross_game_with_stubs():
 
 
 # ---------------------------------------------------------------------------
+# H3: the KOTH cross-game delta feeds the train-game-overfit anti-gaming gate
+# ---------------------------------------------------------------------------
+
+
+def _h3_req():
+    base, trained = _fighter_arenas()
+    cfg = EvalConfig(n_replicates=4, curriculum_arenas=1, match_seeds_per_arena=6,
+                     head_to_head_grid="diagonal", ppo_episodes=10, eval_seeds=2)
+    req = EvalRequest(base_handle="b", trained_handle="t", game="fighter",
+                      backend="local", config=cfg, is_smoke=False, verbose=False,
+                      run_secondary=False)
+    return req, base, trained
+
+
+def test_h3_win_train_lose_koth_is_flagged_and_fails_verdict():
+    """A run that WINS the train-game head-to-head but LOSES KOTH must be flagged
+    train-game-overfit, and that gate must drag overall_pass to False."""
+    req, base, trained = _h3_req()
+
+    def lose_koth(b, t, **kw):
+        return {"label": "cross_game_generalization", "game": "koth", "supported": True,
+                "mean_paired_advantage": -0.25,
+                "trained_student_win_rate": 0.30, "base_student_win_rate": 0.55,
+                "ci_t": {"low": -0.40, "high": -0.10}}
+
+    summary = run_full_eval(
+        req, resolve=_stub_resolver(base, trained),
+        run_train=_stub_train({}), run_h2h=_stub_h2h(trained_win=6, base_win=0, draw=0),
+        run_cross_game=lose_koth,
+    )
+    # The train game is clearly won ...
+    assert summary["primary"]["primary_pass"] is True
+    assert summary["primary"]["mean_paired_advantage"] == pytest.approx(1.0)
+    # ... the KOTH delta reached the gate ...
+    assert summary["cross_game_koth"]["mean_paired_advantage"] == pytest.approx(-0.25)
+    assert summary["cross_game_gate"]["name"] == "train_game_only"
+    assert summary["cross_game_gate"]["passed"] is False
+    # ... and the gate flips the headline verdict.
+    assert summary["overall_pass"] is False
+
+
+def test_h3_win_train_win_koth_passes():
+    """The control: winning BOTH the train game and KOTH passes the gate."""
+    req, base, trained = _h3_req()
+
+    def win_koth(b, t, **kw):
+        return {"label": "cross_game_generalization", "game": "koth", "supported": True,
+                "mean_paired_advantage": 0.20,
+                "trained_student_win_rate": 0.60, "base_student_win_rate": 0.40,
+                "ci_t": {"low": 0.10, "high": 0.30}}
+
+    summary = run_full_eval(
+        req, resolve=_stub_resolver(base, trained),
+        run_train=_stub_train({}), run_h2h=_stub_h2h(trained_win=6, base_win=0, draw=0),
+        run_cross_game=win_koth,
+    )
+    assert summary["cross_game_gate"]["passed"] is True
+    assert summary["overall_pass"] is True
+
+
+def test_h3_unsupported_koth_gate_skips_and_does_not_gate():
+    """When KOTH is UNSUPPORTED (or skipped), the train-game-overfit gate SKIPs —
+    non-gating — so it can never silently pass off a fabricated probe."""
+    req, base, trained = _h3_req()
+
+    def unsupported(b, t, **kw):
+        return {"label": "cross_game_generalization", "game": "koth",
+                "supported": False, "reason": "stubbed unsupported"}
+
+    summary = run_full_eval(
+        req, resolve=_stub_resolver(base, trained),
+        run_train=_stub_train({}), run_h2h=_stub_h2h(trained_win=6, base_win=0, draw=0),
+        run_cross_game=unsupported,
+    )
+    assert summary["cross_game_gate"]["name"] == "train_game_only"
+    # skip severity -> non-gating; the headline rests on the primary alone.
+    assert summary["overall_pass"] is True
+
+
+# ---------------------------------------------------------------------------
+# Fix 1: the head-to-head match worker routes target_knockback
+# ---------------------------------------------------------------------------
+
+
+def test_game_modules_routes_target_knockback():
+    """``modal_player._game_modules`` must return the TK arena, play_match, obs_dim=16
+    and the TK PPO env — not raise 'unknown game'."""
+    import modal_player as mp
+
+    arena_cls, play_match, obs_dim, env_cls = mp._game_modules("target_knockback")
+    assert arena_cls.__name__ == "TargetKnockbackArena"
+    assert obs_dim == 16
+    assert play_match.__module__ == "games.target_knockback"
+    assert env_cls.__name__ == "_MultiArenaTkEnv"
+    # aliases route the same way; an unknown game still raises.
+    for alias in ("tk", "target-knockback"):
+        assert mp._game_modules(alias)[0].__name__ == "TargetKnockbackArena"
+    with pytest.raises(ValueError, match="unknown game"):
+        mp._game_modules("not_a_game")
+
+
+# ---------------------------------------------------------------------------
 # report / dashboard schema + fabricated-metric prevention
 # ---------------------------------------------------------------------------
 

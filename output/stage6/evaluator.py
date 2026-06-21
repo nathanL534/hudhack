@@ -169,6 +169,11 @@ class EvalRequest:
     # (Student-vs-Student) is always run by ``run_full_eval``; the secondary is
     # extra evidence and can be skipped for a cheap primary-only run.
     run_secondary: bool = True
+    # Run the KOTH cross-game head-to-head and FEED its trained-vs-base delta into
+    # the primary anti-gaming gate (H3): a run that wins the train game but LOSES
+    # KOTH is flagged train-game-overfit. On by default so the cross-game signal
+    # actually gates the verdict; can be skipped for a cheap train-game-only run.
+    run_cross_game: bool = True
 
 
 def run_eval(req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs) -> dict:
@@ -406,7 +411,7 @@ def write_result(summary: dict, path: Path) -> Path:
 
 def run_full_eval(
     req: EvalRequest, *, resolve=resolve_handle, run_jobs=run_all_jobs,
-    run_train=None, run_h2h=None,
+    run_train=None, run_h2h=None, run_cross_game=None,
 ) -> dict:
     """The Stage-6 decider whose HEADLINE is the Student-vs-Student head-to-head.
 
@@ -418,12 +423,19 @@ def run_full_eval(
         before->after held-out transfer diagnostic, kept as extra evidence under a
         clearly-labeled "Secondary transfer diagnostic" section. It does NOT affect
         the headline.
+      * the CROSS-GAME probe (when ``req.run_cross_game``) — a KOTH Student-vs-Student
+        head-to-head whose trained-vs-base delta is fed into the PRIMARY anti-gaming
+        gate (H3). A run that WINS the train game but LOSES KOTH is flagged
+        train-game-overfit, and that gate DOES contribute to the headline verdict.
 
-    The injected ``run_train`` / ``run_h2h`` thread through to the head-to-head so
-    tests can stub the two primary fan-outs; ``resolve`` / ``run_jobs`` stub the
-    secondary path exactly as ``run_eval`` already supports.
+    The injected ``run_train`` / ``run_h2h`` thread through to BOTH the train-game
+    head-to-head and the KOTH cross-game so tests can stub the fan-outs;
+    ``run_cross_game`` lets a test inject the cross-game result directly (and the CLI
+    avoid a double-run); ``resolve`` / ``run_jobs`` stub the secondary path exactly as
+    ``run_eval`` already supports.
     """
-    from output.stage6 import head_to_head as h2h_mod
+    from output.stage6 import anti_gaming, head_to_head as h2h_mod
+    from output.stage6 import koth_cross_game as koth_mod
 
     cfg = req.config
     game = get_game(req.game)
@@ -459,8 +471,47 @@ def run_full_eval(
             print("\n--- Secondary transfer diagnostic (fixed-bot before->after) ---")
         secondary = run_eval(req, resolve=resolve, run_jobs=run_jobs)
 
-    # The HEADLINE verdict uses ONLY the primary.
-    overall_pass = bool(primary["primary_pass"])
+    # --- CROSS-GAME (KOTH): the trained-vs-base KOTH delta feeds the anti-gaming gate.
+    # H3 — improvement must not be confined to the TRAIN game. We run a fresh-KOTH-
+    # Students head-to-head and extract its primary advantage (trained - base). That
+    # delta becomes the ``koth`` probe in ``check_train_game_only``, so a run that wins
+    # the train-game head-to-head but LOSES KOTH is flagged train-game-overfit. The
+    # gate is folded into ``overall_pass`` below, so it DOES contribute to the verdict.
+    cross_game = None
+    if req.run_cross_game:
+        if run_cross_game is not None:
+            cross_game = run_cross_game(base, trained, config=cfg, backend=req.backend,
+                                        is_smoke=req.is_smoke, verbose=req.verbose)
+        else:
+            if req.verbose:
+                print("\n--- Cross-game generalization: KOTH (fresh KOTH Students) ---")
+            koth_kwargs = {}
+            if run_train is not None:
+                koth_kwargs["run_train"] = run_train
+            if run_h2h is not None:
+                koth_kwargs["run_h2h"] = run_h2h
+            cross_game = koth_mod.run_koth_cross_game(
+                base, trained, config=cfg, backend=req.backend,
+                is_smoke=req.is_smoke, verbose=req.verbose, **koth_kwargs,
+            )
+
+    # Build the cross-game anti-gaming gate. ``probe_deltas`` carries the KOTH
+    # trained-vs-base delta when KOTH actually ran (and was supported); otherwise the
+    # check SKIPs (non-gating), exactly as ``check_train_game_only`` already handles a
+    # no-probe run. The train-game delta it is checked against is the PRIMARY
+    # Student-vs-Student advantage (the headline metric), not the secondary transfer.
+    probe_deltas = None
+    if cross_game and cross_game.get("supported"):
+        probe_deltas = {"koth": float(cross_game.get("mean_paired_advantage", 0.0))}
+    train_game_advantage = float(primary["mean_paired_advantage"])
+    cross_game_gate = anti_gaming.check_train_game_only(train_game_advantage, probe_deltas)
+    cross_game_gate_passed = bool(
+        cross_game_gate.passed or cross_game_gate.severity != "fail"
+    )
+
+    # The HEADLINE verdict uses the primary AND the cross-game (train-game-overfit)
+    # gate. A run that wins the train-game head-to-head but loses KOTH now FAILS.
+    overall_pass = bool(primary["primary_pass"]) and cross_game_gate_passed
 
     summary = {
         "experiment": "stage6_student_vs_student",
@@ -478,6 +529,11 @@ def run_full_eval(
         "headline_metric": "primary_student_vs_student_head_to_head",
         "primary": primary,
         "overall_pass": overall_pass,
+        # --- cross-game (KOTH) probe + the anti-gaming gate it feeds (H3) ---
+        # ``cross_game_koth`` is the full KOTH head-to-head summary; ``cross_game_gate``
+        # is the train-game-overfit check whose verdict is folded into overall_pass.
+        "cross_game_koth": cross_game,
+        "cross_game_gate": cross_game_gate.as_dict(),
         # --- secondary evidence (never sets the headline) ---
         "secondary_transfer_diagnostic": secondary,
         # Convenience top-level mirrors of the headline numbers (for the dashboard).
@@ -500,6 +556,17 @@ def _print_full_verdict(summary: dict) -> None:
     print(f"    curriculum-level 95% CI lower bound = {p['ci_lower_bound']:+.4f} "
           f"(must be > 0)")
     print(f"    anti-circularity = {'PASS' if p['anti_circularity']['passed'] else 'FAIL'}")
+    cg_gate = summary.get("cross_game_gate")
+    if cg_gate:
+        cg = summary.get("cross_game_koth") or {}
+        if cg.get("supported"):
+            koth_delta = cg.get("mean_paired_advantage")
+            print(f"    cross-game (KOTH) delta = {koth_delta:+.4f} "
+                  f"-> train-game-overfit gate = "
+                  f"{'PASS' if cg_gate['passed'] else 'FAIL'}")
+        else:
+            print(f"    cross-game (KOTH) gate = SKIP "
+                  f"({(cg.get('reason') or 'not run')})")
     print(f"    OVERALL HEADLINE PASS = {summary['overall_pass']}")
     if summary.get("secondary_transfer_diagnostic"):
         s = summary["secondary_transfer_diagnostic"]

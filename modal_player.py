@@ -449,8 +449,8 @@ def _game_modules(game: str):
 
     ``env_cls_factory(arenas, seed)`` builds a single-agent training env over the
     arena list (used to (a) train a Student and (b) provide the obs/action spaces a
-    frozen policy is restored into). Both games expose the SAME ``play_match`` PvP
-    signature, so head-to-head is identical across games.
+    frozen policy is restored into). All three games expose the SAME ``play_match``
+    PvP signature, so head-to-head is identical across games.
     """
     if game in ("fighter", "ring-out-duel", "ring_out_duel"):
         from games.fighter import OBS_DIM, FighterArena, play_match
@@ -462,7 +462,20 @@ def _game_modules(game: str):
         from harness.koth_trainer import _MultiArenaKothEnv
 
         return KothArena, play_match, OBS_DIM, _MultiArenaKothEnv
-    raise ValueError(f"unknown game {game!r} for head-to-head (use 'fighter' or 'koth')")
+    if game in ("target_knockback", "target-knockback", "tk"):
+        # OBS_DIM = 16 (11 fighter dims + 5 target-zone dims). The TK env is the
+        # structural twin of the fighter / KotH training env (re-seeded parametric
+        # opponent per episode), so a fresh TK Student trains on each Teacher's TK
+        # curricula and fights via the SAME ``play_match`` with side-swaps — exactly
+        # like fighter / KotH, just the TK game.
+        from games.target_knockback import OBS_DIM, TargetKnockbackArena, play_match
+        from harness.target_knockback_trainer import _MultiArenaTkEnv
+
+        return TargetKnockbackArena, play_match, OBS_DIM, _MultiArenaTkEnv
+    raise ValueError(
+        f"unknown game {game!r} for head-to-head "
+        "(use 'fighter', 'koth' or 'target_knockback')"
+    )
 
 
 def _arenas_from_specs(specs: list[dict], arena_cls):
@@ -529,6 +542,12 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
 
         adapter = KothGameAdapter(eval_seeds=eval_seeds)
         trainer = KothPlayerTrainer(eval_seeds=eval_seeds)
+    elif game in ("target_knockback", "target-knockback", "tk"):
+        from harness.target_knockback_trainer import TargetKnockbackPlayerTrainer
+        from harness.target_knockback_adapter import TargetKnockbackGameAdapter
+
+        adapter = TargetKnockbackGameAdapter(eval_seeds=eval_seeds)
+        trainer = TargetKnockbackPlayerTrainer(eval_seeds=eval_seeds)
     else:
         from harness.fighter_adapter import FighterGameAdapter
 
@@ -649,11 +668,15 @@ def _capture_h2h_replays(game, arena, trained, base, match_seeds, payload) -> li
     draw. Each carries source-Teacher / curriculum / policy-seed / arena / side /
     outcome metadata. Reuses ``record_replay.record_match`` (the single home for the
     sim+capture loop) so capture stays byte-identical to the canonical recorder.
-    Only the fighter has a viewer replay; KOTH does not fabricate frames."""
-    from record_replay import record_match
-
+    Only the fighter has a viewer replay; KOTH / Target Knockback do not fabricate
+    frames."""
     if game not in ("fighter", "ring-out-duel", "ring_out_duel"):
-        return []  # KOTH has no fighter-style viewer replay; do not fabricate.
+        # KOTH / TK have no fighter-style viewer replay; do not fabricate — and do
+        # NOT import the fighter-only recorder, so a non-fighter head-to-head never
+        # depends on ``record_replay`` being on the path.
+        return []
+
+    from record_replay import record_match
 
     tp = payload["trained_policy"]
     bp = payload["base_policy"]
@@ -742,8 +765,13 @@ if modal is not None:  # pragma: no branch
         # ``replay`` is needed by the held-out transfer worker's replay-capture
         # branch (it builds a viewer-ready replay of the trained Player in-container).
         # ``output`` is needed by the Student-vs-Student workers (output.stage6.policy
-        # serialize/restore). ``games.koth`` rides in via ``games``.
-        .add_local_python_source("games", "harness", "contracts", "replay", "output")
+        # serialize/restore). ``games.koth`` / ``games.target_knockback`` ride in via
+        # ``games``. ``record_replay`` is the top-level recorder the FIGHTER head-to-head
+        # replay-capture imports (``_capture_h2h_replays``); without it a fighter
+        # capture crashes with ModuleNotFoundError. Non-fighter games never import it.
+        .add_local_python_source(
+            "games", "harness", "contracts", "replay", "output", "record_replay"
+        )
     )
 
     @app.function(image=image, timeout=1800)
