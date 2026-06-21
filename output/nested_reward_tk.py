@@ -6,7 +6,10 @@ Modal worker (``modal_player_tk.train_tk_player``):
 
     Teacher arena -> train N fresh PPO Players on it (crucible-player-tk, parallel)
     -> measure each Player's held-out before/after win-rate
-    -> reward = avg held-out improvement across seeds (clamped to [0, 1]).
+    -> reward = avg held-out improvement across seeds. The public
+       ``tk_teacher_reward`` returns this clamped to [0, 1]; ``tk_teacher_reward_signed``
+       (and the ``signed_reward`` detail-sink key) expose the RAW SIGNED mean (can be
+       negative) so GRPO keeps the negative-distinguishing transfer signal.
 
 WHY A SEPARATE MODULE (not a flag on nested_reward.teacher_reward):
   * The fighter worker returns ``{"status": "ppo_transfer", "held_out_improvement"}``;
@@ -16,14 +19,21 @@ WHY A SEPARATE MODULE (not a flag on nested_reward.teacher_reward):
     explicit isolation requirement: a live Ring-Out RFT and a TK RFT can run at the
     same time and neither module imports the other's worker.
   * The fighter's broad held-out grid (output/broad_eval_set.py) is fighter-shaped.
-    TK's held-out reference is the SAME arena family the worker already trains/scores
-    against (the worker builds its own held-out arena from the payload), so TK does
-    not need a separate broad-population file to be load-bearing — the worker's
-    before/after IS the held-out transfer signal validated at scale
-    (tk_modal_scale_validation_results.json: d=0.55 is the clean learnable band).
+    TK's held-out reference is a small FIXED set of standard reference arenas the
+    worker builds INDEPENDENTLY of the Teacher's training arena
+    (modal_player_tk._held_out_reference_tk_arenas: the validated d=0.55 learnable band
+    at default geometry, bracketed by d=0.5/0.6). The Player TRAINS on the Teacher's
+    arena but is MEASURED before/after on that fixed reference — so the worker's
+    before/after IS a true HELD-OUT TRANSFER signal, not in-distribution improvement on
+    a (possibly trivial) Teacher arena. This is the anti-degeneracy fix the fighter's
+    HELD_OUT_REFERENCE_DIFFICULTIES gives the Ring-Out reward: an easy training arena
+    (d~0.1) can no longer game the reward, because its policy does not transfer to the
+    learnable-band reference (tk_modal_scale_validation_results.json: d=0.55 is the
+    clean learnable band).
 
-The reward THIS module returns is the SAME number the TK scale validation measured,
-so the integrated round-trip's reward is directly comparable to the d=0.55 band.
+The reward THIS module returns is the held-out transfer of the Teacher's arena to the
+fixed d~0.55 reference band, so it is directly comparable to the d=0.55 scale-validation
+result when the Teacher emits a learnable-band arena.
 
 Run from repo root (.venv has modal + sb3):
 
@@ -119,15 +129,30 @@ def tk_teacher_reward(
     eval_seeds: int = DEFAULT_EVAL_SEEDS,
     capture_replay: bool = False,
     curriculum_id: str = "tk-rft",
+    signed: bool = False,
     _detail_sink: dict | None = None,
 ) -> float:
-    """The nested-RL Target-Knockback Teacher reward in [0, 1] for a TK param set.
+    """The nested-RL Target-Knockback Teacher reward for a TK param set.
 
     Trains N fresh PPO Players (one per seed) on the TK arena via the isolated
-    ``crucible-player-tk`` worker, then returns the AVERAGE held-out improvement
-    across seeds, clamped to [0, 1]. Reads the TK worker's ``improvement`` field and
-    asserts ``status == "ppo_tk"`` (the TK worker's schema), so it can NEVER pick up
-    a fighter worker's row by mistake.
+    ``crucible-player-tk`` worker, then averages each Player's HELD-OUT before/after
+    improvement across seeds. Reads the TK worker's ``improvement`` field and asserts
+    ``status == "ppo_tk"`` (the TK worker's schema), so it can NEVER pick up a fighter
+    worker's row by mistake.
+
+    Two return modes (the held-out mean is computed once; only the framing differs):
+
+      * ``signed=False`` (DEFAULT) — returns the clamped ``[0, 1]`` reward. This is the
+        PUBLIC contract every existing caller depends on (the EP bridge scorer, the
+        wiring tests, the CLI), so the default is unchanged.
+      * ``signed=True`` — returns the RAW SIGNED ``mean_improvement`` (CAN BE NEGATIVE).
+        This is the signal GRPO wants: a Teacher arena whose policy makes held-out
+        transfer WORSE must score below one that leaves it flat, and clamping both to 0
+        erases that ordering. ``tk_teacher_reward_signed`` is the explicit accessor.
+
+    Regardless of mode, ``_detail_sink`` always carries BOTH ``reward`` (clamped) and
+    ``signed_reward`` (the raw signed mean), so a caller can read the signed value out of
+    the sink without changing which number this function returns.
     """
     seed_list = list(seeds)
     replay_id = f"{curriculum_id}_a0" if capture_replay else None
@@ -147,6 +172,11 @@ def tk_teacher_reward(
 
     improvements = [float(r["improvement"]) for r in rows]
     mean_improvement = sum(improvements) / len(improvements) if improvements else 0.0
+    # The RAW SIGNED held-out transfer (can be negative): the GRPO signal. NOT clamped.
+    signed_reward = mean_improvement
+    # The clamped [0, 1] reward: the public contract for callers that need a probability-
+    # shaped value (EP bridge scorer, wiring tests, CLI). Both are exposed; only the
+    # ``signed`` flag decides which one this function RETURNS.
     reward = max(0.0, min(1.0, mean_improvement))
 
     if _detail_sink is not None:
@@ -156,8 +186,23 @@ def tk_teacher_reward(
         _detail_sink["mean_after"] = round(sum(r["after_winrate"] for r in rows) / len(rows), 4)
         _detail_sink["per_seed_improvement"] = [round(x, 4) for x in improvements]
         _detail_sink["reward"] = round(reward, 4)
+        # The unclipped signed reward the trainer reads for GRPO (negative-distinguishing).
+        _detail_sink["signed_reward"] = round(signed_reward, 4)
         _detail_sink["rows"] = rows
-    return float(reward)
+    return float(signed_reward if signed else reward)
+
+
+def tk_teacher_reward_signed(params: dict[str, float], **kwargs) -> float:
+    """The RAW SIGNED nested-RL TK Teacher reward (the GRPO signal; CAN BE NEGATIVE).
+
+    Thin, clearly-named accessor over ``tk_teacher_reward(..., signed=True)`` so the
+    trainer reads the unclipped held-out ``mean_improvement`` directly — a Teacher arena
+    that DEGRADES held-out transfer scores below one that leaves it flat, instead of both
+    flooring to 0. Accepts the SAME keyword arguments as ``tk_teacher_reward`` (any
+    explicit ``signed=`` is ignored — this accessor is always signed).
+    """
+    kwargs.pop("signed", None)
+    return tk_teacher_reward(params, signed=True, **kwargs)
 
 
 def persist_captured_replays(sink: dict) -> list[str]:
@@ -205,7 +250,8 @@ def run_single(args) -> dict:
     )
     print(
         f"  held-out before={sink['mean_before']:.3f} after={sink['mean_after']:.3f} "
-        f"improvement={sink['mean_improvement']:+.3f}"
+        f"improvement={sink['mean_improvement']:+.3f}  "
+        f"signed_reward={sink['signed_reward']:+.4f} (clamped reward={sink['reward']:.4f})"
     )
     for p in replays:
         print(f"  wrote replay {p}")
