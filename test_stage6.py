@@ -179,13 +179,27 @@ def test_fighter_is_installed_teacher_game():
     assert get_game("ring-out-duel").name == "fighter"
 
 
-def test_target_knockback_reports_not_installed():
+def test_target_knockback_installed_and_routes():
+    # Game-2 is now merged onto this branch, so the install probe flips True and
+    # TK routes as a real Teacher game through the identical evaluator path.
     g = get_game("target_knockback")
-    assert g.installed is False
-    assert "not merged" in g.not_installed_reason or "absent" in g.not_installed_reason
-    with pytest.raises(GameNotInstalled):
-        g.teacher_game()
-    assert "target_knockback" not in teacher_games()  # excluded because not installed
+    assert g.installed is True
+    assert g.role == "teacher"
+    # the 7 real TK knobs are registered (5 shared fighter knobs + 2 zone dials)
+    assert g.param_keys == (
+        "difficulty",
+        "platform_width",
+        "gravity",
+        "knockback",
+        "spawn_gap",
+        "zone_half",
+        "zone_center_frac",
+    )
+    # teacher_game() builds cleanly now that games.target_knockback exports the schema
+    tk_game = g.teacher_game()
+    assert tk_game.name == "target_knockback"
+    # included as a Teacher training game now that it's installed
+    assert "target_knockback" in teacher_games()
 
 
 def test_koth_is_probe_only():

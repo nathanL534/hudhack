@@ -356,6 +356,31 @@ class TargetKnockbackSim:
         return np.concatenate([base, extra]).astype(np.float32)
 
 
+# Teacher param schema for Target Knockback (the 7 knobs the Teacher emits): the
+# 5 shared fighter knobs + the two TK-specific zone dials. This is the integration
+# contract the Stage-6 game registry consumes (output/stage6/games.py::_tk_teacher_game).
+# Source of truth mirrors games_registry.TARGET_KNOCKBACK.bounds.
+TK_BOUNDS: dict[str, tuple[float, float]] = {
+    "difficulty": (0.0, 1.0),
+    "platform_width": (8.0, 30.0),
+    "gravity": (0.2, 1.2),
+    "knockback": (0.5, 6.0),
+    "spawn_gap": (1.0, 12.0),
+    "zone_half": (0.6, 4.0),
+    "zone_center_frac": (0.3, 0.7),
+}
+
+TK_DEFAULTS: dict[str, float] = {
+    "difficulty": 0.5,
+    "platform_width": 12.0,
+    "gravity": 0.6,
+    "knockback": 2.5,
+    "spawn_gap": 4.0,
+    "zone_half": 1.5,
+    "zone_center_frac": 0.5,
+}
+
+
 OBS_DIM = 16  # 11 fighter dims + 5 target-zone dims
 
 

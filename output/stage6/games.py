@@ -253,10 +253,20 @@ def _build_registry() -> dict[str, GameEntry]:
             name="target_knockback",
             role="teacher",
             installed=tk_ok,
-            param_keys=("difficulty",),  # placeholder until the real schema lands
-            description="Target Knockback (Game-2) — adapter seam declared; modules absent.",
-            not_installed_reason="games.target_knockback + harness.target_knockback_adapter "
-            "absent in this worktree (Game-2 branch not merged)",
+            # The 7 TK knobs: 5 shared fighter knobs + the two zone dials.
+            param_keys=(
+                "difficulty",
+                "platform_width",
+                "gravity",
+                "knockback",
+                "spawn_gap",
+                "zone_half",
+                "zone_center_frac",
+            ),
+            description="Target Knockback (Game-2) — knock the opponent into a target zone.",
+            not_installed_reason=""
+            if tk_ok
+            else "games.target_knockback + harness.target_knockback_adapter import failed",
             _teacher_game=_tk_teacher_game,
         ),
     }
