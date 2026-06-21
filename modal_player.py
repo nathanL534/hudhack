@@ -41,6 +41,8 @@ torch-free fallback for shape/auth/fan-out smoke tests that must not pay PPO cos
 
 from __future__ import annotations
 
+import os
+
 try:
     import modal
 except ImportError:  # pragma: no cover - optional integration
@@ -1071,7 +1073,13 @@ def local_smoke_worker(payload: dict, seed: int) -> dict:
 
 
 if modal is not None:  # pragma: no branch
-    app = modal.App("crucible-player")
+    # The deployed app name. Defaults to the SHARED ``crucible-player`` (the demo + every
+    # existing reward caller). An isolated run deploys its OWN copy by setting
+    # ``CRUCIBLE_PLAYER_APP`` (e.g. crucible-player-behavior-diverse-B256-final), so the
+    # shared app is never redeployed/disturbed. The reward path (output.nested_reward)
+    # reads the SAME env var to dispatch to the matching app — they stay in lockstep.
+    _PLAYER_APP_NAME = (os.environ.get("CRUCIBLE_PLAYER_APP") or "").strip() or "crucible-player"
+    app = modal.App(_PLAYER_APP_NAME)
     image = (
         modal.Image.debian_slim(python_version="3.12")
         .pip_install(

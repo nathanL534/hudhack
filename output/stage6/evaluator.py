@@ -70,19 +70,42 @@ def _clamp_count(raw_params: dict, clamped: dict, schema: dict) -> bool:
 
 
 def generate_arenas(teacher, game: GameEntry, *, n: int, label: str,
-                    verbose: bool = True) -> GenerationResult:
+                    verbose: bool = True, decode_temperature: float = 1.3,
+                    min_unique: int = 4, max_attempts: int = 15) -> GenerationResult:
     """Generate ``n`` validated+clamped arenas, tracking invalid/clamped counts.
 
     Uses the Teacher's ``generate`` (identical prompt/sampling for base + trained).
     To measure clamping we wrap the Teacher's transport so we can inspect the RAW
     completion before clamping; if no transport is exposed we still count invalid
     generations (those that make ``generate`` raise) and treat clamped=0.
+
+    DECODE-TIME ANTI-COLLAPSE (applied IDENTICALLY to base + trained, so neither
+    side is advantaged): generation samples at a higher ``decode_temperature``
+    (default 1.3) and REJECTS exact-duplicate arenas — dedup on the rounded knob
+    tuple — resampling until at least ``min(min_unique, n)`` UNIQUE arenas exist,
+    capping at ``max_attempts`` total generation attempts and then taking whatever
+    unique set was found. This fixes the curriculum collapse where the Teacher
+    emits one config N times (a point-mass curriculum), without retraining.
     """
     teacher_game = game.teacher_game()
     schema = teacher_game.param_schema
+
+    # Bump decode temperature on the live Teacher (settable attr on both the Modal
+    # and Fireworks Teachers). Restored in the finally block so the override is
+    # scoped to this generation call only.
+    orig_temperature = getattr(teacher, "temperature", None)
+    if orig_temperature is not None:
+        teacher.temperature = decode_temperature  # type: ignore[attr-defined]
+
     arenas: list[dict] = []
+    seen: set = set()
     invalid = 0
     clamped = 0
+
+    def _key(params: dict) -> tuple:
+        return tuple(round(float(params.get(k, 0.0)), 6) for k in schema)
+
+    target_unique = min(min_unique, n)
 
     raw_capture: dict = {}
     orig_transport = getattr(teacher, "_transport", None)
@@ -99,27 +122,42 @@ def generate_arenas(teacher, game: GameEntry, *, n: int, label: str,
         teacher._transport = _wrap  # type: ignore[attr-defined]
 
     try:
-        for i in range(n):
+        attempts = 0
+        # Keep sampling until we have n UNIQUE arenas OR we hit at least
+        # target_unique uniques after the first n draws, capped at max_attempts.
+        while attempts < max_attempts and len(arenas) < n:
             raw_capture["last"] = None
+            attempts += 1
             try:
                 params = teacher.generate(teacher_game)
             except Exception as exc:  # invalid JSON exhausted retries
                 invalid += 1
                 if verbose:
-                    print(f"    [{label}] arena {i}: INVALID ({exc})")
+                    print(f"    [{label}] attempt {attempts}: INVALID ({exc})")
                 continue
             params = {k: float(params[k]) for k in schema if k in params}
+            key = _key(params)
+            if key in seen:
+                if verbose:
+                    print(f"    [{label}] attempt {attempts}: DUPLICATE (skipped)")
+                # Stop spending attempts on dups once we already have enough unique.
+                if len(arenas) >= target_unique and attempts >= n:
+                    break
+                continue
+            seen.add(key)
             raw = raw_capture.get("last")
             if isinstance(raw, dict) and _clamp_count(raw, params, schema):
                 clamped += 1
             arenas.append(params)
             if verbose:
-                print(f"    [{label}] arena {i}: {json.dumps(params, sort_keys=True)}")
+                print(f"    [{label}] arena {len(arenas) - 1}: {json.dumps(params, sort_keys=True)}")
     finally:
         if callable(orig_transport):
             teacher._transport = orig_transport  # type: ignore[attr-defined]
+        if orig_temperature is not None:
+            teacher.temperature = orig_temperature  # type: ignore[attr-defined]
 
-    return GenerationResult(arenas=arenas, total=n, invalid=invalid, clamped=clamped)
+    return GenerationResult(arenas=arenas, total=len(arenas), invalid=invalid, clamped=clamped)
 
 
 # ---------------------------------------------------------------------------

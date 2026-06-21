@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -52,7 +53,11 @@ from contracts import ArenaSpec, CurriculumSpec  # noqa: E402
 OUTPUT_DIR = Path(__file__).resolve().parent
 REPLAYS_DIR = Path(__file__).resolve().parents[1] / "replays"
 
-MODAL_APP = "crucible-player"
+# The deployed reward-worker app. Defaults to the SHARED ``crucible-player`` (every
+# existing caller / the demo). An isolated run can point at its OWN redeployed worker by
+# setting ``CRUCIBLE_PLAYER_APP`` (e.g. ``crucible-player-behavior-diverse-B256-final``)
+# so it never has to touch or redeploy the shared app — the byte-identical isolation rule.
+MODAL_APP = (os.environ.get("CRUCIBLE_PLAYER_APP") or "").strip() or "crucible-player"
 MODAL_FN = "train_player_transfer"
 
 # Reward defaults. Short-but-real PPO budget per Player (a trend check, not a
