@@ -1,16 +1,36 @@
+# IMPORTANT — this file is read by TWO consumers with DIFFERENT Python versions:
+#   1. Local dev / training harness  -> Python 3.12 (.venv)
+#   2. The Fireworks evaluator build -> Python 3.13 (server-side container)
+# The Fireworks build does NOT run `pip install -r`; it passes each non-comment
+# line as a positional arg to `pip install`. So: NO inline comments after a
+# package (full-line `#` comments are fine), and every pin must resolve on BOTH
+# Python 3.12 and 3.13. The evaluator container only imports `eval_protocol`;
+# the heavy game/PPO/HUD deps are only used locally — they are environment-marked
+# to Python < 3.13 so the Fireworks 3.13 builder skips them instead of failing.
+
+# --- Used by the Fireworks evaluator container AND locally (must build on 3.13) ---
 pydantic
 pytest
+eval-protocol==0.3.31
+openai==2.43.0
 
-# --- Stage-1 headless fighter + PPO Player (games/, harness/ppo_trainer.py) ---
-numpy               # deterministic fighter sim + rollouts
-gymnasium           # single-agent env API (opponent baked into step)
-stable-baselines3   # PPO Player (small MLP, short budget)
-torch               # SB3 backend (CPU)
+# --- Local-only: Stage-1 headless fighter + PPO Player (games/, harness/) ---
+# Skipped on the Fireworks 3.13 builder via the python_version marker; the
+# evaluator never imports these.
+numpy; python_version < "3.13"
+gymnasium; python_version < "3.13"
+stable-baselines3; python_version < "3.13"
+torch; python_version < "3.13"
 
-# --- For later phases (real Teacher / eval / scale) ---
+# --- Local-only: HUD env packaging / traces (training/hud_teacher_env.py, etc.) ---
+# hud-python 0.6.6 requires Python >=3.11,<3.13, so it CANNOT install on the
+# Fireworks 3.13 builder. Environment-marked to local 3.12; the evaluator
+# container does not import hud.
+hud-python==0.6.6; python_version < "3.13"
+
+# --- Later phases (kept commented; full-line comments are safe) ---
 # matplotlib        # demo plots (p*(1-p) histogram, anti-gaming co-rise)
 # fastapi           # optional HTTP wrapper for training/reward_service.py
 # uvicorn           # local reward-service server
-# hud-python        # HUD harness / RemoteRolloutProcessor wiring
 # fireworks-ai      # Fireworks RFT API (Qwen3-4B Teacher)
 # modal             # parallel Player PPO jobs (one job / seed)
