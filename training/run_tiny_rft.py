@@ -421,28 +421,6 @@ def _search_run_logs(run_id: str) -> list[dict]:
         return []
 
 
-def _discover_run_id(rollout_ids: list[str]) -> str | None:
-    """Discover the job's run_id from any one of its rollouts' tracing logs.
-
-    The launcher does not know the run_id until the first rollout finishes, so it
-    reads it back from the rollout's own log extras / tags.
-    """
-    adapter = _tracing_adapter()
-    for rid in rollout_ids:
-        try:
-            logs = adapter.search_logs(tags=[f"rollout_id:{rid}"]) or []
-        except Exception:
-            continue
-        for lg in logs:
-            ex = lg.get("extras") or {}
-            if ex.get("run_id"):
-                return str(ex["run_id"])
-            for tag in lg.get("tags") or []:
-                if isinstance(tag, str) and tag.startswith("run_id:"):
-                    return tag.split(":", 1)[1]
-    return None
-
-
 def _aggregate_run_logs(logs: list[dict], *, current_epoch) -> list[dict]:
     """Aggregate the bridge's per-rollout tracing logs into per-update metrics.
 
