@@ -1,0 +1,553 @@
+{
+  "question": "Does the cheap gap proxy positively predict real PPO learning?",
+  "backend": "modal",
+  "n_arenas": 15,
+  "n_seeds_per_arena": 3,
+  "n_points": 45,
+  "difficulties": [
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9,
+    0.93,
+    0.95
+  ],
+  "seeds": [
+    11,
+    22,
+    33
+  ],
+  "ppo_episodes": 600,
+  "ppo_eval_seeds": 40,
+  "proxy_eval_seeds": 40,
+  "proxy_wall_clock_s": 0.52,
+  "learning_wall_clock_s": 77.77,
+  "pearson_r": -0.0001,
+  "spearman_rho": 0.1054,
+  "gate_verdict": "FAIL",
+  "go_no_go": "NO-GO",
+  "rft_unlocked": false,
+  "scatter_per_arena": [
+    {
+      "difficulty": 0.1,
+      "gap_proxy": 0.0,
+      "learning_gains": [
+        0.45,
+        0.1,
+        0.075
+      ],
+      "mean_learning_gain": 0.2083
+    },
+    {
+      "difficulty": 0.2,
+      "gap_proxy": 0.275,
+      "learning_gains": [
+        0.625,
+        0.35,
+        0.075
+      ],
+      "mean_learning_gain": 0.35
+    },
+    {
+      "difficulty": 0.3,
+      "gap_proxy": 0.6,
+      "learning_gains": [
+        0.35,
+        0.3,
+        0.175
+      ],
+      "mean_learning_gain": 0.275
+    },
+    {
+      "difficulty": 0.4,
+      "gap_proxy": 0.825,
+      "learning_gains": [
+        0.425,
+        0.15,
+        0.075
+      ],
+      "mean_learning_gain": 0.2167
+    },
+    {
+      "difficulty": 0.5,
+      "gap_proxy": 1.0,
+      "learning_gains": [
+        0.075,
+        0.075,
+        0.05
+      ],
+      "mean_learning_gain": 0.0667
+    },
+    {
+      "difficulty": 0.55,
+      "gap_proxy": 0.95,
+      "learning_gains": [
+        0.05,
+        0.05,
+        0.0
+      ],
+      "mean_learning_gain": 0.0333
+    },
+    {
+      "difficulty": 0.6,
+      "gap_proxy": 1.0,
+      "learning_gains": [
+        0.025,
+        0.025,
+        0.025
+      ],
+      "mean_learning_gain": 0.025
+    },
+    {
+      "difficulty": 0.65,
+      "gap_proxy": 1.0,
+      "learning_gains": [
+        0.025,
+        0.025,
+        -0.025
+      ],
+      "mean_learning_gain": 0.0083
+    },
+    {
+      "difficulty": 0.7,
+      "gap_proxy": 0.975,
+      "learning_gains": [
+        0.025,
+        0.025,
+        0.025
+      ],
+      "mean_learning_gain": 0.025
+    },
+    {
+      "difficulty": 0.75,
+      "gap_proxy": 0.975,
+      "learning_gains": [
+        0.35,
+        0.35,
+        0.8
+      ],
+      "mean_learning_gain": 0.5
+    },
+    {
+      "difficulty": 0.8,
+      "gap_proxy": 0.85,
+      "learning_gains": [
+        0.25,
+        0.0,
+        0.025
+      ],
+      "mean_learning_gain": 0.0917
+    },
+    {
+      "difficulty": 0.85,
+      "gap_proxy": 0.625,
+      "learning_gains": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_learning_gain": 0.0
+    },
+    {
+      "difficulty": 0.9,
+      "gap_proxy": 0.25,
+      "learning_gains": [
+        0.0,
+        0.05,
+        0.0
+      ],
+      "mean_learning_gain": 0.0167
+    },
+    {
+      "difficulty": 0.93,
+      "gap_proxy": 0.175,
+      "learning_gains": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_learning_gain": 0.0
+    },
+    {
+      "difficulty": 0.95,
+      "gap_proxy": 0.125,
+      "learning_gains": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_learning_gain": 0.0
+    }
+  ],
+  "points": [
+    {
+      "difficulty": 0.1,
+      "seed": 11,
+      "gap_proxy": 0.0,
+      "before_winrate": 0.55,
+      "after_winrate": 1.0,
+      "improvement": 0.45
+    },
+    {
+      "difficulty": 0.1,
+      "seed": 22,
+      "gap_proxy": 0.0,
+      "before_winrate": 0.875,
+      "after_winrate": 0.975,
+      "improvement": 0.1
+    },
+    {
+      "difficulty": 0.1,
+      "seed": 33,
+      "gap_proxy": 0.0,
+      "before_winrate": 0.925,
+      "after_winrate": 1.0,
+      "improvement": 0.075
+    },
+    {
+      "difficulty": 0.2,
+      "seed": 11,
+      "gap_proxy": 0.275,
+      "before_winrate": 0.35,
+      "after_winrate": 0.975,
+      "improvement": 0.625
+    },
+    {
+      "difficulty": 0.2,
+      "seed": 22,
+      "gap_proxy": 0.275,
+      "before_winrate": 0.6,
+      "after_winrate": 0.95,
+      "improvement": 0.35
+    },
+    {
+      "difficulty": 0.2,
+      "seed": 33,
+      "gap_proxy": 0.275,
+      "before_winrate": 0.8,
+      "after_winrate": 0.875,
+      "improvement": 0.075
+    },
+    {
+      "difficulty": 0.3,
+      "seed": 11,
+      "gap_proxy": 0.6,
+      "before_winrate": 0.075,
+      "after_winrate": 0.425,
+      "improvement": 0.35
+    },
+    {
+      "difficulty": 0.3,
+      "seed": 22,
+      "gap_proxy": 0.6,
+      "before_winrate": 0.125,
+      "after_winrate": 0.425,
+      "improvement": 0.3
+    },
+    {
+      "difficulty": 0.3,
+      "seed": 33,
+      "gap_proxy": 0.6,
+      "before_winrate": 0.4,
+      "after_winrate": 0.575,
+      "improvement": 0.175
+    },
+    {
+      "difficulty": 0.4,
+      "seed": 11,
+      "gap_proxy": 0.825,
+      "before_winrate": 0.0,
+      "after_winrate": 0.425,
+      "improvement": 0.425
+    },
+    {
+      "difficulty": 0.4,
+      "seed": 22,
+      "gap_proxy": 0.825,
+      "before_winrate": 0.025,
+      "after_winrate": 0.175,
+      "improvement": 0.15
+    },
+    {
+      "difficulty": 0.4,
+      "seed": 33,
+      "gap_proxy": 0.825,
+      "before_winrate": 0.1,
+      "after_winrate": 0.175,
+      "improvement": 0.075
+    },
+    {
+      "difficulty": 0.5,
+      "seed": 11,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.075,
+      "improvement": 0.075
+    },
+    {
+      "difficulty": 0.5,
+      "seed": 22,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.075,
+      "improvement": 0.075
+    },
+    {
+      "difficulty": 0.5,
+      "seed": 33,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.025,
+      "after_winrate": 0.075,
+      "improvement": 0.05
+    },
+    {
+      "difficulty": 0.55,
+      "seed": 11,
+      "gap_proxy": 0.95,
+      "before_winrate": 0.0,
+      "after_winrate": 0.05,
+      "improvement": 0.05
+    },
+    {
+      "difficulty": 0.55,
+      "seed": 22,
+      "gap_proxy": 0.95,
+      "before_winrate": 0.0,
+      "after_winrate": 0.05,
+      "improvement": 0.05
+    },
+    {
+      "difficulty": 0.55,
+      "seed": 33,
+      "gap_proxy": 0.95,
+      "before_winrate": 0.05,
+      "after_winrate": 0.05,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.6,
+      "seed": 11,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.6,
+      "seed": 22,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.6,
+      "seed": 33,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.65,
+      "seed": 11,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.65,
+      "seed": 22,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.65,
+      "seed": 33,
+      "gap_proxy": 1.0,
+      "before_winrate": 0.025,
+      "after_winrate": 0.0,
+      "improvement": -0.025
+    },
+    {
+      "difficulty": 0.7,
+      "seed": 11,
+      "gap_proxy": 0.975,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.7,
+      "seed": 22,
+      "gap_proxy": 0.975,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.7,
+      "seed": 33,
+      "gap_proxy": 0.975,
+      "before_winrate": 0.025,
+      "after_winrate": 0.05,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.75,
+      "seed": 11,
+      "gap_proxy": 0.975,
+      "before_winrate": 0.0,
+      "after_winrate": 0.35,
+      "improvement": 0.35
+    },
+    {
+      "difficulty": 0.75,
+      "seed": 22,
+      "gap_proxy": 0.975,
+      "before_winrate": 0.0,
+      "after_winrate": 0.35,
+      "improvement": 0.35
+    },
+    {
+      "difficulty": 0.75,
+      "seed": 33,
+      "gap_proxy": 0.975,
+      "before_winrate": 0.025,
+      "after_winrate": 0.825,
+      "improvement": 0.8
+    },
+    {
+      "difficulty": 0.8,
+      "seed": 11,
+      "gap_proxy": 0.85,
+      "before_winrate": 0.0,
+      "after_winrate": 0.25,
+      "improvement": 0.25
+    },
+    {
+      "difficulty": 0.8,
+      "seed": 22,
+      "gap_proxy": 0.85,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.8,
+      "seed": 33,
+      "gap_proxy": 0.85,
+      "before_winrate": 0.0,
+      "after_winrate": 0.025,
+      "improvement": 0.025
+    },
+    {
+      "difficulty": 0.85,
+      "seed": 11,
+      "gap_proxy": 0.625,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.85,
+      "seed": 22,
+      "gap_proxy": 0.625,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.85,
+      "seed": 33,
+      "gap_proxy": 0.625,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.9,
+      "seed": 11,
+      "gap_proxy": 0.25,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.9,
+      "seed": 22,
+      "gap_proxy": 0.25,
+      "before_winrate": 0.0,
+      "after_winrate": 0.05,
+      "improvement": 0.05
+    },
+    {
+      "difficulty": 0.9,
+      "seed": 33,
+      "gap_proxy": 0.25,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.93,
+      "seed": 11,
+      "gap_proxy": 0.175,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.93,
+      "seed": 22,
+      "gap_proxy": 0.175,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.93,
+      "seed": 33,
+      "gap_proxy": 0.175,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.95,
+      "seed": 11,
+      "gap_proxy": 0.125,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.95,
+      "seed": 22,
+      "gap_proxy": 0.125,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    },
+    {
+      "difficulty": 0.95,
+      "seed": 33,
+      "gap_proxy": 0.125,
+      "before_winrate": 0.0,
+      "after_winrate": 0.0,
+      "improvement": 0.0
+    }
+  ]
+}

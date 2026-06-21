@@ -118,3 +118,123 @@ def run_proxy_sweep(
         output_path.write_text(json.dumps(report.model_dump(), indent=2))
     return report
 
+
+# ---------------------------------------------------------------------------
+# REAL fighter wiring (the correlation gate)
+# ---------------------------------------------------------------------------
+#
+# Everything above is backend-agnostic so the deterministic test can drive it
+# with fakes. The factories below bind the GENERIC sweep to the REAL fighter:
+#
+#   * ``make_gap_proxy_fn``     -> the cheap GAP PROXY that the hot Teacher RFT
+#                                  loop would optimise (scripted-strong vs
+#                                  random-weak win-rate gap), computed through
+#                                  the SAME ``FighterGameAdapter.evaluate`` path
+#                                  ``harness.scoring.score_curriculum`` uses.
+#   * ``make_ppo_learning_fn``  -> the EXPENSIVE real signal: train a small PPO
+#                                  Player on the arena and measure held-out
+#                                  after-minus-before win-rate (the real PPO body
+#                                  in ``modal_player``), locally or on Modal.
+#
+# The correlation gate runner (output/run_correlation_gate.py) builds these two
+# and feeds them straight into ``run_proxy_sweep`` — no bespoke correlation math,
+# the same Pearson/Spearman this module already computes.
+
+
+def make_gap_proxy_fn(*, eval_seeds: int = 40) -> ProxyFn:
+    """Build the cheap GAP PROXY ``proxy_fn`` over a real ``FighterArena``.
+
+    The proxy is ``strong_score - weak_score`` — the scripted_expert vs
+    random_policy win-rate gap on the arena — computed through
+    ``FighterGameAdapter.evaluate``, the identical scoring path the ONE scorer
+    (``harness.scoring.score_curriculum``) and the difficulty sweep use. No PPO
+    training: this is what makes it cheap enough for the hot RFT loop.
+
+    The returned fn takes a params dict carrying ``difficulty`` (and optionally
+    the four geometry knobs) and returns the gap as a float. The adapter is built
+    once and closed over, so repeated calls don't re-pay construction.
+    """
+    from games.fighter import FighterArena
+    from harness.fighter_adapter import FighterGameAdapter
+
+    adapter = FighterGameAdapter(eval_seeds=eval_seeds)
+    defaults = FighterArena()
+
+    def proxy_fn(params: Params) -> float:
+        arena = FighterArena(
+            platform_width=float(params.get("platform_width", defaults.platform_width)),
+            gravity=float(params.get("gravity", defaults.gravity)),
+            knockback=float(params.get("knockback", defaults.knockback)),
+            spawn_gap=float(params.get("spawn_gap", defaults.spawn_gap)),
+            difficulty=float(params.get("difficulty", defaults.difficulty)),
+        )
+        cid = f"gate-d{arena.difficulty}"
+        arenas = adapter.arenas_from_configs([arena], curriculum_id=cid)
+
+        def _score(policy) -> float:
+            (entry,) = adapter.evaluate(policy, arenas).values()
+            return float(entry["mean_score"])
+
+        strong = _score(adapter.scripted_expert())
+        weak = _score(adapter.random_policy())
+        return strong - weak
+
+    return proxy_fn
+
+
+def make_ppo_learning_fn(
+    *,
+    backend: str = "local",
+    episodes: int = 600,
+    eval_seeds: int = 40,
+    modal_app: str = "crucible-player",
+    modal_function: str = "train_player",
+) -> LearningFn:
+    """Build the real PPO LEARNING ``learning_fn`` (after-minus-before win-rate).
+
+    ``backend="local"`` runs the REAL PPO body (``modal_player.local_worker`` —
+    SB3 PPO on the arena vs the difficulty-scaled parametric opponent) in this
+    process. ``backend="modal"`` invokes the deployed ``train_player`` remotely
+    (real parallelism when many arenas/seeds are mapped). Both return the SAME
+    ``improvement`` field (held-out AFTER win-rate minus an untrained net's
+    BEFORE), so the learning signal is identical whichever backend runs it.
+
+    Note: this evaluates ONE (params, seed) per call (the generic sweep loops
+    seeds itself). On Modal that's one ``fn.remote`` per call — fine for the
+    gate's grid, and a thread-pooled caller still gets concurrency. The local
+    backend pays the PPO cost in-process; keep ``episodes`` short.
+    """
+    def _payload(params: Params, seed: int) -> dict:
+        p = {key: float(value) for key, value in params.items()}
+        p.update(
+            {
+                "ppo_episodes": int(episodes),
+                "eval_seeds": int(eval_seeds),
+                "curriculum_id": f"gate-d{p.get('difficulty', 1.0)}",
+                "architecture": "mlp",
+            }
+        )
+        return p
+
+    if backend == "local":
+        from modal_player import local_worker
+
+        def learning_fn(params: Params, seed: int) -> float:
+            row = local_worker(_payload(params, seed), int(seed))
+            return float(row["improvement"])
+
+        return learning_fn
+
+    if backend == "modal":
+        import modal
+
+        fn = modal.Function.from_name(modal_app, modal_function)
+
+        def learning_fn(params: Params, seed: int) -> float:
+            row = fn.remote(_payload(params, seed), int(seed))
+            return float(row["improvement"])
+
+        return learning_fn
+
+    raise ValueError(f"unknown learning backend: {backend!r} (use 'local' or 'modal')")
+
