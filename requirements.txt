@@ -1,6 +1,9 @@
-numpy
-matplotlib
+pydantic
+pytest
 
-# --- For later (training + eval against real services) ---
+# --- For later phases (real Teacher / Players / eval) ---
+# numpy             # gridworld engine + rollouts
+# matplotlib        # demo plots (p*(1-p) histogram, anti-gaming co-rise)
 # hud-python        # HUD harness / RemoteRolloutProcessor wiring
 # fireworks-ai      # Fireworks RFT API (Qwen3-4B Teacher)
+# modal             # parallel Player PPO jobs (one job / seed)
