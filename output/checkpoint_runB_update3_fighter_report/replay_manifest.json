@@ -35,7 +35,7 @@
         "spawn_gap": 3.0,
         "difficulty": 0.4
       },
-      "match_seed": 4,
+      "match_seed": 0,
       "side": "trained_as_P0",
       "outcome": "base_win",
       "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_base_win_trained_as_P0.json"
@@ -54,7 +54,7 @@
         "spawn_gap": 3.0,
         "difficulty": 0.4
       },
-      "match_seed": 0,
+      "match_seed": 1,
       "side": "trained_as_P0",
       "outcome": "draw",
       "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P0.json"
@@ -75,8 +75,8 @@
       },
       "match_seed": 0,
       "side": "trained_as_P1",
-      "outcome": "draw",
-      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P1.json"
+      "outcome": "trained_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_trained_win_trained_as_P1.json"
     }
   ]
 }

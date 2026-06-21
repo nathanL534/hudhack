@@ -1,0 +1,133 @@
+{
+  "headline_metric": "base_student_vs_trained_student",
+  "trained_student_win_rate": 0.353333,
+  "base_student_win_rate": 0.296667,
+  "draw_rate": 0.35,
+  "mean_paired_advantage": 0.056667,
+  "ci_low": -0.133078,
+  "ci_high": 0.246411,
+  "n_replicates": 3,
+  "trained_win_rate_as_p0": 0.24,
+  "trained_win_rate_as_p1": 0.466667,
+  "primary_pass": false,
+  "anti_circularity_passed": false,
+  "per_arena_family_advantage": {
+    "pw12.0": 0.083333,
+    "pw18.0": 0.066667,
+    "pw10.0": 0.066667,
+    "pw20.0": 0.0,
+    "pw14.0": 0.066667
+  },
+  "cross_game_koth": null,
+  "replays": [
+    {
+      "game": "koth",
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "difficulty": 0.45,
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 4.0,
+        "zone_half": 1.5,
+        "zone_center_frac": 0.5
+      },
+      "zone": {
+        "center": 6.0,
+        "half": 1.5,
+        "center_frac": 0.5
+      },
+      "match_seed": 0,
+      "side": "trained_as_P0",
+      "outcome": "trained_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_target_knockback_trained_win_trained_as_P0.json"
+    },
+    {
+      "game": "koth",
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "difficulty": 0.45,
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 4.0,
+        "zone_half": 1.5,
+        "zone_center_frac": 0.5
+      },
+      "zone": {
+        "center": 6.0,
+        "half": 1.5,
+        "center_frac": 0.5
+      },
+      "match_seed": 5,
+      "side": "trained_as_P0",
+      "outcome": "base_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_target_knockback_base_win_trained_as_P0.json"
+    },
+    {
+      "game": "koth",
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "difficulty": 0.45,
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 4.0,
+        "zone_half": 1.5,
+        "zone_center_frac": 0.5
+      },
+      "zone": {
+        "center": 6.0,
+        "half": 1.5,
+        "center_frac": 0.5
+      },
+      "match_seed": 1,
+      "side": "trained_as_P0",
+      "outcome": "draw",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_target_knockback_draw_trained_as_P0.json"
+    },
+    {
+      "game": "koth",
+      "source_teacher_trained": "trained",
+      "source_teacher_base": "base",
+      "trained_curriculum_id": "trained-r0",
+      "base_curriculum_id": "base-r0",
+      "trained_policy_seed": 1000,
+      "base_policy_seed": 1000,
+      "arena": {
+        "difficulty": 0.45,
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 4.0,
+        "zone_half": 1.5,
+        "zone_center_frac": 0.5
+      },
+      "zone": {
+        "center": 6.0,
+        "half": 1.5,
+        "center_frac": 0.5
+      },
+      "match_seed": 0,
+      "side": "trained_as_P1",
+      "outcome": "base_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_target_knockback_base_win_trained_as_P1.json"
+    }
+  ],
+  "is_smoke": false
+}

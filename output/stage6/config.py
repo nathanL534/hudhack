@@ -57,6 +57,22 @@ class EvalConfig:
     match_seeds_per_arena: int = 12
     # Held-out grid for the head-to-head (its own disjoint population).
     head_to_head_grid: str = "full"
+    # -- OPPONENT LEAGUE (Stage-6 Student training only) — DEFAULT OFF --------
+    # When ``opponent_league_enabled`` is False (the default), every Stage-6 Student
+    # trains against the single difficulty-scaled parametric opponent — the EXACT
+    # current behavior, byte-identical. When True, each Student trains against a
+    # SPREAD of opponent styles drawn from ``opponent_league`` (the fix for the
+    # 48.5%-draw head-to-head). ``opponent_league=None`` => the league module's
+    # ``DEFAULT_LEAGUE`` is used. These flags live in the fairness invariant and are
+    # applied IDENTICALLY to the base-Student and trained-Student training calls, so
+    # both Students always face the SAME opponent distribution.
+    opponent_league_enabled: bool = False
+    opponent_league: list | None = None
+    # Optional prior-Student artifact path: when set AND the league includes a
+    # "prior_student" style, that frozen earlier Student is loaded as an opponent
+    # (self-play-lite). Applied identically to both sides; ``None`` => no prior
+    # student, the prior-student league entry is dropped by ``resolve_league``.
+    prior_student_path: str | None = None
 
     def fingerprint(self) -> str:
         """A short stable hash of the invariant (recorded to prove fairness)."""
@@ -92,6 +108,26 @@ class EvalConfig:
                 continue
             if k in params:
                 payload[k] = float(params[k])
+        return payload
+
+    # -- league plumbing — applied IDENTICALLY to both Students (invariant) ----
+
+    def apply_opponent_league(self, payload: dict) -> dict:
+        """Inject the Stage-6 opponent-league flags into a Student-train payload.
+
+        Called once per Student payload from the SINGLE payload builder, so the
+        base-Student and trained-Student payloads receive the SAME league config by
+        construction (the fairness invariant). When the league is disabled (the
+        default) this adds NOTHING — the payload is returned unchanged, so the
+        Student worker takes its original single-parametric-opponent path.
+        """
+        if not self.opponent_league_enabled:
+            return payload
+        payload["opponent_league_enabled"] = True
+        if self.opponent_league is not None:
+            payload["opponent_league"] = self.opponent_league
+        if self.prior_student_path is not None:
+            payload["prior_student_path"] = self.prior_student_path
         return payload
 
 

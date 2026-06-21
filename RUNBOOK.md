@@ -511,3 +511,157 @@ update, both games — needs `crucible-player` + `crucible-player-tk` deployed):
 CRUCIBLE_RUN_ID=smoke PYTHONPATH=. python3 training/train_teacher_modal.py \
   --run-id smoke --updates 1 --group-size 2
 ```
+
+---
+
+## 12. Focused opponent-population + Student-capacity experiment
+
+This is a **Stage-6 Student experiment**, not a new Teacher run. Do **not**
+change Qwen, retrain the Teacher, or alter the nested Teacher reward for the
+first pass. The problem being tested is downstream: Students trained against one
+scripted opponent learned to stand still and punch, then drew against other
+learned Students.
+
+### Status / prerequisite
+
+The opt-in opponent-league implementation exists on commit `fa5de18` and is not
+part of the main branch until explicitly integrated:
+
+```bash
+git cherry-pick fa5de18
+```
+
+Then wire the Stage-6 Student payload builder:
+
+```python
+payload.update(cfg.student_training_options())
+```
+
+Redeploy **only** the Student worker after integration:
+
+```bash
+modal deploy modal_player.py
+```
+
+The feature is OFF by default. The existing single-opponent path and nested
+Teacher-reward workers remain unchanged unless Stage 6 explicitly enables it.
+
+### Population V1 — the negative control we already learned from
+
+Do not use equal weights across aggressive + turtle + random. That mix produced
+~80% draws: turtle taught survival/passivity, random supplied weak noisy lessons,
+and the fixed PPO budget was split across incompatible styles.
+
+Keep that configuration only as a documented negative control.
+
+### Population V2 — focused mix to test now
+
+Use:
+
+- **70% aggressive/parametric scripted opponent**
+- **30% frozen prior active Student**
+- **0% defensive turtle**
+- **0% random**
+
+If no verified active prior Student artifact is available, run 100% aggressive
+instead of silently substituting turtle/random.
+
+```python
+cfg = EvalConfig(
+    fighter_opponent_league=True,
+    fighter_opponent_weights=(
+        ("parametric", 0.70),
+        ("defensive", 0.00),
+        ("random", 0.00),
+        ("prior", 0.30),
+    ),
+)
+```
+
+The prior Student must be frozen and must pass a behavior check before entering
+the population: movement on at least 15% of frames and at least 30% real
+ring-outs. Do not use a camper checkpoint as the prior.
+
+### Student network-capacity A/B
+
+Keep the Teacher fixed (`Qwen3-4B`, same chosen LoRA checkpoint). Compare only
+the PPO Student architecture:
+
+| variant | policy/value hidden layers | approximate trainable parameters |
+|---|---:|---:|
+| `student_128` | `[128, 128]` | ~37k |
+| `student_256` | `[256, 256]` | ~139k |
+
+The current `[64,64]` Student is ~10k parameters and remains the baseline.
+
+Important: the current code assumes `DEFAULT_NET_ARCH` during policy
+serialization/restoration. Before running this A/B, make `student_net_arch`
+explicit in the Stage-6 payload, PPO construction, `PolicyArtifact`, and restore
+path. Do not train a `[128,128]` policy and restore it as `[64,64]`.
+
+GPU note: these models are tiny and fighter simulation is mostly CPU-bound.
+A100/H100 does not materially help. Fan out ordinary Modal CPU containers.
+
+### Shared settings
+
+- PPO episodes: start at `2,000`; use `3,000` only if learning is incomplete.
+- Entropy coefficient: `0.03`.
+- Randomized spawns: ON.
+- Stage-6 anti-camping shaping: ON.
+- Decisive timeout: evaluation only.
+- Full reward only for a real ring-out.
+- Timeout/tiebreak win: zero or small credit.
+- Draw: penalty.
+- Same curricula, opponent weights, seeds and budget for both architectures.
+
+### Lean test sequence
+
+Do not run a large Stage-6 evaluation first.
+
+1. Unit tests:
+   - disabled league reproduces the legacy path;
+   - fixed seed gives deterministic opponent sequence;
+   - 70/30 sampling is approximately correct;
+   - missing prior policy omits/renormalizes safely;
+   - policy serialization restores both architectures exactly.
+2. One local PPO smoke per architecture.
+3. One Modal Student pair per architecture:
+   - base Teacher curriculum Student;
+   - trained Teacher curriculum Student;
+   - 3 fresh Student seeds;
+   - diagonal screening arenas only.
+4. Record:
+   - movement fraction;
+   - action histogram;
+   - real ring-out rate;
+   - timeout-win rate;
+   - draw rate;
+   - side-swapped trained-vs-base advantage.
+
+### Go / no-go
+
+Promote an architecture only if all hold:
+
+- movement fraction >= 15%;
+- at least two actions each exceed 10% usage;
+- real ring-out rate >= 30%;
+- draw rate < 40%;
+- no material side bias;
+- behavior repeats across at least 2 of 3 Student seeds.
+
+If `[128,128]` passes, use it and stop—the larger network is unnecessary.
+Use `[256,256]` only if it materially improves the behavior gates. If both
+architectures still camp, capacity is not the bottleneck; stop scaling the
+network and redesign the opponent/reward distribution.
+
+### What to evaluate after a pass
+
+Re-evaluate existing Teacher checkpoints first; do not immediately retrain Qwen:
+
+- `runB/update3`
+- `runB/update4`
+- best balanced checkpoint selected on reserved validation
+
+Only after the focused population produces active Students should you consider
+two new 10-update Qwen3-4B Teacher runs. Changing Qwen to 8B cannot directly fix
+a PPO Student that learned to stand still.

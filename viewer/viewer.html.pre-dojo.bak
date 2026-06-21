@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ring-Out Duel — Replay Viewer</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #161b22;
+    --line: #2a313c;
+    --ink: #e6edf3;
+    --muted: #8b949e;
+    --p1: #59c2ff;
+    --p2: #ff8a5c;
+    --accent: #3fb950;
+    --warn: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: radial-gradient(1200px 700px at 50% -10%, #15203a 0%, var(--bg) 60%);
+    color: var(--ink);
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    padding: 14px 20px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: .2px; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 18px 20px 60px; }
+  .row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px;
+  }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  select, button, label.file {
+    background: #21262d; color: var(--ink); border: 1px solid var(--line);
+    border-radius: 7px; padding: 7px 12px; font-size: 13px; cursor: pointer;
+  }
+  button:hover, label.file:hover { border-color: #3d444d; }
+  button:disabled { opacity: .45; cursor: default; }
+  input[type=range] { flex: 1; min-width: 180px; accent-color: var(--p1); }
+  #canvas {
+    background: #060810; border: 1px solid var(--line); border-radius: 10px;
+    display: block; width: 100%; max-width: 920px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  #drop {
+    border: 1.5px dashed var(--line); border-radius: 8px; padding: 10px 14px;
+    color: var(--muted); font-size: 12px; transition: .15s; flex: 1; min-width: 200px;
+  }
+  #drop.hot { border-color: var(--accent); color: var(--accent); background: #11210f; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; }
+  .meta b { color: var(--muted); font-weight: 500; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 5px; }
+  .p1c { color: var(--p1); } .p2c { color: var(--p2); }
+  #banner {
+    margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-weight: 650;
+    background: #11210f; border: 1px solid #1f5a23; display: none; font-size: 15px;
+  }
+  #frameLabel { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 92px; text-align: right; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  code { background: #21262d; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .err { color: var(--warn); font-size: 12px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ring-Out Duel — Replay Viewer</h1>
+  <span class="sub">Stage-1 fighter · replay-only · open a saved match and watch it</span>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="controls">
+      <label for="replaySel"><b style="color:var(--muted)">Example:</b></label>
+      <select id="replaySel"></select>
+      <label class="file">
+        Load file…
+        <input id="fileInput" type="file" accept=".json,application/json" hidden />
+      </label>
+      <div id="drop">drag &amp; drop a replay <code>.json</code> here</div>
+    </div>
+    <div id="loadErr" class="err"></div>
+  </div>
+
+  <div class="panel" style="margin-top:18px">
+    <canvas id="canvas" width="920" height="380"></canvas>
+
+    <div class="controls">
+      <button id="playBtn">▶ Play</button>
+      <button id="stepBack">⟨ Step</button>
+      <button id="stepFwd">Step ⟩</button>
+      <input id="scrub" type="range" min="0" max="0" value="0" />
+      <span id="frameLabel">0 / 0</span>
+      <select id="speed">
+        <option value="33">30 fps</option>
+        <option value="66" selected>15 fps</option>
+        <option value="100">10 fps</option>
+        <option value="200">5 fps</option>
+      </select>
+    </div>
+
+    <div class="meta">
+      <span><b>game</b> <span id="mGame">–</span></span>
+      <span><b>config</b> <span id="mConfig">–</span></span>
+      <span><b>p1</b> <span class="swatch" style="background:var(--p1)"></span><span class="p1c" id="mP1">–</span> · action <b id="aP1">–</b></span>
+      <span><b>p2</b> <span class="swatch" style="background:var(--p2)"></span><span class="p2c" id="mP2">–</span> · action <b id="aP2">–</b></span>
+    </div>
+
+    <div id="banner"></div>
+    <div class="hint">
+      Tip: keyboard — <code>space</code> play/pause, <code>←</code>/<code>→</code> step.
+      A default fight loads inline, so this page works even opened directly via
+      <code>file://</code>. To use the <b>Example</b> dropdown (live files in
+      <code>replays/</code>), serve from the <b>repo root</b> — NOT from
+      <code>viewer/</code> — so both <code>/viewer/</code> and <code>/replays/</code>
+      resolve: run <code>python3 -m http.server 8000</code> at the repo root, then open
+      <code>http://localhost:8000/viewer/viewer.html</code>. The <b>Load file…</b> /
+      drag-drop path always works too.
+    </div>
+  </div>
+</main>
+
+<script>
+// ------------------------------------------------------------------ discovery
+// The Example dropdown is populated DYNAMICALLY — there is NO hardcoded file
+// list — so any replay added to replays/ (e.g. modal_trained_*.json) shows up
+// automatically with nothing to keep in sync. When this page is served from the
+// repo root, `fetch("/replays/")` returns the http.server directory-listing HTML
+// (<a href="foo.json">…); we parse out every *.json href. If that listing is
+// unavailable or empty (some servers disable indexing), we fall back to
+// fetching replays/manifest.json (regenerate via viewer/make_manifest.py).
+// Under file:// neither fetch works — the inline DEFAULT_REPLAY + Load file… /
+// drag-drop fallbacks below cover that case.
+//
+// REPLAY_BASE is an ABSOLUTE path so file URLs resolve from the served root
+// regardless of how deep viewer.html sits. REPLAY_DIR is what we list.
+const REPLAY_DIR = "/replays/";
+const REPLAY_BASE = REPLAY_DIR;
+let EXAMPLES = [];          // filled in by discoverReplays() at boot
+
+// ------------------------------------------------------------------ inline default
+// A full replay embedded as a JS constant so opening this file directly via
+// file:// ALWAYS shows a fight — no server, no fetch(), no CORS. The http
+// dropdown still fetches the live files in ../replays/; this is only the
+// zero-dependency fallback. (Source: replays/scripted_vs_scripted.json.)
+const DEFAULT_REPLAY = {"meta":{"game":"ring-out-duel","config":"A","winner":"p1","frames":15,"p1_policy":"scripted","p2_policy":"scripted","seed":3,"schema":1},"platform":{"x_left":0.0,"x_right":10.0,"y":0.0},"frames":[{"p1":{"x":2.9586,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":6.9737,"y":0.0,"facing":-1,"action":"idle"},"events":[]},{"p1":{"x":3.3086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.6237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.6586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.2737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.0086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.9237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.5737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":8.0737,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":4.7086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.7237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.0586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.3737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.0237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":9.5237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":5.7586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":9.1737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.1086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.8237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.4586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.4737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.1237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":10.6237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch","p2_ringout"]}]};
+
+// ============================================================================
+//  GRAPHICS
+// ----------------------------------------------------------------------------
+//  Art approach: high-detail PROCEDURAL vector characters + a layered, animated
+//  parallax stage. Everything is drawn with the Canvas 2D API at runtime — no
+//  image files, no data-URIs, no network — so the viewer is 100% self-contained
+//  and works straight off file://.
+//
+//  Why procedural instead of embedded CC0 sprite sheets: the only stably-hosted
+//  fighter sheets we could reach (e.g. the Phaser-examples "brawler48x48.png")
+//  do not carry a clearly-documented CC0 license, and we won't embed a binary
+//  whose license we can't verify. So this is the "substantially upgraded
+//  procedural" path: bigger characters (~64px tall vs the old flat 16x16 grids),
+//  real shading + rim light, and smooth, continuously-interpolated multi-frame
+//  animation (idle breathing, run cycle, jump arc with squash/stretch,
+//  punch wind-up -> extend) rather than 1-frame-per-pose pixel swaps.
+//
+//  The two fighters are deliberately distinct designs:
+//    P1 "Frost Knight"  — cool blue plate armor, horned helm, energy blade arm.
+//    P2 "Ember Brawler"  — warm orange/red, flame mohawk, heavy red gloves.
+//  Art is original/generated for this project (no third-party assets).
+// ============================================================================
+
+// Logical character height in world->screen pixels (scaled where drawn).
+const FIGHTER_H = 64;
+
+// ----------------------------------------------------------------------------
+// Color kits per fighter. Each is a small named palette so the body, shading,
+// rim light and accent all stay coherent and easy to tune.
+const KIT = {
+  p1: {
+    name: "Frost Knight",
+    armor:    "#3a78d8",
+    armorHi:  "#7fb8ff",
+    armorLo:  "#1f4a93",
+    trim:     "#cfe8ff",
+    accent:   "#9bf0ff",   // crest / energy
+    rim:      "#bfe4ff",
+    skin:     "#f2d2b0",
+    skinLo:   "#cda988",
+    blade:    "#aef0ff",
+    bladeCore:"#ffffff",
+    tag:      "#cfe9ff",
+  },
+  p2: {
+    name: "Ember Brawler",
+    armor:    "#ff8a3c",
+    armorHi:  "#ffc070",
+    armorLo:  "#c4521b",
+    trim:     "#ffe1a8",
+    accent:   "#ffd23c",   // flame / mohawk
+    rim:      "#ffd9a0",
+    skin:     "#f2c39a",
+    skinLo:   "#cb9a6e",
+    glove:    "#d11d1d",
+    gloveHi:  "#ff5a46",
+    tag:      "#ffd9c0",
+  },
+};
+
+// ----------------------------------------------------------------------------
+// Map a replay action -> a high-level pose. The replay action vocab is fixed:
+//   idle / left / right / jump / punch
+function poseFor(action) {
+  if (action === "punch") return "punch";
+  if (action === "jump") return "jump";
+  if (action === "left" || action === "right") return "run";
+  return "idle";
+}
+
+// ------------------------------------------------------------------ state
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let replay = null;     // parsed replay object
+let frame = 0;         // current frame index
+let playing = false;
+let timer = null;
+let rafId = null;      // continuous animation loop handle (smooth sub-frame life)
+let animClock = 0;     // ever-increasing seconds-ish clock for idle/run/particle phase
+
+// ------------------------------------------------------------------ elements
+const $ = (id) => document.getElementById(id);
+const sel = $("replaySel"), scrub = $("scrub"), frameLabel = $("frameLabel");
+const playBtn = $("playBtn"), banner = $("banner"), loadErr = $("loadErr");
+
+// ------------------------------------------------------------------ discovery
+// Pull every *.json filename out of an http.server directory-listing page.
+// The listing markup is: <li><a href="name.json">name.json</a></li>. We read
+// the href (not the link text) and keep only .json entries, deduped + sorted.
+function parseDirListing(html) {
+  const out = new Set();
+  const re = /href\s*=\s*["']([^"']+)["']/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    let href = m[1];
+    try { href = decodeURIComponent(href); } catch (_) {}
+    // strip any directory prefix and query/hash; keep the bare filename
+    href = href.split("#")[0].split("?")[0];
+    const name = href.substring(href.lastIndexOf("/") + 1);
+    if (/\.json$/i.test(name)) out.add(name);
+  }
+  return [...out].sort();
+}
+
+// Discover all replay filenames. Prefer the live directory listing (nothing to
+// keep in sync); fall back to replays/manifest.json; return [] if neither works
+// (e.g. file://), in which case the inline default + file-picker still work.
+async function discoverReplays() {
+  // 1) directory listing (served from repo root)
+  try {
+    const res = await fetch(REPLAY_DIR, { cache: "no-store" });
+    if (res.ok) {
+      const files = parseDirListing(await res.text());
+      if (files.length) return files;
+    }
+  } catch (_) { /* file:// or indexing disabled — try manifest next */ }
+  // 2) manifest.json fallback (array of names, or {replays:[...]})
+  try {
+    const res = await fetch(REPLAY_BASE + "manifest.json", { cache: "no-store" });
+    if (res.ok) {
+      const j = await res.json();
+      const arr = Array.isArray(j) ? j : (Array.isArray(j.replays) ? j.replays : []);
+      const files = arr
+        .map((x) => String(x).split("/").pop())
+        .filter((n) => /\.json$/i.test(n) && n !== "manifest.json");
+      if (files.length) return [...new Set(files)].sort();
+    }
+  } catch (_) { /* no manifest either */ }
+  return [];
+}
+
+// ------------------------------------------------------------------ loading
+function populateDropdown() {
+  sel.innerHTML = "";
+  const ph = document.createElement("option");
+  ph.value = "";
+  ph.textContent = EXAMPLES.length ? "— pick an example —" : "— no live replays (use Load file…) —";
+  sel.appendChild(ph);
+  for (const f of EXAMPLES) {
+    const o = document.createElement("option");
+    o.value = f; o.textContent = f.replace(/\.json$/, "");
+    sel.appendChild(o);
+  }
+}
+
+async function loadExample(filename) {
+  loadErr.textContent = "";
+  try {
+    const res = await fetch(REPLAY_BASE + filename, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    setReplay(data);
+  } catch (e) {
+    loadErr.textContent =
+      "Couldn't fetch " + filename + " (" + e.message +
+      "). Serve from the REPO ROOT (python3 -m http.server 8000) and open " +
+      "http://localhost:8000/viewer/viewer.html — or use Load file… / drag-drop.";
+  }
+}
+
+function loadFile(file) {
+  loadErr.textContent = "";
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { setReplay(JSON.parse(reader.result)); }
+    catch (e) { loadErr.textContent = "Invalid JSON: " + e.message; }
+  };
+  reader.readAsText(file);
+}
+
+function setReplay(data) {
+  if (!data || !Array.isArray(data.frames) || !data.frames.length) {
+    loadErr.textContent = "Not a valid replay (no frames).";
+    return;
+  }
+  replay = data;
+  frame = 0;
+  pause();
+  scrub.max = data.frames.length - 1;
+  scrub.value = 0;
+  const m = data.meta || {};
+  $("mGame").textContent = m.game ?? "ring-out-duel";
+  $("mConfig").textContent = m.config ?? "?";
+  $("mP1").textContent = m.p1_policy ?? "p1";
+  $("mP2").textContent = m.p2_policy ?? "p2";
+  banner.style.display = "none";
+  render();
+}
+
+// ------------------------------------------------------------------ geometry
+// Map sim x in [x_left, x_right] -> canvas px, with padding. The platform line
+// sits near the bottom; jump height (y) lifts a fighter ABOVE it.
+function worldToScreen(plat) {
+  const padX = 70, padBottom = 90, padTop = 60;
+  const W = canvas.width, H = canvas.height;
+  const span = (plat.x_right - plat.x_left) || 1;
+  const sx = (x) => padX + ((x - plat.x_left) / span) * (W - 2 * padX);
+  const groundY = H - padBottom;
+  // y is height above platform; scale so a ~2.2 jump impulse reads clearly.
+  const sy = (y) => groundY - y * ((groundY - padTop) / 5.0);
+  return { sx, sy, groundY, padX, W, H };
+}
+
+// ============================================================================
+// STAGE — layered, lit, animated parallax background.
+//   Layers (back -> front):
+//     0. deep-space sky gradient + twinkling stars
+//     1. moon/sun disc with soft bloom
+//     2. three mountain bands (far/mid/near) for parallax depth
+//     3. drifting fog band over the mid mountains
+//     4. the battle platform: grass cap + dirt body + speckle + glowing edges
+//     5. rising ember/spark particles + bottomless void
+// ============================================================================
+function drawStage(plat, geo, t) {
+  const { sx, groundY, W, H } = geo;
+
+  // ---- 0. sky gradient (deep dusk -> warm horizon) ----
+  const sky = ctx.createLinearGradient(0, 0, 0, groundY + 40);
+  sky.addColorStop(0.0, "#0c0a26");
+  sky.addColorStop(0.35, "#241a4f");
+  sky.addColorStop(0.62, "#5a2c63");
+  sky.addColorStop(0.85, "#9c4a5e");
+  sky.addColorStop(1.0, "#d4794e");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, groundY + 40);
+
+  // twinkling stars (deterministic field; brightness pulses with t)
+  for (let i = 0; i < STARS.length; i++) {
+    const s = STARS[i];
+    const tw = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 1.8 + s.p));
+    ctx.globalAlpha = s.a * tw;
+    ctx.fillStyle = "#dfe9ff";
+    ctx.fillRect(s.x * W, s.y * (groundY * 0.7), s.s, s.s);
+  }
+  ctx.globalAlpha = 1;
+
+  // ---- 1. moon disc + bloom ----
+  const cx = W * 0.76, cy = groundY * 0.34;
+  const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, 150);
+  glow.addColorStop(0, "rgba(255,238,196,0.85)");
+  glow.addColorStop(0.22, "rgba(255,206,140,0.42)");
+  glow.addColorStop(1, "rgba(255,206,140,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(cx - 150, cy - 150, 300, 300);
+  const disc = ctx.createRadialGradient(cx - 8, cy - 8, 4, cx, cy, 30);
+  disc.addColorStop(0, "#fff6df");
+  disc.addColorStop(1, "#f2cf94");
+  ctx.fillStyle = disc;
+  ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI * 2); ctx.fill();
+  // a couple of soft craters for texture
+  ctx.fillStyle = "rgba(180,140,90,0.18)";
+  ctx.beginPath(); ctx.arc(cx - 9, cy - 6, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 8, cy + 7, 4, 0, Math.PI * 2); ctx.fill();
+
+  // ---- 2. three mountain parallax bands (far -> near, dark -> darker) ----
+  mountains(W, groundY, groundY * 0.50, "#34265e", [0.00, 0.20, 0.40, 0.60, 0.80, 1.00], 0.0);
+  mountains(W, groundY, groundY * 0.66, "#281e4c", [0.08, 0.30, 0.52, 0.74, 0.95], 0.0);
+  mountains(W, groundY, groundY * 0.82, "#1c1638", [0.04, 0.26, 0.46, 0.68, 0.88], 0.0);
+
+  // ---- 3. drifting fog band ----
+  ctx.save();
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = "#c9bce0";
+  const fogY = groundY - groundY * 0.30;
+  for (let k = 0; k < 3; k++) {
+    const off = ((t * (8 + k * 5)) % (W + 240)) - 120;
+    cloud((off + k * 260) % (W + 240) - 60, fogY + k * 16, 60 + k * 10);
+  }
+  ctx.restore();
+
+  // ---- 4. the platform ----
+  const platL = sx(plat.x_left), platR = sx(plat.x_right);
+  const platW = platR - platL;
+  const topH = 12;          // grass cap thickness
+  const bodyH = 50;         // dirt body that hangs below the play line
+
+  // soft ambient glow under the platform lip (grounds it in the scene)
+  const lip = ctx.createLinearGradient(0, groundY - 6, 0, groundY + 26);
+  lip.addColorStop(0, "rgba(120,200,255,0.10)");
+  lip.addColorStop(1, "rgba(120,200,255,0)");
+  ctx.fillStyle = lip;
+  ctx.fillRect(platL - 10, groundY - 6, platW + 20, 32);
+
+  // dirt body with vertical shading
+  const dirt = ctx.createLinearGradient(0, groundY, 0, groundY + bodyH);
+  dirt.addColorStop(0, "#7a5632");
+  dirt.addColorStop(0.5, "#553a20");
+  dirt.addColorStop(1, "#321f10");
+  ctx.fillStyle = dirt;
+  ctx.fillRect(platL, groundY, platW, bodyH);
+
+  // rock striations + speckle (cheap deterministic pattern)
+  ctx.fillStyle = "rgba(0,0,0,0.20)";
+  for (let i = 0; i < platW; i += 16) {
+    const dx = platL + i + ((i * 7) % 11);
+    ctx.fillRect(dx, groundY + 16 + ((i * 13) % 22), 3, 3);
+    ctx.fillRect(dx + 7, groundY + 30 + ((i * 5) % 14), 2, 2);
+  }
+  ctx.strokeStyle = "rgba(255,255,255,0.05)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(platL, groundY + bodyH * 0.55);
+  ctx.lineTo(platR, groundY + bodyH * 0.42);
+  ctx.stroke();
+
+  // grass cap with highlight
+  const grass = ctx.createLinearGradient(0, groundY - topH, 0, groundY);
+  grass.addColorStop(0, "#8fe87a");
+  grass.addColorStop(1, "#3f9a3a");
+  ctx.fillStyle = grass;
+  ctx.fillRect(platL, groundY - topH, platW, topH);
+  // bright top sheen
+  ctx.fillStyle = "rgba(220,255,200,0.35)";
+  ctx.fillRect(platL, groundY - topH, platW, 2);
+  // grass blades along the top edge
+  ctx.fillStyle = "#a7f48a";
+  for (let i = 0; i < platW; i += 7) {
+    const bh = 3 + ((i * 3) % 3);
+    ctx.fillRect(platL + i, groundY - topH - bh, 2, bh);
+  }
+
+  // glowing danger edges (the ring-out cliffs) — pulse with t
+  const pulse = 0.4 + 0.25 * (0.5 + 0.5 * Math.sin(t * 3.0));
+  for (const [ex, dir] of [[platL, -1], [platR, 1]]) {
+    const eg = ctx.createLinearGradient(ex, 0, ex + dir * 26, 0);
+    eg.addColorStop(0, "rgba(255,90,70," + pulse.toFixed(3) + ")");
+    eg.addColorStop(1, "rgba(255,90,70,0)");
+    ctx.fillStyle = eg;
+    ctx.fillRect(dir < 0 ? ex - 26 : ex, groundY - topH, 26, topH + bodyH);
+    // chevron edge ticks
+    ctx.fillStyle = "#ffcf3f";
+    ctx.fillRect(ex + (dir < 0 ? -3 : 0), groundY - topH - 7, 3, 20);
+  }
+
+  // ---- 5. rising embers (warm particles drifting up over the void) ----
+  ctx.save();
+  for (let i = 0; i < EMBERS.length; i++) {
+    const e = EMBERS[i];
+    const life = (t * e.spd + e.ph) % 1;          // 0..1 rising loop
+    const ey = groundY + bodyH - life * (bodyH + 90);
+    const ex = (e.x * W) + Math.sin(t * 1.3 + e.ph * 6) * 10;
+    const a = (1 - life) * 0.7;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = e.warm ? "#ffb84d" : "#ff6a3c";
+    ctx.beginPath(); ctx.arc(ex, ey, e.r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+
+  // void below the platform body
+  const void_ = ctx.createLinearGradient(0, groundY + bodyH, 0, H);
+  void_.addColorStop(0, "#0a0712");
+  void_.addColorStop(1, "#000000");
+  ctx.fillStyle = void_;
+  ctx.fillRect(0, groundY + bodyH, W, H - groundY - bodyH);
+}
+
+// ============================================================================
+// KOTH TARGET ZONE — the "hill" the two Students fight to control.
+//   Resolve the zone geometry from the replay (KOTH traces carry it; fighter
+//   traces do not, so this returns null and the overlay is skipped). The zone is
+//   drawn ON the platform, beneath the fighters, as a glowing capture band with a
+//   centre flag — so a KOTH replay reads as King-of-the-Hill, not a plain duel.
+//   Coordinates are the SAME sim-x space as the platform, mapped via geo.sx.
+// ============================================================================
+function zoneGeometry(data, plat) {
+  if (!data) return null;
+  const meta = data.meta || {};
+  const isKoth = (meta.game === "koth" || meta.game === "king-of-the-hill");
+  // Accept several shapes: meta.zone {center,half|lo,hi}, or top-level zone_* fields.
+  let z = meta.zone || data.zone || null;
+  let lo, hi, center;
+  if (z && typeof z === "object") {
+    if (z.lo != null && z.hi != null) { lo = +z.lo; hi = +z.hi; }
+    else if (z.center != null && z.half != null) { lo = +z.center - +z.half; hi = +z.center + +z.half; }
+    else if (z.center_frac != null && z.half != null) {
+      const c = +z.center_frac * (plat.x_right - plat.x_left) + plat.x_left;
+      lo = c - +z.half; hi = c + +z.half;
+    }
+  } else if (data.zone_center != null && data.zone_half != null) {
+    lo = +data.zone_center - +data.zone_half; hi = +data.zone_center + +data.zone_half;
+  } else if (meta.zone_center != null && meta.zone_half != null) {
+    lo = +meta.zone_center - +meta.zone_half; hi = +meta.zone_center + +meta.zone_half;
+  }
+  // Only draw when this is a KOTH trace OR explicit zone fields are present.
+  if (lo == null || hi == null || !isFinite(lo) || !isFinite(hi)) return null;
+  if (!isKoth && !z && data.zone_center == null && meta.zone_center == null) return null;
+  center = (lo + hi) / 2;
+  return { lo, hi, center };
+}
+
+function drawZone(plat, geo, data, t) {
+  const zg = zoneGeometry(data, plat);
+  if (!zg) return;
+  const { sx, groundY } = geo;
+  const topH = 12;                 // matches the grass-cap thickness in drawStage
+  const zL = sx(zg.lo), zR = sx(zg.hi);
+  const zW = Math.max(2, zR - zL);
+  const capY = groundY - topH;     // top of the platform grass
+
+  const pulse = 0.5 + 0.3 * (0.5 + 0.5 * Math.sin(t * 2.2));
+
+  ctx.save();
+  // --- capture band on the platform surface (gold "hill" zone) ---
+  const band = ctx.createLinearGradient(0, capY - 60, 0, groundY + 6);
+  band.addColorStop(0, "rgba(255,210,90,0)");
+  band.addColorStop(0.72, "rgba(255,196,64," + (0.16 * pulse).toFixed(3) + ")");
+  band.addColorStop(1, "rgba(255,176,40," + (0.34 * pulse).toFixed(3) + ")");
+  ctx.fillStyle = band;
+  ctx.fillRect(zL, capY - 60, zW, 60 + topH + 6);
+
+  // bright contact line where the zone meets the grass
+  ctx.fillStyle = "rgba(255,224,120," + (0.85 * pulse).toFixed(3) + ")";
+  ctx.fillRect(zL, capY - 1, zW, 3);
+
+  // zone boundary posts (the edges of the hill)
+  ctx.strokeStyle = "rgba(255,210,90," + (0.7 * pulse).toFixed(3) + ")";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 4]);
+  for (const ex of [zL, zR]) {
+    ctx.beginPath();
+    ctx.moveTo(ex, capY - 54);
+    ctx.lineTo(ex, groundY + 2);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // --- centre flag (marks the hill) ---
+  const cX = sx(zg.center);
+  const poleTop = capY - 50;
+  ctx.strokeStyle = "#ffe9a8";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cX, capY); ctx.lineTo(cX, poleTop); ctx.stroke();
+  const flutter = 3 * Math.sin(t * 4 + 1);
+  ctx.fillStyle = "#ffcf3f";
+  ctx.beginPath();
+  ctx.moveTo(cX, poleTop);
+  ctx.lineTo(cX + 18, poleTop + 5 + flutter);
+  ctx.lineTo(cX, poleTop + 12);
+  ctx.closePath(); ctx.fill();
+
+  // --- label so the viewer reads as King-of-the-Hill ---
+  ctx.fillStyle = "rgba(255,233,168,0.92)";
+  ctx.font = "600 12px ui-sans-serif, system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("HILL", cX, poleTop - 6);
+  ctx.restore();
+}
+
+function cloud(x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
+  ctx.arc(x + r * 0.6, y + 4, r * 0.5, 0, Math.PI * 2);
+  ctx.arc(x - r * 0.6, y + 5, r * 0.45, 0, Math.PI * 2);
+  ctx.arc(x + r * 0.1, y + 8, r * 0.7, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function mountains(W, groundY, baseY, color, peaks) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  for (let i = 0; i < peaks.length; i++) {
+    const x = peaks[i] * W;
+    const h = baseY * (0.55 + ((i * 0.27) % 0.45));
+    ctx.lineTo(x, groundY - h);
+    if (i < peaks.length - 1) {
+      const nx = peaks[i + 1] * W;
+      ctx.lineTo((x + nx) / 2, groundY - h * 0.45);
+    }
+  }
+  ctx.lineTo(W, groundY);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// Deterministic decorative fields (computed once). A tiny seeded PRNG keeps the
+// star/ember layout stable across renders so nothing flickers between frames.
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let tt = Math.imul(a ^ (a >>> 15), 1 | a);
+    tt = (tt + Math.imul(tt ^ (tt >>> 7), 61 | tt)) ^ tt;
+    return ((tt ^ (tt >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const STARS = (() => {
+  const rnd = mulberry32(1337); const out = [];
+  for (let i = 0; i < 70; i++) {
+    out.push({ x: rnd(), y: rnd(), s: rnd() < 0.85 ? 1 : 2,
+               a: 0.3 + rnd() * 0.6, p: rnd() * Math.PI * 2 });
+  }
+  return out;
+})();
+const EMBERS = (() => {
+  const rnd = mulberry32(99); const out = [];
+  for (let i = 0; i < 26; i++) {
+    out.push({ x: rnd(), r: 1 + rnd() * 1.8, spd: 0.06 + rnd() * 0.12,
+               ph: rnd(), warm: rnd() < 0.55 });
+  }
+  return out;
+})();
+
+// ============================================================================
+// RENDER
+// ----------------------------------------------------------------------------
+//  We interpolate body state BETWEEN replay frames using a fractional `sub`
+//  phase (0..1) advanced by the continuous animation loop while playing. This
+//  is what turns the discrete ~15-frame replays into smooth motion: positions
+//  ease toward the next frame, and pose-internal animation (run cycle, idle
+//  breathing, punch wind-up) reads the same phase for fluid life.
+//  When paused/scrubbing we render the exact frame (sub forced toward 0).
+// ============================================================================
+let subPhase = 0;          // 0..1 progress from current frame -> next frame
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// Build the interpolated body we actually draw for one fighter this render.
+function interpBody(who, sub) {
+  const frames = replay.frames;
+  const cur = frames[frame][who];
+  const nextFr = frames[Math.min(frame + 1, frames.length - 1)];
+  const nxt = nextFr[who];
+  // Don't interpolate position across a ring-out launch boundary discontinuity
+  // in a way that hides the event; we still ease x/y, which reads as "launched".
+  return {
+    x: lerp(cur.x, nxt.x, sub),
+    y: lerp(cur.y, nxt.y, sub),
+    facing: cur.facing,
+    action: cur.action,
+  };
+}
+
+function render() {
+  if (!replay) return;
+  frame = Math.max(0, Math.min(frame, replay.frames.length - 1));
+  const last = frame === replay.frames.length - 1;
+  const sub = (playing && !last) ? subPhase : 0;
+
+  const fr = replay.frames[frame];
+  const plat = replay.platform || { x_left: 0, x_right: 10, y: 0 };
+  const geo = worldToScreen(plat);
+  const { sx, sy, groundY, W } = geo;
+
+  ctx.clearRect(0, 0, W, canvas.height);
+
+  // --- layered, animated stage ---
+  drawStage(plat, geo, animClock);
+
+  // --- KOTH target zone (the hill) drawn ON the platform, beneath the fighters.
+  //     No-op for fighter traces (no zone) so the fighter view is unchanged. ---
+  drawZone(plat, geo, replay, animClock);
+
+  // interpolated bodies for smooth motion
+  const b1 = interpBody("p1", sub);
+  const b2 = interpBody("p2", sub);
+
+  // --- fighters (draw the farther/lower one first for cheap depth) ---
+  const order = (b1.y >= b2.y) ? [["p1", b1], ["p2", b2]] : [["p2", b2], ["p1", b1]];
+  for (const [who, b] of order) {
+    drawFighter(b, who, sx, sy, plat, groundY, animClock, sub);
+  }
+
+  // --- punch flashes (from events on the discrete current frame) ---
+  const evs = fr.events || [];
+  if (evs.includes("p1_punch")) punchFlash(b1, KIT.p1.blade || "#aef0ff", sx, sy, plat, groundY, animClock);
+  if (evs.includes("p2_punch")) punchFlash(b2, KIT.p2.accent, sx, sy, plat, groundY, animClock);
+
+  // --- ring-out effect ---
+  if (evs.includes("p1_ringout")) ringOutMark(b1, sx, groundY, "p1");
+  if (evs.includes("p2_ringout")) ringOutMark(b2, sx, groundY, "p2");
+
+  // --- HUD ---
+  $("aP1").textContent = fr.p1.action;
+  $("aP2").textContent = fr.p2.action;
+  frameLabel.textContent = frame + " / " + (replay.frames.length - 1);
+  scrub.value = frame;
+
+  // --- end banner ---
+  if (last) {
+    const meta = replay.meta || {};
+    const w = meta.winner || "draw";
+    const isKoth = (meta.game === "koth" || meta.game === "king-of-the-hill");
+    banner.style.display = "block";
+    if (w === "draw") {
+      banner.textContent = isKoth
+        ? "Draw — zone-time tied at the step budget."
+        : "Draw — no ring-out within the step budget.";
+      banner.style.background = "#1c1f12"; banner.style.borderColor = "#5a4a1f";
+    } else {
+      const zt = meta.zone_time_final;
+      const heldBy = (isKoth && Array.isArray(zt))
+        ? "  (held the hill " + zt[w === "p1" ? 0 : 1] + " ticks)" : "";
+      banner.textContent = (isKoth ? "Hill held by: " : "Winner: ") + w.toUpperCase() + heldBy;
+      banner.style.background = "#11210f"; banner.style.borderColor = "#1f5a23";
+    }
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+// ----------------------------------------------------------------------------
+// FIGHTER — a fully procedural, shaded, articulated character.
+//   `b` is the (interpolated) body state {x,y,facing,action}. `t` is the global
+//   animation clock; `sub` is the within-frame phase (0..1). The body anchors
+//   its feet on the platform line (or falls into the void when off-edge), and
+//   limbs animate continuously per pose.
+// ----------------------------------------------------------------------------
+function drawFighter(b, who, sx, sy, plat, groundY, t, sub) {
+  const kit = KIT[who];
+  const onPlatform = b.x >= plat.x_left && b.x <= plat.x_right;
+  const flip = (b.facing < 0) ? -1 : 1;
+  const pose = poseFor(b.action);
+
+  const cx = sx(b.x);
+  const feetY = onPlatform ? sy(b.y) : groundY + 80;   // fall into void off-edge
+
+  // pose-driven body transforms
+  let bob = 0, squash = 1, lean = 0;
+  // a continuous cycle phase: combine the global clock with within-frame sub so
+  // motion stays smooth both while auto-playing and when scrubbed slowly.
+  const cyc = t * 4.6 + sub * Math.PI;
+  if (pose === "idle") { bob = Math.sin(t * 2.2) * 1.6; }
+  if (pose === "run")  { bob = Math.abs(Math.sin(cyc)) * 2.2; lean = flip * 0.14; }
+  if (pose === "jump") { squash = 1.10; }
+
+  const H = FIGHTER_H;
+  const scale = H / 64;
+  const groundedY = feetY + bob;
+  const dim = !onPlatform;
+
+  // soft contact shadow on the platform (shrinks with jump height)
+  if (onPlatform && b.y < 2.0) {
+    const shrink = Math.max(0.25, 1 - b.y * 0.35);
+    ctx.save();
+    ctx.globalAlpha = 0.30 * shrink;
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.ellipse(cx, sy(0) + 2, 20 * scale * shrink, 5 * shrink, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.translate(cx, groundedY);
+  ctx.scale(flip, 1);          // face right by default; flip mirrors everything
+  ctx.scale(scale, scale * squash);
+  ctx.rotate(lean);
+
+  // After this transform, (0,0) is at the feet, +y is UP-from-feet handled by
+  // using negative y for body parts. We draw in a "feet at origin" local space.
+  if (who === "p1") drawFrostKnight(kit, pose, cyc, sub, dim);
+  else              drawEmberBrawler(kit, pose, cyc, sub, dim);
+
+  ctx.restore();
+
+  // floating P1/P2 tag above the head
+  ctx.save();
+  ctx.font = "bold 11px ui-sans-serif, system-ui";
+  ctx.textAlign = "center";
+  ctx.fillStyle = kit.tag;
+  ctx.strokeStyle = "rgba(0,0,0,0.65)"; ctx.lineWidth = 3;
+  const headTop = groundedY - (H * squash) - 6;
+  ctx.strokeText(who.toUpperCase(), cx, headTop);
+  ctx.fillText(who.toUpperCase(), cx, headTop);
+  ctx.restore();
+}
+
+// Small helpers used by both character draw routines. All coordinates are in
+// local "feet at origin, character ~64 tall, facing right" space.
+function limb(x0, y0, x1, y1, w, col) {
+  ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+}
+function roundedTorso(x, y, w, h, grad) {
+  const r = Math.min(w, h) * 0.34;
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(x - w / 2 + r, y);
+  ctx.arcTo(x + w / 2, y, x + w / 2, y + h, r);
+  ctx.arcTo(x + w / 2, y + h, x - w / 2, y + h, r);
+  ctx.arcTo(x - w / 2, y + h, x - w / 2, y, r);
+  ctx.arcTo(x - w / 2, y, x + w / 2, y, r);
+  ctx.closePath();
+  ctx.fill();
+}
+function maybeDim(col, dim) { return dim ? grayish(col) : col; }
+
+// ---- P1: Frost Knight -------------------------------------------------------
+// Armored knight: horned helm w/ glowing visor, plated torso w/ trim, a back
+// leg + front leg that cycle on run, and an energy-blade arm that winds up and
+// extends on punch.
+function drawFrostKnight(kit, pose, cyc, sub, dim) {
+  const armor   = maybeDim(kit.armor, dim);
+  const armorHi = maybeDim(kit.armorHi, dim);
+  const armorLo = maybeDim(kit.armorLo, dim);
+  const trim    = maybeDim(kit.trim, dim);
+  const accent  = maybeDim(kit.accent, dim);
+  const skin    = maybeDim(kit.skin, dim);
+  const blade   = maybeDim(kit.blade, dim);
+
+  // --- legs (origin is feet at y=0; body extends to negative y = upward) ---
+  // run: alternate a forward/back stride; idle/jump: planted/tucked.
+  let frontLegX = 6, backLegX = -6, kneeLift = 0;
+  if (pose === "run") {
+    const s = Math.sin(cyc);
+    frontLegX = 6 + s * 6; backLegX = -6 + s * 6; kneeLift = Math.max(0, Math.cos(cyc)) * 5;
+  } else if (pose === "jump") {
+    frontLegX = 5; backLegX = -7; kneeLift = 8;   // tucked
+  }
+  const hipY = -26;
+  limb(backLegX, 0, -2, hipY, 7, armorLo);                 // back leg
+  limb(frontLegX, -kneeLift, 2, hipY, 8, armor);           // front leg
+  // boots
+  ctx.fillStyle = trim;
+  ctx.fillRect(backLegX - 4, -3, 9, 4);
+  ctx.fillRect(frontLegX - 4, -kneeLift - 3, 9, 4);
+
+  // --- torso (plated, vertical shading + trim seam + glowing core) ---
+  const tgrad = ctx.createLinearGradient(-10, -52, 10, -26);
+  tgrad.addColorStop(0, armorHi);
+  tgrad.addColorStop(0.5, armor);
+  tgrad.addColorStop(1, armorLo);
+  roundedTorso(0, -52, 22, 26, tgrad);
+  ctx.fillStyle = trim;                                     // chest trim seam
+  ctx.fillRect(-1.5, -50, 3, 22);
+  ctx.fillStyle = accent;                                   // glowing core gem
+  ctx.beginPath(); ctx.arc(0, -42, 3, 0, Math.PI * 2); ctx.fill();
+  // shoulder pauldron
+  ctx.fillStyle = armorHi;
+  ctx.beginPath(); ctx.arc(-9, -50, 6, 0, Math.PI * 2); ctx.fill();
+
+  // --- back arm (shield-ish guard, tucked) ---
+  limb(-7, -48, -12, -34, 6, armorLo);
+
+  // --- front arm + energy blade: winds up then extends on punch ---
+  let shX = 9, shY = -48, hX = 16, hY = -40;               // default guard
+  if (pose === "punch") {
+    // sub 0..1: 0=wind back, ~1=full extension
+    const ext = sub;
+    hX = lerp(6, 30, ext); hY = lerp(-34, -42, ext);
+  } else if (pose === "run") {
+    hX = 14 + Math.sin(cyc + Math.PI) * 4; hY = -40;
+  } else if (pose === "idle") {
+    hY = -40 + Math.sin(cyc * 0.5) * 1.2;
+  }
+  limb(shX, shY, hX, hY, 7, armor);                        // upper+forearm
+  // gauntlet fist
+  ctx.fillStyle = armorHi;
+  ctx.beginPath(); ctx.arc(hX, hY, 4.5, 0, Math.PI * 2); ctx.fill();
+  // energy blade extending from the fist (longer + brighter on punch)
+  const bladeLen = pose === "punch" ? lerp(8, 22, sub) : 12;
+  const bgrad = ctx.createLinearGradient(hX, hY, hX + bladeLen, hY - 2);
+  bgrad.addColorStop(0, "#ffffff");
+  bgrad.addColorStop(1, blade);
+  ctx.strokeStyle = bgrad; ctx.lineWidth = 4; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(hX, hY); ctx.lineTo(hX + bladeLen, hY - bladeLen * 0.25); ctx.stroke();
+  // blade glow
+  ctx.save(); ctx.globalAlpha = 0.4; ctx.strokeStyle = blade; ctx.lineWidth = 9;
+  ctx.beginPath(); ctx.moveTo(hX, hY); ctx.lineTo(hX + bladeLen, hY - bladeLen * 0.25); ctx.stroke();
+  ctx.restore();
+
+  // --- head: helm + horns + glowing visor ---
+  const hcx = 0, hcy = -62;
+  // helm dome
+  const hgrad = ctx.createLinearGradient(hcx - 8, hcy - 8, hcx + 8, hcy + 8);
+  hgrad.addColorStop(0, armorHi); hgrad.addColorStop(1, armor);
+  ctx.fillStyle = hgrad;
+  ctx.beginPath(); ctx.arc(hcx, hcy, 9, 0, Math.PI * 2); ctx.fill();
+  // visor (glowing slit)
+  ctx.fillStyle = skin; ctx.fillRect(hcx - 6, hcy - 1, 12, 6);
+  ctx.fillStyle = accent; ctx.fillRect(hcx - 5, hcy + 1, 11, 2);
+  // horns
+  ctx.strokeStyle = trim; ctx.lineWidth = 3; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(hcx - 6, hcy - 6); ctx.lineTo(hcx - 12, hcy - 13); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(hcx + 6, hcy - 6); ctx.lineTo(hcx + 12, hcy - 13); ctx.stroke();
+  // crest spark
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(hcx, hcy - 10, 2, 0, Math.PI * 2); ctx.fill();
+
+  // rim light down the leading edge
+  if (!dim) {
+    ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = kit.rim; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(10, -30); ctx.lineTo(11, -50); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ---- P2: Ember Brawler ------------------------------------------------------
+// Bare-knuckle brawler: flame-mohawk head, broad shaded chest, heavy red
+// gloves. Big telegraphed hook on punch; bouncy run cycle.
+function drawEmberBrawler(kit, pose, cyc, sub, dim) {
+  const armor   = maybeDim(kit.armor, dim);
+  const armorHi = maybeDim(kit.armorHi, dim);
+  const armorLo = maybeDim(kit.armorLo, dim);
+  const trim    = maybeDim(kit.trim, dim);
+  const accent  = maybeDim(kit.accent, dim);
+  const skin    = maybeDim(kit.skin, dim);
+  const glove   = maybeDim(kit.glove, dim);
+  const gloveHi = maybeDim(kit.gloveHi, dim);
+
+  // --- legs ---
+  let frontLegX = 7, backLegX = -7, kneeLift = 0;
+  if (pose === "run") {
+    const s = Math.sin(cyc);
+    frontLegX = 7 + s * 7; backLegX = -7 + s * 7; kneeLift = Math.max(0, Math.cos(cyc)) * 6;
+  } else if (pose === "jump") {
+    frontLegX = 6; backLegX = -8; kneeLift = 9;
+  }
+  const hipY = -25;
+  limb(backLegX, 0, -2, hipY, 8, armorLo);
+  limb(frontLegX, -kneeLift, 2, hipY, 9, armor);
+  // shoes
+  ctx.fillStyle = trim;
+  ctx.fillRect(backLegX - 5, -3, 10, 4);
+  ctx.fillRect(frontLegX - 5, -kneeLift - 3, 10, 4);
+
+  // --- torso (broad, warm shading, ab seams) ---
+  const tgrad = ctx.createLinearGradient(-12, -50, 12, -25);
+  tgrad.addColorStop(0, armorHi);
+  tgrad.addColorStop(0.5, armor);
+  tgrad.addColorStop(1, armorLo);
+  roundedTorso(0, -50, 24, 25, tgrad);
+  // chest/ab seams
+  ctx.strokeStyle = armorLo; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, -48); ctx.lineTo(0, -28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-7, -38); ctx.lineTo(7, -38); ctx.stroke();
+  // belt
+  ctx.fillStyle = trim; ctx.fillRect(-11, -29, 22, 4);
+  ctx.fillStyle = accent; ctx.fillRect(-2, -29, 4, 4);   // buckle
+
+  // --- back arm (guard, bouncing on run) ---
+  let bhX = -15, bhY = -38;
+  if (pose === "run") { bhX = -14 + Math.sin(cyc) * 4; }
+  limb(-9, -47, bhX, bhY, 7, armor);
+  ctx.fillStyle = glove;
+  ctx.beginPath(); ctx.arc(bhX, bhY, 5, 0, Math.PI * 2); ctx.fill();
+
+  // --- front arm: big hook that winds up then extends on punch ---
+  let shX = 9, shY = -47, hX = 16, hY = -42;
+  if (pose === "punch") {
+    const ext = sub;
+    hX = lerp(4, 30, ext); hY = lerp(-30, -44, ext);
+  } else if (pose === "run") {
+    hX = 15 + Math.sin(cyc + Math.PI) * 5; hY = -42;
+  } else if (pose === "idle") {
+    hY = -42 + Math.sin(cyc * 0.5) * 1.4;
+  }
+  limb(shX, shY, hX, hY, 8, armor);
+  // big red glove fist (with highlight) — grows slightly on full punch
+  const gr = pose === "punch" ? lerp(5, 7.5, sub) : 6;
+  ctx.fillStyle = glove;
+  ctx.beginPath(); ctx.arc(hX, hY, gr, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = gloveHi;
+  ctx.beginPath(); ctx.arc(hX - gr * 0.3, hY - gr * 0.3, gr * 0.4, 0, Math.PI * 2); ctx.fill();
+
+  // --- head: skin face + glowing flame mohawk ---
+  const hcx = 0, hcy = -60;
+  const fgrad = ctx.createLinearGradient(hcx - 8, hcy - 8, hcx + 8, hcy + 8);
+  fgrad.addColorStop(0, skin); fgrad.addColorStop(1, maybeDim(kit.skinLo, dim));
+  ctx.fillStyle = fgrad;
+  ctx.beginPath(); ctx.arc(hcx, hcy, 9, 0, Math.PI * 2); ctx.fill();
+  // eye + brow
+  ctx.fillStyle = "#2a0d06"; ctx.fillRect(hcx + 2, hcy - 2, 3, 3);
+  ctx.strokeStyle = "#2a0d06"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(hcx, hcy - 4); ctx.lineTo(hcx + 6, hcy - 3); ctx.stroke();
+  // flame mohawk: a row of flickering spikes (phase-driven flicker)
+  for (let i = -2; i <= 2; i++) {
+    const fx = hcx + i * 3.2;
+    const flick = 6 + Math.sin(cyc * 1.7 + i) * 2.5 + (3 - Math.abs(i));
+    const g = ctx.createLinearGradient(fx, hcy - 8, fx, hcy - 8 - flick);
+    g.addColorStop(0, glove);
+    g.addColorStop(0.5, armor);
+    g.addColorStop(1, accent);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(fx - 2, hcy - 7);
+    ctx.lineTo(fx, hcy - 8 - flick);
+    ctx.lineTo(fx + 2, hcy - 7);
+    ctx.closePath(); ctx.fill();
+  }
+
+  // rim light
+  if (!dim) {
+    ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = kit.rim; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(11, -28); ctx.lineTo(12, -48); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// desaturate toward gray for the "defeated / falling" look
+function grayish(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const lum = Math.round(0.3 * r + 0.59 * g + 0.11 * b);
+  const mix = (ch) => Math.round(ch * 0.35 + lum * 0.65);
+  const h = (v) => v.toString(16).padStart(2, "0");
+  return "#" + h(mix(r)) + h(mix(g)) + h(mix(b));
+}
+
+// Impact burst at the fist when a punch event fires.
+function punchFlash(b, color, sx, sy, plat, groundY, t) {
+  const onPlatform = b.x >= plat.x_left && b.x <= plat.x_right;
+  const dir = (b.facing < 0) ? -1 : 1;
+  const feetY = onPlatform ? sy(b.y) : groundY + 80;
+  const cx = sx(b.x) + dir * 30;
+  const cy = feetY - 44;                  // roughly fist height in screen space
+
+  ctx.save();
+  // radial glow
+  const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 30);
+  g.addColorStop(0, "rgba(255,255,255,0.95)");
+  g.addColorStop(0.4, color);
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.fill();
+
+  // spark spikes (slowly rotate with the clock for a little life)
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineCap = "round";
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + t * 0.8;
+    const r0 = 9, r1 = 22 + (i % 2) * 9;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+    ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    ctx.stroke();
+  }
+  // hot core
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// Ring-out: a streaking "KO!" star where the fighter was launched, plus a bold
+// RING-OUT banner pinned to the edge they flew off.
+function ringOutMark(b, sx, groundY, who) {
+  const cx = Math.max(60, Math.min(sx(b.x), canvas.width - 60));
+  ctx.save();
+
+  // launch streak
+  ctx.globalAlpha = 0.9;
+  const dir = b.x > 5 ? 1 : -1;
+  const streak = ctx.createLinearGradient(cx - dir * 60, groundY, cx, groundY + 30);
+  streak.addColorStop(0, "rgba(255,210,60,0)");
+  streak.addColorStop(1, "rgba(255,210,60,0.85)");
+  ctx.strokeStyle = streak; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx - dir * 60, groundY - 10);
+  ctx.lineTo(cx, groundY + 36);
+  ctx.stroke();
+
+  // burst star at the launch point
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#ffd23c";
+  star(cx, groundY + 8, 5, 16, 7);
+  ctx.fillStyle = "#fff";
+  star(cx, groundY + 8, 5, 8, 3);
+
+  // RING-OUT! banner
+  ctx.font = "900 22px ui-sans-serif, system-ui";
+  ctx.textAlign = "center";
+  ctx.lineWidth = 5; ctx.strokeStyle = "#2a0606";
+  ctx.strokeText("RING-OUT!", cx, groundY + 70);
+  const bg = ctx.createLinearGradient(cx - 60, 0, cx + 60, 0);
+  bg.addColorStop(0, "#ff5a46"); bg.addColorStop(1, "#ffd23c");
+  ctx.fillStyle = bg;
+  ctx.fillText("RING-OUT!", cx, groundY + 70);
+
+  ctx.restore();
+}
+
+function star(cx, cy, spikes, outer, inner) {
+  let rot = -Math.PI / 2;
+  const step = Math.PI / spikes;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outer);
+  for (let i = 0; i < spikes; i++) {
+    ctx.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer); rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner); rot += step;
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ============================================================================
+// CONTINUOUS ANIMATION LOOP
+// ----------------------------------------------------------------------------
+//  A requestAnimationFrame loop advances `animClock` every visible frame so the
+//  stage (stars, embers, fog, edge pulse) and idle/run cycles stay alive even
+//  when the replay is paused. It only repaints when there's something to animate
+//  (a replay loaded), and it's a no-op under node (no rAF) so headless rendering
+//  via render() is unaffected. `subPhase` is advanced by the playback timer so
+//  motion eases smoothly between discrete replay frames.
+// ============================================================================
+function startAnimLoop() {
+  if (typeof requestAnimationFrame !== "function") return;  // headless: skip
+  let lastTs = performance.now();
+  const loop = (ts) => {
+    const dt = Math.min(0.05, (ts - lastTs) / 1000);
+    lastTs = ts;
+    animClock += dt;
+    if (replay) render();
+    rafId = requestAnimationFrame(loop);
+  };
+  rafId = requestAnimationFrame(loop);
+}
+
+// ------------------------------------------------------------------ transport
+function play() {
+  if (!replay) return;
+  if (frame >= replay.frames.length - 1) frame = 0; // restart from end
+  playing = true; playBtn.textContent = "⏸ Pause";
+  clearInterval(timer);
+  const ms = parseInt($("speed").value, 10);
+  subPhase = 0;
+  // advance the discrete frame on the chosen interval; the rAF loop handles the
+  // smooth in-between (subPhase) so motion reads fluid between frames.
+  timer = setInterval(() => {
+    if (frame >= replay.frames.length - 1) { pause(); return; }
+    frame++; subPhase = 0; render();
+  }, ms);
+  // smooth sub-frame interpolation tied to the same interval
+  startSubTween(ms);
+}
+let subTween = null;
+function startSubTween(ms) {
+  clearInterval(subTween);
+  if (typeof requestAnimationFrame !== "function") return;  // headless: skip
+  const start = () => { tweenStart = performance.now(); };
+  let tweenStart = performance.now();
+  start();
+  subTween = setInterval(() => {
+    if (!playing) return;
+    const elapsed = performance.now() - tweenStart;
+    subPhase = Math.max(0, Math.min(1, elapsed / ms));
+    if (subPhase >= 1) tweenStart = performance.now();
+  }, 16);
+}
+function pause() {
+  playing = false; playBtn.textContent = "▶ Play"; clearInterval(timer);
+  clearInterval(subTween); subPhase = 0;
+}
+function togglePlay() { playing ? pause() : play(); }
+function step(d) { pause(); frame += d; render(); }
+
+// ------------------------------------------------------------------ wiring
+playBtn.onclick = togglePlay;
+$("stepFwd").onclick = () => step(1);
+$("stepBack").onclick = () => step(-1);
+scrub.oninput = () => { pause(); frame = parseInt(scrub.value, 10); render(); };
+$("speed").onchange = () => { if (playing) play(); };
+sel.onchange = () => { if (sel.value) loadExample(sel.value); };
+$("fileInput").onchange = (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); };
+
+const drop = $("drop");
+["dragenter", "dragover"].forEach(ev =>
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("hot"); }));
+["dragleave", "drop"].forEach(ev =>
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("hot"); }));
+drop.addEventListener("drop", (e) => {
+  const f = e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+// allow drop anywhere on the body too
+window.addEventListener("dragover", (e) => e.preventDefault());
+window.addEventListener("drop", (e) => {
+  e.preventDefault();
+  if (e.target.id !== "drop" && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") { e.preventDefault(); togglePlay(); }
+  else if (e.code === "ArrowRight") { e.preventDefault(); step(1); }
+  else if (e.code === "ArrowLeft") { e.preventDefault(); step(-1); }
+});
+
+// ------------------------------------------------------------------ boot
+populateDropdown();      // empty dropdown until discovery resolves (file:// stays empty)
+startAnimLoop();
+// Show the inlined default replay immediately, so the canvas is never blank —
+// this works even from file:// with no server. Then discover the live replays
+// in /replays/ and populate the dropdown from THAT (no hardcoded list); if the
+// discovery finds files, upgrade the canvas to the first one. If discovery
+// finds nothing (file:// / indexing off) we keep the inlined fight and clear
+// any scary error text — Load file… / drag-drop still work.
+setReplay(DEFAULT_REPLAY);
+(async () => {
+  try {
+    EXAMPLES = await discoverReplays();
+    populateDropdown();
+    if (EXAMPLES.length) {
+      const res = await fetch(REPLAY_BASE + EXAMPLES[0], { cache: "no-store" });
+      if (res.ok) { sel.value = EXAMPLES[0]; setReplay(await res.json()); }
+    }
+  } catch (_) {
+    // file:// — keep the inlined default; not an error worth surfacing.
+    loadErr.textContent = "";
+  }
+})();
+</script>
+</body>
+</html>

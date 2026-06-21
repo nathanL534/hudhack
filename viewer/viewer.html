@@ -3,1202 +3,2153 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ring-Out Duel — Replay Viewer</title>
+<title>DOJO — Sensei vs Sensei · Replay Viewer</title>
 <style>
   :root {
-    --bg: #0b0e14;
-    --panel: #161b22;
-    --line: #2a313c;
-    --ink: #e6edf3;
-    --muted: #8b949e;
-    --p1: #59c2ff;
-    --p2: #ff8a5c;
-    --accent: #3fb950;
-    --warn: #d29922;
+    /* dojo palette — sumi-ink ground, warm washi, muted lacquer accents */
+    --bg:        #0c0a09;     /* sumi-ink near-black ground */
+    --bg2:       #070605;
+    --panel:     #14110d;     /* calm dark panel */
+    --panel2:    #1a1611;
+    --line:      #2a231b;     /* quiet hairline */
+    --line2:     #3a3025;
+    --ink:       #efe6d6;
+    --muted:     #a8967a;
+    --muted2:    #786650;
+    --paper:     #ece1c8;
+    --lacquer:   #8a2a20;     /* deep red lacquer */
+    --gold:      #c8972e;
+    /* the two students — belt colors (muted, never neon) */
+    --trained:   #c4453c;     /* muted red — trained student (good sensei) */
+    --base:      #4a63b0;     /* muted blue — base student (base sensei) */
+    --accent:    #c8972e;
+    --warn:      #d29922;
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    margin: 0; background: radial-gradient(1200px 700px at 50% -10%, #15203a 0%, var(--bg) 60%);
+    margin: 0;
     color: var(--ink);
-    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(1200px 680px at 50% -14%, #19140e 0%, var(--bg) 52%, var(--bg2) 100%);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
   }
+
+  /* full-width header band, generous side margins matching the reference (~1.3% gutter) */
   header {
-    padding: 14px 20px; border-bottom: 1px solid var(--line);
-    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding: 24px 32px 20px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
   }
-  header h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: .2px; }
-  header .sub { color: var(--muted); font-size: 12px; }
-  main { max-width: 1000px; margin: 0 auto; padding: 18px 20px 60px; }
-  .row { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
-  .panel {
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 10px; padding: 14px;
+  .brand {
+    display: flex; align-items: center; gap: 18px;
   }
-  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .kanji {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif;
+    font-size: 44px; line-height: 1;
+    color: var(--lacquer);
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+  header h1 {
+    font-size: 26px; margin: 0; font-weight: 700; letter-spacing: .3px;
+  }
+  header h1 .dim { color: var(--muted2); font-weight: 600; margin: 0 4px; }
+  header .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .headtxt { display: flex; flex-direction: column; }
+  .legend { margin-left: auto; display: flex; gap: 36px; align-items: center; font-size: 14px; flex-wrap: wrap; color: var(--muted); }
+  .legend .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 10px; box-shadow: 0 0 0 3px rgba(0,0,0,.25); }
+  .legend b { font-weight: 650; color: var(--ink); }
+  .legend .sep { color: var(--muted2); margin: 0 2px; }
+
+  /* main fills the remaining viewport height so there is no dead void below the arena */
+  main {
+    flex: 1;
+    width: 100%;
+    margin: 0 auto;
+    padding: 4px 32px 24px;
+    display: flex; flex-direction: column;
+  }
+
+  .controls-bar {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  .controls-bar .lbl { color: var(--accent); font-weight: 700; font-size: 14px; letter-spacing: .2px; }
+
   select, button, label.file {
-    background: #21262d; color: var(--ink); border: 1px solid var(--line);
-    border-radius: 7px; padding: 7px 12px; font-size: 13px; cursor: pointer;
+    background: #181410; color: var(--ink);
+    border: 1px solid var(--line2); border-radius: 10px;
+    padding: 10px 16px; font-size: 13.5px; cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s, transform .05s;
   }
-  button:hover, label.file:hover { border-color: #3d444d; }
-  button:disabled { opacity: .45; cursor: default; }
-  input[type=range] { flex: 1; min-width: 180px; accent-color: var(--p1); }
-  #canvas {
-    background: #060810; border: 1px solid var(--line); border-radius: 10px;
-    display: block; width: 100%; max-width: 920px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.02);
+  select { min-width: 300px; }
+  select optgroup { color: var(--gold); font-style: normal; font-weight: 700; background: #100d0a; }
+  select option { color: var(--ink); background: #181410; font-weight: 400; }
+  button:hover, label.file:hover, select:hover { border-color: var(--line2); background: #211b15; }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .4; cursor: default; }
+
+  /* Import Replay button — quiet, with an upload glyph */
+  .btn-import { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); }
+  .btn-import .ic {
+    width: 13px; height: 13px; position: relative; display: inline-block;
   }
-  #drop {
-    border: 1.5px dashed var(--line); border-radius: 8px; padding: 10px 14px;
-    color: var(--muted); font-size: 12px; transition: .15s; flex: 1; min-width: 200px;
+  .btn-import .ic::before { /* arrow shaft + head */
+    content: ""; position: absolute; left: 5px; top: 0; width: 3px; height: 8px; background: var(--muted);
   }
-  #drop.hot { border-color: var(--accent); color: var(--accent); background: #11210f; }
-  .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; }
-  .meta b { color: var(--muted); font-weight: 500; }
-  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 5px; }
-  .p1c { color: var(--p1); } .p2c { color: var(--p2); }
-  #banner {
-    margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-weight: 650;
-    background: #11210f; border: 1px solid #1f5a23; display: none; font-size: 15px;
+  .btn-import .ic::after {
+    content: ""; position: absolute; left: 2px; top: 0; width: 8px; height: 8px;
+    border-left: 2px solid var(--muted); border-top: 2px solid var(--muted);
+    transform: rotate(45deg); transform-origin: top left;
   }
-  #frameLabel { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 92px; text-align: right; }
-  .hint { color: var(--muted); font-size: 12px; margin-top: 10px; }
-  code { background: #21262d; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
-  .err { color: var(--warn); font-size: 12px; margin-top: 8px; }
+  .btn-import .tray {
+    position: absolute; left: 0; bottom: 0; width: 13px; height: 4px;
+    border: 2px solid var(--muted); border-top: 0; border-radius: 0 0 2px 2px;
+  }
+  .btn-import:hover .ic::before, .btn-import:hover .ic::after { background: var(--accent); border-color: var(--accent); }
+  .btn-import:hover .tray { border-color: var(--accent); }
+
+  /* transport cluster — separated rounded pills, amber standalone Play */
+  .transport-cluster {
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .transport-cluster .tb {
+    background: #181410; border: 1px solid var(--line2);
+    border-radius: 10px; padding: 10px 16px; color: var(--ink);
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px;
+    transition: border-color .15s, background .15s, color .15s, transform .05s;
+  }
+  .transport-cluster .tb .gl,
+  .transport-cluster .tb .gl-chev,
+  .transport-cluster .tb .gl-bar { opacity: .8; }
+  .transport-cluster .tb:hover { background: #211b15; border-color: var(--line2); color: var(--ink); }
+  .transport-cluster .tb:active { transform: translateY(1px); }
+  .transport-cluster .tb.play {
+    color: #1c1408; font-weight: 700; padding: 10px 22px;
+    border-color: #b9882a;
+    background: linear-gradient(180deg, #e7b54a, var(--gold));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 4px 14px rgba(200,151,46,.28);
+  }
+  .transport-cluster .tb.play .gl { opacity: 1; }
+  .transport-cluster .tb.play:hover { background: linear-gradient(180deg, #efbe55, #d4a234); }
+  /* glyphs */
+  .gl { width: 0; height: 0; display: inline-block; }
+  .gl-play { border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+  .tb.playing .gl-play { width: 8px; height: 11px; border: 0; background: linear-gradient(90deg, currentColor 0 3px, transparent 3px 5px, currentColor 5px 8px); }
+  .gl-chev { width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+  .gl-prev { transform: rotate(135deg); }
+  .gl-next { transform: rotate(-45deg); }
+  .gl-end { display: inline-flex; align-items: center; gap: 0; }
+  .gl-bar { width: 2px; height: 11px; background: currentColor; }
+  #drop { display: none; }
+  #loadErr { color: var(--warn); font-size: 12px; margin-top: 10px; min-height: 1px; }
+
+  /* === arena layout: panel | stage | panel ===
+     reference proportions @1672w → 277 : 1037 : 276 ≈ 1 : 3.75 : 1, ~20px gutters.
+     Fixed side columns so the central arena stays the dominant element. */
+  .arena {
+    margin-top: 16px;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 288px minmax(560px, 1fr) 288px;
+    gap: 24px;
+    align-items: stretch;
+  }
+  @media (max-width: 1280px) {
+    .arena { grid-template-columns: 252px minmax(480px, 1fr) 252px; gap: 18px; }
+  }
+  @media (max-width: 1080px) {
+    .arena { grid-template-columns: 1fr; }
+    .spec-panel { order: 3; }
+    .stage-wrap { order: 1; }
+  }
+
+  /* === spec panels === */
+  .spec-panel {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px 22px 22px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 14px 38px rgba(0,0,0,.45);
+  }
+  /* a single quiet accent edge — the only team color on the panel chrome */
+  .spec-panel.left::before, .spec-panel.right::before {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 4px;
+  }
+  .spec-panel.left::before  { left: 0;  background: linear-gradient(180deg, var(--trained), #7c2a23); }
+  .spec-panel.right::before { right: 0; background: linear-gradient(180deg, var(--base), #2f3f72); }
+
+  /* the name/avatar header: name block left, circular portrait floated right (mirrored R) */
+  .panel-head { position: relative; min-height: 96px; }
+  .spec-panel.right .panel-head { text-align: left; }
+  .spec-panel .role {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 700; display: flex; align-items: center; gap: 8px;
+  }
+  .spec-panel.left  .role { color: #d68a82; }
+  .spec-panel.right .role { color: #8fa3da; }
+  .spec-panel.right .role { justify-content: flex-start; }
+  .spec-panel .name { font-size: 22px; font-weight: 700; margin-top: 10px; letter-spacing: .2px; line-height: 1.15; max-width: 150px; }
+  .spec-panel .sensei { font-size: 13px; color: var(--muted); margin-top: 5px; }
+
+  /* circular gi avatar portrait — floated to the outer/inner corner like the reference */
+  .avatar {
+    width: 92px; height: 92px; border-radius: 50%;
+    position: absolute; top: 28px; right: 0;
+    background:
+      radial-gradient(70% 70% at 50% 32%, #241c14 0%, #15110c 100%);
+    border: 1px solid var(--line2);
+    display: grid; place-items: center; overflow: hidden;
+  }
+  .spec-panel.right .avatar { right: 0; left: auto; }
+  .spec-panel.left  .avatar { box-shadow: inset 0 0 0 4px rgba(0,0,0,.25), 0 0 0 2px rgba(196,69,60,.45); }
+  .spec-panel.right .avatar { box-shadow: inset 0 0 0 4px rgba(0,0,0,.25), 0 0 0 2px rgba(74,99,176,.45); }
+  .avatar canvas { display: block; width: 92px; height: 92px; }
+
+  .side-pill {
+    align-self: flex-start; margin-top: 16px; padding: 5px 16px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; letter-spacing: .4px;
+    border: 1px solid transparent;
+  }
+  .side-pill.trained { color: #e0938d; border-color: rgba(196,69,60,.55); background: rgba(196,69,60,.10); }
+  .side-pill.base    { color: #9fb0e0; border-color: rgba(74,99,176,.55);  background: rgba(74,99,176,.10); }
+
+  .spec-rows { margin-top: 22px; }
+  .spec-row {
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 13px 0; border-bottom: 1px solid var(--line);
+    font-size: 14px; align-items: baseline;
+  }
+  .spec-row .k { color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .spec-row .v { color: var(--ink); text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .spec-row .v.dimv { color: var(--muted2); font-weight: 500; }
+  .spec-row .v .win-mark {
+    color: var(--gold); font-weight: 700; margin-left: 7px; font-size: 12px;
+  }
+  .spec-section {
+    font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--muted2); font-weight: 700; padding: 16px 0 2px;
+  }
+  .spec-extra { display: none; }
+  .spec-extra.open { display: block; }
+
+  /* View Details toggle — pinned to the bottom of the panel */
+  .details-btn {
+    margin-top: auto; width: 100%;
+    background: transparent; border: 1px solid var(--line2); border-radius: 10px;
+    padding: 13px; color: var(--accent); font-weight: 600; font-size: 13.5px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .details-btn:hover { background: #1c1812; color: var(--ink); border-color: var(--line2); }
+  .details-btn .chev {
+    width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(45deg); transition: transform .18s; margin-top: -2px;
+  }
+  .details-btn.open .chev { transform: rotate(-135deg); margin-top: 2px; }
+
+  /* === stage === */
+  .stage-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+    box-shadow: 0 14px 38px rgba(0,0,0,.45);
+    display: flex; flex-direction: column;
+  }
+  .canvas-frame {
+    position: relative; border-radius: 12px; overflow: hidden;
+    border: 1px solid #120e09;
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    flex: 1;
+    /* hold the reference's taller arena shape regardless of column width */
+    aspect-ratio: 1000 / 640;
+    min-height: 0;
+  }
+  #canvas { display: block; width: 100%; height: 100%; background: #100b06; }
+
+  .transport { display: flex; gap: 16px; align-items: center; margin-top: 16px; padding: 2px 6px 0; }
+  .transport .ts {
+    font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13.5px;
+    min-width: 90px; letter-spacing: .3px;
+  }
+  .transport .ts.right { text-align: right; }
+  .transport input[type=range] {
+    flex: 1; min-width: 120px; height: 4px; -webkit-appearance: none; appearance: none;
+    background: var(--line2); border-radius: 4px; cursor: pointer; accent-color: var(--gold);
+  }
+  .transport input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+    background: var(--ink); border: 2px solid var(--gold); margin-top: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,.5);
+  }
+  .transport input[type=range]::-moz-range-thumb {
+    width: 13px; height: 13px; border-radius: 50%; background: var(--ink); border: 2px solid var(--gold);
+  }
+  .fs-btn {
+    background: transparent; border: 0; padding: 4px; color: var(--muted); cursor: pointer;
+    width: 22px; height: 22px; position: relative; flex: none;
+  }
+  .fs-btn:hover { color: var(--ink); background: transparent; }
+  .fs-btn .c { position: absolute; width: 7px; height: 7px; }
+  .fs-btn .c1 { top: 2px; left: 2px;  border-left: 2px solid currentColor; border-top: 2px solid currentColor; }
+  .fs-btn .c2 { top: 2px; right: 2px; border-right: 2px solid currentColor; border-top: 2px solid currentColor; }
+  .fs-btn .c3 { bottom: 2px; left: 2px;  border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+  .fs-btn .c4 { bottom: 2px; right: 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+
+  /* The big victory plaque is gone by design — the outcome reads quietly in the
+     side panels (see "Outcome" row + small winner mark). #banner is kept in the
+     DOM but never shown, so legacy show/hideVerdict calls are harmless no-ops. */
+  #banner { display: none !important; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Ring-Out Duel — Replay Viewer</h1>
-  <span class="sub">Stage-1 fighter · replay-only · open a saved match and watch it</span>
+  <div class="brand">
+    <span class="kanji">道場</span>
+    <div class="headtxt">
+      <h1>DOJO <span class="dim">·</span> Sensei vs Sensei</h1>
+      <span class="sub">Two students. One trained by a sharper sensei.</span>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--trained)"></span><b>Trained Student</b> <span class="sep">—</span> good sensei</span>
+    <span><span class="dot" style="background:var(--base)"></span><b>Base Student</b> <span class="sep">—</span> base sensei</span>
+  </div>
 </header>
 
 <main>
-  <div class="panel">
-    <div class="controls">
-      <label for="replaySel"><b style="color:var(--muted)">Example:</b></label>
-      <select id="replaySel"></select>
-      <label class="file">
-        Load file…
-        <input id="fileInput" type="file" accept=".json,application/json" hidden />
-      </label>
-      <div id="drop">drag &amp; drop a replay <code>.json</code> here</div>
+  <div class="controls-bar">
+    <span class="lbl">Match</span>
+    <select id="replaySel"></select>
+    <label class="file btn-import" title="Load a replay .json">
+      <span class="ic"><span class="tray"></span></span> Import Replay
+      <input id="fileInput" type="file" accept=".json,application/json" hidden />
+    </label>
+    <div id="drop"></div>
+    <div class="transport-cluster" style="margin-left:auto">
+      <button id="firstBtn" class="tb" title="First frame"><span class="gl gl-chev gl-prev"></span><span class="gl-bar" style="margin-left:-4px"></span> First</button>
+      <button id="stepBack" class="tb" title="Previous frame"><span class="gl gl-chev gl-prev"></span> Prev</button>
+      <button id="playBtn" class="tb play" title="Play / pause"><span class="gl gl-play"></span> <span id="playLbl">Play</span></button>
+      <button id="stepFwd" class="tb" title="Next frame">Next <span class="gl gl-chev gl-next"></span></button>
+      <button id="lastBtn" class="tb" title="Last frame">Last <span class="gl-bar" style="margin-right:-4px"></span><span class="gl gl-chev gl-next"></span></button>
     </div>
-    <div id="loadErr" class="err"></div>
+    <select id="speed" title="playback speed">
+      <option value="33">2x</option>
+      <option value="50" selected>1.5x</option>
+      <option value="66">1x</option>
+      <option value="100">0.75x</option>
+      <option value="200">0.5x</option>
+    </select>
   </div>
+  <div id="loadErr"></div>
 
-  <div class="panel" style="margin-top:18px">
-    <canvas id="canvas" width="920" height="380"></canvas>
+  <div class="arena">
+    <!-- LEFT spec panel (trained student) -->
+    <aside class="spec-panel left" id="panelL">
+      <div class="panel-head">
+        <div class="role"><span class="dot" id="L_dot"></span><span id="L_pslot">Player 2</span> <span class="sep">/</span> <span id="L_role">Student</span></div>
+        <div class="name" id="L_name">—</div>
+        <div class="sensei" id="L_sensei">—</div>
+        <div class="avatar"><canvas id="L_avatar" width="92" height="92"></canvas></div>
+      </div>
+      <span class="side-pill" id="L_pill">—</span>
+      <div class="spec-rows" id="L_rows"></div>
+      <button class="details-btn" id="L_details">View Details <span class="chev"></span></button>
+    </aside>
 
-    <div class="controls">
-      <button id="playBtn">▶ Play</button>
-      <button id="stepBack">⟨ Step</button>
-      <button id="stepFwd">Step ⟩</button>
-      <input id="scrub" type="range" min="0" max="0" value="0" />
-      <span id="frameLabel">0 / 0</span>
-      <select id="speed">
-        <option value="33">30 fps</option>
-        <option value="66" selected>15 fps</option>
-        <option value="100">10 fps</option>
-        <option value="200">5 fps</option>
-      </select>
-    </div>
+    <!-- CENTER stage -->
+    <section class="stage-wrap">
+      <div class="canvas-frame">
+        <canvas id="canvas" width="1000" height="640"></canvas>
+      </div>
+      <div class="transport">
+        <span class="ts" id="timeCur">00:00.000</span>
+        <input id="scrub" type="range" min="0" max="0" value="0" />
+        <span class="ts right" id="timeTot">00:00.000</span>
+        <button class="fs-btn" id="fsBtn" title="Fullscreen"><span class="c c1"></span><span class="c c2"></span><span class="c c3"></span><span class="c c4"></span></button>
+      </div>
+      <div id="banner"></div>
+    </section>
 
-    <div class="meta">
-      <span><b>game</b> <span id="mGame">–</span></span>
-      <span><b>config</b> <span id="mConfig">–</span></span>
-      <span><b>p1</b> <span class="swatch" style="background:var(--p1)"></span><span class="p1c" id="mP1">–</span> · action <b id="aP1">–</b></span>
-      <span><b>p2</b> <span class="swatch" style="background:var(--p2)"></span><span class="p2c" id="mP2">–</span> · action <b id="aP2">–</b></span>
-    </div>
-
-    <div id="banner"></div>
-    <div class="hint">
-      Tip: keyboard — <code>space</code> play/pause, <code>←</code>/<code>→</code> step.
-      A default fight loads inline, so this page works even opened directly via
-      <code>file://</code>. To use the <b>Example</b> dropdown (live files in
-      <code>replays/</code>), serve from the <b>repo root</b> — NOT from
-      <code>viewer/</code> — so both <code>/viewer/</code> and <code>/replays/</code>
-      resolve: run <code>python3 -m http.server 8000</code> at the repo root, then open
-      <code>http://localhost:8000/viewer/viewer.html</code>. The <b>Load file…</b> /
-      drag-drop path always works too.
-    </div>
+    <!-- RIGHT spec panel (base student) -->
+    <aside class="spec-panel right" id="panelR">
+      <div class="panel-head">
+        <div class="role"><span class="dot" id="R_dot"></span><span id="R_pslot">Player 1</span> <span class="sep">/</span> <span id="R_role">Student</span></div>
+        <div class="name" id="R_name">—</div>
+        <div class="sensei" id="R_sensei">—</div>
+        <div class="avatar"><canvas id="R_avatar" width="92" height="92"></canvas></div>
+      </div>
+      <span class="side-pill" id="R_pill">—</span>
+      <div class="spec-rows" id="R_rows"></div>
+      <button class="details-btn" id="R_details">View Details <span class="chev"></span></button>
+    </aside>
   </div>
 </main>
 
 <script>
-// ------------------------------------------------------------------ discovery
-// The Example dropdown is populated DYNAMICALLY — there is NO hardcoded file
-// list — so any replay added to replays/ (e.g. modal_trained_*.json) shows up
-// automatically with nothing to keep in sync. When this page is served from the
-// repo root, `fetch("/replays/")` returns the http.server directory-listing HTML
-// (<a href="foo.json">…); we parse out every *.json href. If that listing is
-// unavailable or empty (some servers disable indexing), we fall back to
-// fetching replays/manifest.json (regenerate via viewer/make_manifest.py).
-// Under file:// neither fetch works — the inline DEFAULT_REPLAY + Load file… /
-// drag-drop fallbacks below cover that case.
-//
-// REPLAY_BASE is an ABSOLUTE path so file URLs resolve from the served root
-// regardless of how deep viewer.html sits. REPLAY_DIR is what we list.
-const REPLAY_DIR = "/replays/";
-const REPLAY_BASE = REPLAY_DIR;
-let EXAMPLES = [];          // filled in by discoverReplays() at boot
+"use strict";
+// ===================================================================== config
+const REPLAY_BASE   = "../replays/";
+const MANIFEST_URL  = REPLAY_BASE + "manifest.json";
+const DASHBOARD_URL = "../output/stage6_report/dashboard.json";
+const DOJO_IMG_URL  = "assets/dojo.png";   // optional real-art backdrop
 
-// ------------------------------------------------------------------ inline default
-// A full replay embedded as a JS constant so opening this file directly via
-// file:// ALWAYS shows a fight — no server, no fetch(), no CORS. The http
-// dropdown still fetches the live files in ../replays/; this is only the
-// zero-dependency fallback. (Source: replays/scripted_vs_scripted.json.)
-const DEFAULT_REPLAY = {"meta":{"game":"ring-out-duel","config":"A","winner":"p1","frames":15,"p1_policy":"scripted","p2_policy":"scripted","seed":3,"schema":1},"platform":{"x_left":0.0,"x_right":10.0,"y":0.0},"frames":[{"p1":{"x":2.9586,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":6.9737,"y":0.0,"facing":-1,"action":"idle"},"events":[]},{"p1":{"x":3.3086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.6237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.6586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.2737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.0086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.9237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.5737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":8.0737,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":4.7086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.7237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.0586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.3737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.0237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":9.5237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":5.7586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":9.1737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.1086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.8237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.4586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.4737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.1237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":10.6237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch","p2_ringout"]}]};
-
-// ============================================================================
-//  GRAPHICS
-// ----------------------------------------------------------------------------
-//  Art approach: high-detail PROCEDURAL vector characters + a layered, animated
-//  parallax stage. Everything is drawn with the Canvas 2D API at runtime — no
-//  image files, no data-URIs, no network — so the viewer is 100% self-contained
-//  and works straight off file://.
-//
-//  Why procedural instead of embedded CC0 sprite sheets: the only stably-hosted
-//  fighter sheets we could reach (e.g. the Phaser-examples "brawler48x48.png")
-//  do not carry a clearly-documented CC0 license, and we won't embed a binary
-//  whose license we can't verify. So this is the "substantially upgraded
-//  procedural" path: bigger characters (~64px tall vs the old flat 16x16 grids),
-//  real shading + rim light, and smooth, continuously-interpolated multi-frame
-//  animation (idle breathing, run cycle, jump arc with squash/stretch,
-//  punch wind-up -> extend) rather than 1-frame-per-pose pixel swaps.
-//
-//  The two fighters are deliberately distinct designs:
-//    P1 "Frost Knight"  — cool blue plate armor, horned helm, energy blade arm.
-//    P2 "Ember Brawler"  — warm orange/red, flame mohawk, heavy red gloves.
-//  Art is original/generated for this project (no third-party assets).
-// ============================================================================
-
-// Logical character height in world->screen pixels (scaled where drawn).
-const FIGHTER_H = 64;
-
-// ----------------------------------------------------------------------------
-// Color kits per fighter. Each is a small named palette so the body, shading,
-// rim light and accent all stay coherent and easy to tune.
-const KIT = {
-  p1: {
-    name: "Frost Knight",
-    armor:    "#3a78d8",
-    armorHi:  "#7fb8ff",
-    armorLo:  "#1f4a93",
-    trim:     "#cfe8ff",
-    accent:   "#9bf0ff",   // crest / energy
-    rim:      "#bfe4ff",
-    skin:     "#f2d2b0",
-    skinLo:   "#cda988",
-    blade:    "#aef0ff",
-    bladeCore:"#ffffff",
-    tag:      "#cfe9ff",
+// ===================================================================== sprite assets
+// Real CC0 fighter sprite sheets — LuizMelo "Martial Hero" pack (itch.io,
+// CC0 / Creative Commons Zero). Source repo (vendored copies):
+//   https://github.com/chriscourses/fighting-game  (samuraiMack, kenji)
+//   underlying art: https://luizmelo.itch.io/martial-hero  (CC0, free incl. commercial)
+// Each sheet is a single horizontal row of 200x200 frames; the character art
+// sits small + bottom-centred inside that 200px box (lots of transparent pad).
+// We use one character per side so trained vs base read as two distinct students,
+// then recolor each to the team color (red = Trained, blue = Base).
+const SPRITE_FRAME = 200;                       // px per frame (square)
+// Frame counts per animation, per character (verified from the PNG widths).
+const SPRITE_CHARS = {
+  samuraiMack: {
+    dir: "assets/sprites/samuraiMack/",
+    anims: {
+      Idle:    { file: "Idle.png",    frames: 8 },
+      Run:     { file: "Run.png",     frames: 8 },
+      Jump:    { file: "Jump.png",    frames: 2 },
+      Fall:    { file: "Fall.png",    frames: 2 },
+      Attack1: { file: "Attack1.png", frames: 6 },
+      Attack2: { file: "Attack2.png", frames: 6 },
+      TakeHit: { file: "TakeHit.png", frames: 4 },
+      Death:   { file: "Death.png",   frames: 6 },
+    },
   },
-  p2: {
-    name: "Ember Brawler",
-    armor:    "#ff8a3c",
-    armorHi:  "#ffc070",
-    armorLo:  "#c4521b",
-    trim:     "#ffe1a8",
-    accent:   "#ffd23c",   // flame / mohawk
-    rim:      "#ffd9a0",
-    skin:     "#f2c39a",
-    skinLo:   "#cb9a6e",
-    glove:    "#d11d1d",
-    gloveHi:  "#ff5a46",
-    tag:      "#ffd9c0",
+  kenji: {
+    dir: "assets/sprites/kenji/",
+    anims: {
+      Idle:    { file: "Idle.png",    frames: 4 },
+      Run:     { file: "Run.png",     frames: 8 },
+      Jump:    { file: "Jump.png",    frames: 2 },
+      Fall:    { file: "Fall.png",    frames: 2 },
+      Attack1: { file: "Attack1.png", frames: 4 },
+      Attack2: { file: "Attack2.png", frames: 4 },
+      TakeHit: { file: "TakeHit.png", frames: 3 },
+      Death:   { file: "Death.png",   frames: 7 },
+    },
   },
 };
+// Which character + team tint each side uses. Trained = red, Base = blue.
+const TEAM_CHAR = { trained: "samuraiMack", base: "kenji" };
 
-// ----------------------------------------------------------------------------
-// Map a replay action -> a high-level pose. The replay action vocab is fixed:
-//   idle / left / right / jump / punch
-function poseFor(action) {
-  if (action === "punch") return "punch";
-  if (action === "jump") return "jump";
-  if (action === "left" || action === "right") return "run";
-  return "idle";
+// Replay action -> animation name. punch alternates Attack1/Attack2.
+function animForAction(action, opts) {
+  const a = String(action || "idle").toLowerCase();
+  if (opts && opts.ko)  return "Death";
+  if (opts && opts.hit) return "TakeHit";
+  if (a === "punch")    return (opts && opts.attack2) ? "Attack2" : "Attack1";
+  if (a === "jump")     return (opts && opts.falling) ? "Fall" : "Jump";
+  if (a === "left" || a === "right") return "Run";
+  return "Idle";
 }
 
-// ------------------------------------------------------------------ state
+// ---------- sprite store: load sheets, pre-bake a team-tinted copy of each ----------
+// spriteStore[char][anim] = { base: Image, tinted: { trained, base } (canvas), frames }
+const spriteStore = {};
+let spritesReady = false;
+let spritesPending = 0;
+
+// Recolor a sprite sheet toward the team color while preserving the original
+// luminance (so the cloth folds / shading survive). Two passes, both clipped to
+// the sprite silhouette via 'source-atop':
+//   1) 'color' blend stamps the team HUE onto the art (keeps brightness) — this
+//      is what makes red read as red and blue as blue, not muddy purple.
+//   2) a light 'overlay' pass deepens saturation in the mid-tones.
+// 'source-atop' means each pass only paints over existing (opaque) pixels, so
+// the transparent padding stays transparent.
+function bakeTinted(img, rgb, strength) {
+  const c = document.createElement("canvas");
+  c.width = img.width; c.height = img.height;
+  const x = c.getContext("2d");
+  x.drawImage(img, 0, 0);
+  const fill = `rgba(${rgb.r},${rgb.g},${rgb.b},1)`;
+
+  // pass 1: transfer the team hue, keep the art's luminance
+  x.globalCompositeOperation = "color";
+  x.globalAlpha = strength;
+  x.fillStyle = fill;
+  x.fillRect(0, 0, c.width, c.height);
+
+  // pass 2: punch up saturation a touch so the color is unmistakable
+  x.globalCompositeOperation = "overlay";
+  x.globalAlpha = strength * 0.45;
+  x.fillStyle = fill;
+  x.fillRect(0, 0, c.width, c.height);
+
+  // clip everything back to the original silhouette (drop any spill on padding)
+  x.globalCompositeOperation = "destination-in";
+  x.globalAlpha = 1;
+  x.drawImage(img, 0, 0);
+
+  x.globalCompositeOperation = "source-over";
+  x.globalAlpha = 1;
+  return c;
+}
+
+function loadSprites() {
+  const trainedRgb = hexToRgb(getCSS("--trained")) || { r: 196, g: 69, b: 60 };
+  const baseRgb    = hexToRgb(getCSS("--base"))    || { r: 74, g: 99, b: 176 };
+  for (const [char, def] of Object.entries(SPRITE_CHARS)) {
+    spriteStore[char] = {};
+    for (const [anim, info] of Object.entries(def.anims)) {
+      const rec = { base: null, frames: info.frames, tinted: { trained: null, base: null } };
+      spriteStore[char][anim] = rec;
+      spritesPending++;
+      const img = new Image();
+      img.onload = () => {
+        rec.base = img;
+        rec.tinted.trained = bakeTinted(img, trainedRgb, 0.82);
+        rec.tinted.base    = bakeTinted(img, baseRgb,    0.82);
+        if (--spritesPending === 0) { spritesReady = true; }
+        requestRender();
+      };
+      img.onerror = () => {
+        // missing sheet: leave rec.base null; renderer falls back to the
+        // procedural figure so the viewer never goes blank.
+        if (--spritesPending === 0) { spritesReady = true; }
+        requestRender();
+      };
+      img.src = def.dir + info.file;
+    }
+  }
+}
+
+// ----------------------------------------------------------- inline default
+// Full replay embedded so opening via file:// ALWAYS shows a fight — no server,
+// no fetch, no CORS. The http path upgrades to live files in ../replays/.
+const DEFAULT_REPLAY = {"meta":{"game":"ring-out-duel","config":"h2h-fighter","winner":"draw","frames":15,"p1_policy":"trained_student","p2_policy":"base_student","seed":3,"schema":1},"platform":{"x_left":0.0,"x_right":7.0,"y":0.0},"frames":[{"p1":{"x":2.30,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":4.70,"y":0.0,"facing":-1,"action":"idle"},"events":[]},{"p1":{"x":2.55,"y":0.0,"facing":1,"action":"right"},"p2":{"x":4.45,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":2.80,"y":0.0,"facing":1,"action":"right"},"p2":{"x":4.20,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.05,"y":0.0,"facing":1,"action":"right"},"p2":{"x":3.95,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.25,"y":0.55,"facing":1,"action":"jump"},"p2":{"x":3.75,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.30,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":3.70,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":3.05,"y":0.0,"facing":1,"action":"left"},"p2":{"x":3.95,"y":0.0,"facing":-1,"action":"right"},"events":[]},{"p1":{"x":2.85,"y":0.0,"facing":1,"action":"left"},"p2":{"x":4.15,"y":0.0,"facing":-1,"action":"right"},"events":[]},{"p1":{"x":3.10,"y":0.0,"facing":1,"action":"right"},"p2":{"x":3.90,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.35,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":3.65,"y":0.0,"facing":-1,"action":"idle"},"events":["p1_punch"]},{"p1":{"x":3.55,"y":0.0,"facing":1,"action":"right"},"p2":{"x":3.45,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.50,"y":0.40,"facing":1,"action":"jump"},"p2":{"x":3.50,"y":0.0,"facing":-1,"action":"idle"},"events":[]},{"p1":{"x":3.45,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":3.55,"y":0.0,"facing":-1,"action":"right"},"events":[]},{"p1":{"x":3.40,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":3.60,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":3.50,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":3.50,"y":0.0,"facing":-1,"action":"idle"},"events":[]}]};
+
+// ===================================================================== state
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-let replay = null;     // parsed replay object
-let frame = 0;         // current frame index
+let replay  = null;     // parsed replay object
+let frame   = 0;        // current frame index
 let playing = false;
-let timer = null;
-let rafId = null;      // continuous animation loop handle (smooth sub-frame life)
-let animClock = 0;     // ever-increasing seconds-ish clock for idle/run/particle phase
+let timer   = null;
 
-// ------------------------------------------------------------------ elements
+let dashboard = null;       // parsed dashboard.json (or null)
+let dojoImg   = null;       // optional <img> backdrop, set if assets/dojo.png loads
+let dojoImgReady = false;
+
+// per-render interpolation / tag-follow state (eased), keyed by player slot
+const tagState = { p1: null, p2: null };   // {x, y} screen-space, smoothed
+let lastRenderTs = 0;
+let rafPending = false;
+
 const $ = (id) => document.getElementById(id);
-const sel = $("replaySel"), scrub = $("scrub"), frameLabel = $("frameLabel");
+const sel = $("replaySel"), scrub = $("scrub");
+const timeCur = $("timeCur"), timeTot = $("timeTot");
 const playBtn = $("playBtn"), banner = $("banner"), loadErr = $("loadErr");
 
-// ------------------------------------------------------------------ discovery
-// Pull every *.json filename out of an http.server directory-listing page.
-// The listing markup is: <li><a href="name.json">name.json</a></li>. We read
-// the href (not the link text) and keep only .json entries, deduped + sorted.
-function parseDirListing(html) {
-  const out = new Set();
-  const re = /href\s*=\s*["']([^"']+)["']/gi;
-  let m;
-  while ((m = re.exec(html)) !== null) {
-    let href = m[1];
-    try { href = decodeURIComponent(href); } catch (_) {}
-    // strip any directory prefix and query/hash; keep the bare filename
-    href = href.split("#")[0].split("?")[0];
-    const name = href.substring(href.lastIndexOf("/") + 1);
-    if (/\.json$/i.test(name)) out.add(name);
+// playback clock: traces are 15 native fps. Show mm:ss.mmm like the reference.
+const NATIVE_FPS = 15;
+function fmtTime(frameIdx) {
+  const totalMs = Math.round((frameIdx / NATIVE_FPS) * 1000);
+  const mm = Math.floor(totalMs / 60000);
+  const ss = Math.floor((totalMs % 60000) / 1000);
+  const ms = totalMs % 1000;
+  return String(mm).padStart(2, "0") + ":" +
+         String(ss).padStart(2, "0") + "." +
+         String(ms).padStart(3, "0");
+}
+
+// ===================================================================== policy / role resolution
+// "trained" student = policy name contains 'trained' but NOT 'base'.
+// We NEVER assume P1 is trained — resolve from meta.p1_policy / p2_policy.
+function classifyPolicy(name) {
+  const p = String(name || "").toLowerCase();
+  const trained = /trained/.test(p) && !/base/.test(p);
+  const base    = /base/.test(p);
+  return { trained, base, raw: name };
+}
+// Returns which slot ('p1'|'p2') is the trained side, or null if ambiguous.
+function trainedSlot(meta) {
+  const m = meta || {};
+  const c1 = classifyPolicy(m.p1_policy), c2 = classifyPolicy(m.p2_policy);
+  if (c1.trained && !c2.trained) return "p1";
+  if (c2.trained && !c1.trained) return "p2";
+  // h2h naming: trained_student vs base_student — already covered above.
+  // Fallback: if exactly one mentions 'base', the other is the "sharper" side.
+  if (c1.base && !c2.base) return "p2";
+  if (c2.base && !c1.base) return "p1";
+  return null; // non-h2h (scripted/random/parametric) — no trained/base story
+}
+
+// human game family from meta
+function gameFamily(meta) {
+  const m = meta || {};
+  const g = String(m.game || "").toLowerCase();
+  if (g === "koth") return "King of the Hill";
+  const pols = (String(m.p1_policy) + " " + String(m.p2_policy)).toLowerCase();
+  if (/target_knockback|_tk\b|ppo_tk/.test(pols)) return "Target Knockback";
+  return "Ring-Out";
+}
+function gameKey(meta) {
+  const f = gameFamily(meta);
+  return f === "King of the Hill" ? "koth" : f === "Target Knockback" ? "tk" : "ringout";
+}
+
+// pretty name for a player slot
+function slotLabel(meta, slot) {
+  const ts = trainedSlot(meta);
+  if (ts === slot) return "Trained Student";
+  if (ts && ts !== slot) return "Base Student";
+  // non-h2h — show raw policy nicely
+  const pol = (meta || {})[slot + "_policy"] || slot.toUpperCase();
+  return prettyPolicy(pol);
+}
+function prettyPolicy(p) {
+  const s = String(p || "");
+  return s
+    .replace(/_/g, " ")
+    .replace(/\bppo\b/i, "PPO")
+    .replace(/\btk\b/i, "TK")
+    .replace(/\bmodal\b/i, "Modal")
+    .replace(/\bparametric\b/i, "Parametric")
+    .replace(/\b(\w)/g, (m) => m.toUpperCase())
+    .trim() || "—";
+}
+
+// outcome ('win'|'loss'|'draw') for a given slot, from meta.winner
+function slotOutcome(meta, slot) {
+  const w = String((meta || {}).winner || "draw").toLowerCase();
+  if (w === "draw" || w === "none" || w === "") return "draw";
+  return (w === slot) ? "win" : "loss";
+}
+
+// ===================================================================== dashboard lookup
+function basename(p) { return String(p || "").split("/").pop(); }
+let currentFilename = null; // basename of currently-loaded replay, for dashboard match
+
+function dashboardEntryFor(filename) {
+  if (!dashboard || !Array.isArray(dashboard.replays) || !filename) return null;
+  const fn = basename(filename);
+  return dashboard.replays.find((r) => basename(r.path) === fn) || null;
+}
+
+// ===================================================================== descriptive labels for dropdown
+function describeReplay(meta, filename) {
+  const m = meta || {};
+  const fam = gameFamily(m);
+  const ts = trainedSlot(m);
+  const w = String(m.winner || "draw").toLowerCase();
+
+  // outcome phrasing
+  let outcome;
+  if (w === "draw") outcome = "Draw";
+  else if (ts) outcome = (w === ts) ? "Trained WINS" : "Base wins";
+  else outcome = (w === "p1" ? "P1 wins" : w === "p2" ? "P2 wins" : "Draw");
+
+  // matchup phrasing
+  let matchup;
+  if (ts) {
+    const tSide = ts.toUpperCase();
+    const bSide = (ts === "p1") ? "P2" : "P1";
+    matchup = `Trained (${tSide}) vs Base (${bSide})`;
+  } else {
+    matchup = `${prettyPolicy(m.p1_policy)} vs ${prettyPolicy(m.p2_policy)}`;
   }
-  return [...out].sort();
+
+  let label = `${fam} · ${outcome} · ${matchup}`;
+  const cfg = m.config;
+  if (cfg && !/^h2h/i.test(String(cfg))) label += ` · ${cfg}`;
+  return label;
 }
 
-// Discover all replay filenames. Prefer the live directory listing (nothing to
-// keep in sync); fall back to replays/manifest.json; return [] if neither works
-// (e.g. file://), in which case the inline default + file-picker still work.
-async function discoverReplays() {
-  // 1) directory listing (served from repo root)
+// ===================================================================== dropdown
+let manifestEntries = []; // [{file, meta, label, key}]
+
+async function fetchMeta(filename) {
   try {
-    const res = await fetch(REPLAY_DIR, { cache: "no-store" });
-    if (res.ok) {
-      const files = parseDirListing(await res.text());
-      if (files.length) return files;
-    }
-  } catch (_) { /* file:// or indexing disabled — try manifest next */ }
-  // 2) manifest.json fallback (array of names, or {replays:[...]})
-  try {
-    const res = await fetch(REPLAY_BASE + "manifest.json", { cache: "no-store" });
-    if (res.ok) {
-      const j = await res.json();
-      const arr = Array.isArray(j) ? j : (Array.isArray(j.replays) ? j.replays : []);
-      const files = arr
-        .map((x) => String(x).split("/").pop())
-        .filter((n) => /\.json$/i.test(n) && n !== "manifest.json");
-      if (files.length) return [...new Set(files)].sort();
-    }
-  } catch (_) { /* no manifest either */ }
-  return [];
+    const res = await fetch(REPLAY_BASE + filename, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.meta ? data.meta : (data ? {} : null);
+  } catch (_) { return null; }
 }
 
-// ------------------------------------------------------------------ loading
-function populateDropdown() {
+async function buildDropdown(files) {
+  // fetch metas in parallel (best effort)
+  const metas = await Promise.all(files.map(fetchMeta));
+  manifestEntries = files.map((file, i) => {
+    const meta = metas[i];
+    if (meta === null) return null; // unreachable file — skip
+    return { file, meta, label: describeReplay(meta, file), key: gameKey(meta) };
+  }).filter(Boolean);
+
+  // group by game family
+  const groups = { koth: [], tk: [], ringout: [] };
+  for (const e of manifestEntries) (groups[e.key] || groups.ringout).push(e);
+
   sel.innerHTML = "";
   const ph = document.createElement("option");
-  ph.value = "";
-  ph.textContent = EXAMPLES.length ? "— pick an example —" : "— no live replays (use Load file…) —";
+  ph.value = ""; ph.textContent = "— pick a match —";
   sel.appendChild(ph);
-  for (const f of EXAMPLES) {
-    const o = document.createElement("option");
-    o.value = f; o.textContent = f.replace(/\.json$/, "");
-    sel.appendChild(o);
+
+  const titles = { ringout: "Ring-Out Duel", tk: "Target Knockback", koth: "King of the Hill" };
+  for (const k of ["ringout", "tk", "koth"]) {
+    const list = groups[k];
+    if (!list || !list.length) continue;
+    // h2h matches first within each group (the headline story)
+    list.sort((a, b) => {
+      const ha = /^h2h/i.test(String(a.meta.config)) ? 0 : 1;
+      const hb = /^h2h/i.test(String(b.meta.config)) ? 0 : 1;
+      return ha - hb || a.label.localeCompare(b.label);
+    });
+    const og = document.createElement("optgroup");
+    og.label = titles[k];
+    for (const e of list) {
+      const o = document.createElement("option");
+      o.value = e.file; o.textContent = e.label;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
   }
 }
 
+// fallback static dropdown if no manifest/listing available (file://)
+function fallbackDropdown() {
+  sel.innerHTML = "";
+  const o = document.createElement("option");
+  o.value = ""; o.textContent = "(inline demo — serve repo root for full list)";
+  sel.appendChild(o);
+}
+
+// ===================================================================== loading
 async function loadExample(filename) {
   loadErr.textContent = "";
   try {
     const res = await fetch(REPLAY_BASE + filename, { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    setReplay(data);
+    setReplay(data, filename);
   } catch (e) {
     loadErr.textContent =
-      "Couldn't fetch " + filename + " (" + e.message +
-      "). Serve from the REPO ROOT (python3 -m http.server 8000) and open " +
-      "http://localhost:8000/viewer/viewer.html — or use Load file… / drag-drop.";
+      "Couldn't fetch " + filename + " (" + e.message + "). Serve the repo root " +
+      "(scripts/show_traces.sh) and open /viewer/viewer.html — or use Load file… / drop.";
   }
 }
-
 function loadFile(file) {
   loadErr.textContent = "";
   const reader = new FileReader();
   reader.onload = () => {
-    try { setReplay(JSON.parse(reader.result)); }
+    try { setReplay(JSON.parse(reader.result), file.name); }
     catch (e) { loadErr.textContent = "Invalid JSON: " + e.message; }
   };
   reader.readAsText(file);
 }
 
-function setReplay(data) {
+function setReplay(data, filename) {
   if (!data || !Array.isArray(data.frames) || !data.frames.length) {
     loadErr.textContent = "Not a valid replay (no frames).";
     return;
   }
   replay = data;
+  currentFilename = filename ? basename(filename) : null;
   frame = 0;
   pause();
   scrub.max = data.frames.length - 1;
   scrub.value = 0;
-  const m = data.meta || {};
-  $("mGame").textContent = m.game ?? "ring-out-duel";
-  $("mConfig").textContent = m.config ?? "?";
-  $("mP1").textContent = m.p1_policy ?? "p1";
-  $("mP2").textContent = m.p2_policy ?? "p2";
-  banner.style.display = "none";
-  render();
+  tagState.p1 = null; tagState.p2 = null;   // reset eased tag positions
+  renderSpecPanels();
+  hideVerdict();
+  requestRender();
 }
 
-// ------------------------------------------------------------------ geometry
-// Map sim x in [x_left, x_right] -> canvas px, with padding. The platform line
-// sits near the bottom; jump height (y) lifts a fighter ABOVE it.
+// ===================================================================== spec panels
+function row(k, v, dim) {
+  const dv = (v === undefined || v === null || v === "" ) ? "—" : v;
+  const cls = (dv === "—" || dim) ? "v dimv" : "v";
+  return `<div class="spec-row"><span class="k">${k}</span><span class="${cls}">${dv}</span></div>`;
+}
+function section(t) { return `<div class="spec-section">${t}</div>`; }
+
+function renderSpecPanels() {
+  if (!replay) return;
+  const m = replay.meta || {};
+  const dash = dashboardEntryFor(currentFilename);
+  const ts = trainedSlot(m);
+  const fam = gameFamily(m);
+
+  // Decide which physical slot each panel describes.
+  // LEFT panel = trained side when h2h; else P1. RIGHT = the other slot.
+  const leftSlot  = ts ? ts : "p1";
+  const rightSlot = leftSlot === "p1" ? "p2" : "p1";
+
+  fillPanel("L", leftSlot,  m, dash, fam);
+  fillPanel("R", rightSlot, m, dash, fam);
+}
+
+function fillPanel(side, slot, m, dash, fam) {
+  const trained = trainedSlot(m) === slot;
+  const isBase  = trainedSlot(m) && !trained;
+  const color = trained ? getCSS("--trained") : isBase ? getCSS("--base")
+              : (slot === "p1" ? getCSS("--trained") : getCSS("--base"));
+
+  // role header: "Player 2 / Student" (calm, like the reference)
+  $(side + "_dot").style.background = color;
+  $(side + "_pslot").textContent = (slot === "p1" ? "Player 1" : "Player 2");
+  $(side + "_role").textContent = "Student";
+  $(side + "_name").textContent = slotLabel(m, slot);
+
+  // sensei subline — short, like "by the good sensei"
+  let senseiTxt;
+  if (trained)      senseiTxt = "by the good sensei";
+  else if (isBase)  senseiTxt = "by the base sensei";
+  else              senseiTxt = prettyPolicy(m[slot + "_policy"]);
+  $(side + "_sensei").textContent = senseiTxt;
+
+  // avatar portrait (red/blue headband gi figure)
+  drawAvatar(side + "_avatar", color, trained || (!isBase && slot === "p1"));
+
+  // team pill (Trained / Base / raw policy)
+  const pill = $(side + "_pill");
+  if (trained)      { pill.textContent = "Trained"; pill.className = "side-pill trained"; }
+  else if (isBase)  { pill.textContent = "Base";    pill.className = "side-pill base"; }
+  else              { pill.textContent = prettyPolicy(m[slot + "_policy"]); pill.className = "side-pill " + (slot === "p1" ? "trained" : "base"); }
+
+  // outcome for this slot
+  const oc = slotOutcome(m, slot);
+  // physical side derives from which panel rendered this slot (L = left, R = right)
+  const physicalSide = (side === "L") ? "Left" : "Right";
+  const sideLabel = slot.toUpperCase() + " (" + physicalSide + ")";
+
+  let senseiName;
+  if (dash && trained)      senseiName = dash.source_teacher_trained ? prettyPolicy(dash.source_teacher_trained) + " Sensei" : "Good Sensei";
+  else if (dash && isBase)  senseiName = dash.source_teacher_base ? prettyPolicy(dash.source_teacher_base) + " Sensei" : "Base Sensei";
+  else if (trained)         senseiName = "Good Sensei";
+  else if (isBase)          senseiName = "Base Sensei";
+  else                      senseiName = "—";
+
+  const outcomeTxt = oc === "win" ? "Win" : oc === "loss" ? "Loss" : "Draw";
+  const winMark = oc === "win" ? ' <span class="win-mark">勝</span>' : "";
+  const outcomeV = outcomeTxt === "—"
+    ? '<span class="v dimv">—</span>'
+    : `<span class="v">${outcomeTxt}${winMark}</span>`;
+
+  // ----- top (always-visible) summary: Side / Role / Sensei / Outcome -----
+  const top = [
+    `<div class="spec-row"><span class="k">Side</span><span class="v">${sideLabel}</span></div>`,
+    `<div class="spec-row"><span class="k">Role</span><span class="v">Student</span></div>`,
+    `<div class="spec-row"><span class="k">Sensei</span><span class="${senseiName==='—'?'v dimv':'v'}">${senseiName}</span></div>`,
+    `<div class="spec-row"><span class="k">Outcome</span>${outcomeV}</div>`,
+  ];
+
+  // ----- collapsed extra: full Identity / Arena / Match (all real fields) -----
+  const arena = (dash && dash.arena) || {};
+  const zone = m.zone || null;
+  const rows = [];
+
+  rows.push(section("Identity"));
+  rows.push(row("Policy", m[slot + "_policy"] ? prettyPolicy(m[slot + "_policy"]) : undefined));
+  if (dash) {
+    if (trained) {
+      rows.push(row("Curriculum", dash.trained_curriculum_id));
+      rows.push(row("Policy seed", dash.trained_policy_seed));
+    } else if (isBase) {
+      rows.push(row("Curriculum", dash.base_curriculum_id));
+      rows.push(row("Policy seed", dash.base_policy_seed));
+    } else {
+      rows.push(row("Curriculum", undefined));
+    }
+  } else {
+    rows.push(row("Curriculum", undefined));
+    rows.push(row("Policy seed", undefined));
+  }
+
+  rows.push(section("Arena"));
+  rows.push(row("Game", fam));
+  rows.push(row("Config", m.config));
+  const plat = replay.platform || {};
+  const widthFromPlat = (plat.x_right != null && plat.x_left != null)
+    ? +(plat.x_right - plat.x_left).toFixed(2) : undefined;
+  rows.push(row("Platform width", arena.platform_width != null ? arena.platform_width : widthFromPlat));
+  rows.push(row("Gravity", arena.gravity));
+  rows.push(row("Knockback", arena.knockback));
+  rows.push(row("Spawn gap", arena.spawn_gap));
+  rows.push(row("Difficulty", arena.difficulty != null ? arena.difficulty : undefined));
+  if (zone) {
+    rows.push(row("Hill center", zone.center));
+    rows.push(row("Hill half-width", zone.half));
+  }
+
+  rows.push(section("Match"));
+  rows.push(row("Match seed", (dash && dash.match_seed != null) ? dash.match_seed : m.seed));
+  rows.push(row("Frames", (m.frames != null) ? m.frames : (replay.frames ? replay.frames.length : undefined)));
+  if (Array.isArray(m.zone_time_final)) {
+    const zt = m.zone_time_final[slot === "p1" ? 0 : 1];
+    rows.push(row("Zone time", zt));
+  }
+
+  const wasOpen = $(side + "_rows").querySelector(".spec-extra.open") != null;
+  $(side + "_rows").innerHTML =
+    top.join("") +
+    `<div class="spec-extra${wasOpen ? " open" : ""}">` + rows.join("") + `</div>`;
+}
+
+// ---- chibi portrait, drawn into the round avatar canvas (matches the fighters) ----
+function drawAvatar(canvasId, color, isTrainedSide) {
+  const c = $(canvasId);
+  if (!c) return;
+  const x = c.getContext("2d");
+  const W = c.width, H = c.height;
+  x.clearRect(0, 0, W, H);
+  const cx = W / 2;
+  const robe = "#f3ecda", robeLine = "#b9ad8d", skin = "#f0cda0", hair = "#2a1d14", ink = "#33281d";
+  x.lineJoin = "round"; x.lineCap = "round";
+
+  // little gi shoulders rising from the bottom
+  x.fillStyle = robe; x.strokeStyle = ink; x.lineWidth = 1.6;
+  x.beginPath();
+  x.moveTo(cx - 26, H + 4);
+  x.quadraticCurveTo(cx - 24, 52, cx - 14, 50);
+  x.lineTo(cx + 14, 50);
+  x.quadraticCurveTo(cx + 24, 52, cx + 26, H + 4);
+  x.closePath(); x.fill(); x.stroke();
+  // crossed lapel V
+  x.strokeStyle = robeLine; x.lineWidth = 2;
+  x.beginPath(); x.moveTo(cx - 11, 52); x.lineTo(cx, 66); x.lineTo(cx + 11, 52); x.stroke();
+  // belt (team color)
+  x.fillStyle = color; x.fillRect(cx - 26, 66, 52, 6);
+  x.fillStyle = shade(color, -26); x.fillRect(cx - 26, 70.5, 52, 1.6);
+  x.fillStyle = shade(color, -14); x.fillRect(cx - 3, 65, 6, 8);
+
+  // BIG chibi head
+  const hr = 21, hy = 30;
+  x.fillStyle = skin; x.strokeStyle = ink; x.lineWidth = 1.7;
+  x.beginPath(); x.ellipse(cx, hy, hr, hr * 1.02, 0, 0, Math.PI * 2); x.fill(); x.stroke();
+  // hair cap
+  x.fillStyle = hair;
+  x.beginPath();
+  x.moveTo(cx - hr * 0.98, hy - hr * 0.16);
+  x.quadraticCurveTo(cx - hr * 1.06, hy - hr * 1.05, cx, hy - hr * 1.12);
+  x.quadraticCurveTo(cx + hr * 1.06, hy - hr * 1.05, cx + hr * 0.98, hy - hr * 0.16);
+  x.quadraticCurveTo(cx + hr * 0.4, hy - hr * 0.42, cx, hy - hr * 0.30);
+  x.quadraticCurveTo(cx - hr * 0.4, hy - hr * 0.42, cx - hr * 0.98, hy - hr * 0.16);
+  x.closePath(); x.fill();
+  // headband (team color)
+  x.save();
+  x.beginPath(); x.ellipse(cx, hy, hr, hr * 1.02, 0, 0, Math.PI * 2); x.clip();
+  x.fillStyle = color; x.fillRect(cx - hr - 2, hy - hr * 0.34, hr * 2 + 4, hr * 0.32);
+  x.fillStyle = shade(color, -26); x.fillRect(cx - hr - 2, hy - hr * 0.05, hr * 2 + 4, hr * 0.06);
+  x.restore();
+  // knot tails (left side)
+  x.fillStyle = color;
+  x.beginPath(); x.moveTo(cx - hr * 0.9, hy - hr * 0.2);
+  x.quadraticCurveTo(cx - hr * 1.5, hy - hr * 0.1, cx - hr * 1.7, hy + hr * 0.1);
+  x.lineTo(cx - hr * 1.4, hy + hr * 0.15);
+  x.quadraticCurveTo(cx - hr * 1.1, hy + hr * 0.05, cx - hr * 0.85, hy); x.closePath(); x.fill();
+  // determined brows
+  x.strokeStyle = "#3a2a1c"; x.lineWidth = 2.4;
+  x.beginPath(); x.moveTo(cx - hr * 0.55, hy - hr * 0.12); x.lineTo(cx - hr * 0.18, hy + hr * 0.02); x.stroke();
+  x.beginPath(); x.moveTo(cx + hr * 0.55, hy - hr * 0.12); x.lineTo(cx + hr * 0.18, hy + hr * 0.02); x.stroke();
+  // big eyes
+  for (const s of [-1, 1]) {
+    const ex = cx + s * hr * 0.34;
+    x.fillStyle = "#fbf6ec"; x.strokeStyle = "#33281d"; x.lineWidth = 1.2;
+    x.beginPath(); x.ellipse(ex, hy + hr * 0.18, hr * 0.20, hr * 0.27, 0, 0, Math.PI * 2); x.fill(); x.stroke();
+    x.fillStyle = "#241a12";
+    x.beginPath(); x.arc(ex, hy + hr * 0.20, hr * 0.12, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "rgba(255,255,255,0.95)";
+    x.beginPath(); x.arc(ex - 1.4, hy + hr * 0.14, hr * 0.045, 0, Math.PI * 2); x.fill();
+  }
+  // tiny smile + blush
+  x.strokeStyle = "#7a4a36"; x.lineWidth = 1.8;
+  x.beginPath(); x.arc(cx, hy + hr * 0.5, hr * 0.16, 0.2 * Math.PI, 0.8 * Math.PI); x.stroke();
+  x.fillStyle = "rgba(224,120,90,0.16)";
+  x.beginPath(); x.arc(cx - hr * 0.5, hy + hr * 0.46, hr * 0.14, 0, Math.PI * 2); x.fill();
+  x.beginPath(); x.arc(cx + hr * 0.5, hy + hr * 0.46, hr * 0.14, 0, Math.PI * 2); x.fill();
+}
+
+function getCSS(v) {
+  return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || "#888";
+}
+
+// ===================================================================== geometry
 function worldToScreen(plat) {
-  const padX = 70, padBottom = 90, padTop = 60;
+  const padX = 96, padBottom = 96, padTop = 70;
   const W = canvas.width, H = canvas.height;
   const span = (plat.x_right - plat.x_left) || 1;
   const sx = (x) => padX + ((x - plat.x_left) / span) * (W - 2 * padX);
   const groundY = H - padBottom;
-  // y is height above platform; scale so a ~2.2 jump impulse reads clearly.
   const sy = (y) => groundY - y * ((groundY - padTop) / 5.0);
-  return { sx, sy, groundY, padX, W, H };
+  return { sx, sy, groundY, padX, W, H, span };
 }
 
-// ============================================================================
-// STAGE — layered, lit, animated parallax background.
-//   Layers (back -> front):
-//     0. deep-space sky gradient + twinkling stars
-//     1. moon/sun disc with soft bloom
-//     2. three mountain bands (far/mid/near) for parallax depth
-//     3. drifting fog band over the mid mountains
-//     4. the battle platform: grass cap + dirt body + speckle + glowing edges
-//     5. rising ember/spark particles + bottomless void
-// ============================================================================
-function drawStage(plat, geo, t) {
-  const { sx, groundY, W, H } = geo;
-
-  // ---- 0. sky gradient (deep dusk -> warm horizon) ----
-  const sky = ctx.createLinearGradient(0, 0, 0, groundY + 40);
-  sky.addColorStop(0.0, "#0c0a26");
-  sky.addColorStop(0.35, "#241a4f");
-  sky.addColorStop(0.62, "#5a2c63");
-  sky.addColorStop(0.85, "#9c4a5e");
-  sky.addColorStop(1.0, "#d4794e");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, groundY + 40);
-
-  // twinkling stars (deterministic field; brightness pulses with t)
-  for (let i = 0; i < STARS.length; i++) {
-    const s = STARS[i];
-    const tw = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 1.8 + s.p));
-    ctx.globalAlpha = s.a * tw;
-    ctx.fillStyle = "#dfe9ff";
-    ctx.fillRect(s.x * W, s.y * (groundY * 0.7), s.s, s.s);
+// ===================================================================== DOJO background
+// Procedurally drawn so it ships with no external assets, but uses
+// assets/dojo.png if that image is present.
+function drawDojo(W, H, groundY) {
+  if (dojoImgReady && dojoImg) {
+    // cover-fit the supplied art
+    const ir = dojoImg.width / dojoImg.height, cr = W / H;
+    let dw, dh;
+    if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
+    ctx.drawImage(dojoImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    // gentle vignette so fighters/tags stay readable
+    const vg = ctx.createRadialGradient(W/2, H*0.42, H*0.2, W/2, H*0.5, H*0.95);
+    vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.42)");
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    return;
   }
+
+  // ---- back wall: warm interior gradient ----
+  const wall = ctx.createLinearGradient(0, 0, 0, groundY);
+  wall.addColorStop(0, "#3a2a18");
+  wall.addColorStop(0.55, "#2c1f12");
+  wall.addColorStop(1, "#24190e");
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, W, groundY + 6);
+
+  // ---- weathered washi-panel wall: aged paper, real texture, warm light ----
+  const shojiTop = 18, shojiBot = groundY - 8, shojiL = 40, shojiR = W - 40;
+  const panelW = (shojiR - shojiL);
+  const wallH  = shojiBot - shojiTop;
+  // base aged paper — warmer & a touch deeper than before
+  const paper = ctx.createLinearGradient(0, shojiTop, 0, shojiBot);
+  paper.addColorStop(0,   "#e0cfa4");
+  paper.addColorStop(0.45,"#cdb88a");
+  paper.addColorStop(1,   "#a78f64");
+  ctx.fillStyle = paper;
+  roundRect(shojiL, shojiTop, panelW, wallH, 4); ctx.fill();
+
+  // clip to the wall for texture passes
+  ctx.save();
+  roundRect(shojiL, shojiTop, panelW, wallH, 4); ctx.clip();
+
+  // (a) warm directional light from the upper-left (lanterns + offscreen window)
+  const lite = ctx.createRadialGradient(shojiL + panelW*0.32, shojiTop + 30, 40,
+                                        shojiL + panelW*0.40, shojiTop + 80, panelW*0.7);
+  lite.addColorStop(0, "rgba(255,244,212,0.42)");
+  lite.addColorStop(0.5, "rgba(255,232,180,0.12)");
+  lite.addColorStop(1, "rgba(120,80,40,0)");
+  ctx.fillStyle = lite; ctx.fillRect(shojiL, shojiTop, panelW, wallH);
+  // cooler falloff into the lower-right corner (depth)
+  const shadeCorner = ctx.createLinearGradient(shojiR, shojiBot, shojiL + panelW*0.4, shojiTop + wallH*0.4);
+  shadeCorner.addColorStop(0, "rgba(30,18,10,0.42)");
+  shadeCorner.addColorStop(1, "rgba(30,18,10,0)");
+  ctx.fillStyle = shadeCorner; ctx.fillRect(shojiL, shojiTop, panelW, wallH);
+
+  // (b) painterly grunge: organic stains + a value-noise field (hashed, stable)
+  const seed = 1337;
+  const rnd = mulberry32(seed);
+  // soft blotchy water-stains
+  for (let i = 0; i < 26; i++) {
+    const bx = shojiL + rnd() * panelW;
+    const by = shojiTop + rnd() * wallH;
+    const br = 18 + rnd() * 60;
+    const dark = rnd() > 0.5;
+    const g = ctx.createRadialGradient(bx, by, 1, bx, by, br);
+    const a = 0.05 + rnd() * 0.07;
+    if (dark) { g.addColorStop(0, `rgba(70,48,24,${a})`); g.addColorStop(1, "rgba(70,48,24,0)"); }
+    else      { g.addColorStop(0, `rgba(255,238,200,${a*0.9})`); g.addColorStop(1, "rgba(255,238,200,0)"); }
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
+  }
+  // fine speckle / fibre grain
   ctx.globalAlpha = 1;
-
-  // ---- 1. moon disc + bloom ----
-  const cx = W * 0.76, cy = groundY * 0.34;
-  const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, 150);
-  glow.addColorStop(0, "rgba(255,238,196,0.85)");
-  glow.addColorStop(0.22, "rgba(255,206,140,0.42)");
-  glow.addColorStop(1, "rgba(255,206,140,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(cx - 150, cy - 150, 300, 300);
-  const disc = ctx.createRadialGradient(cx - 8, cy - 8, 4, cx, cy, 30);
-  disc.addColorStop(0, "#fff6df");
-  disc.addColorStop(1, "#f2cf94");
-  ctx.fillStyle = disc;
-  ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI * 2); ctx.fill();
-  // a couple of soft craters for texture
-  ctx.fillStyle = "rgba(180,140,90,0.18)";
-  ctx.beginPath(); ctx.arc(cx - 9, cy - 6, 6, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx + 8, cy + 7, 4, 0, Math.PI * 2); ctx.fill();
-
-  // ---- 2. three mountain parallax bands (far -> near, dark -> darker) ----
-  mountains(W, groundY, groundY * 0.50, "#34265e", [0.00, 0.20, 0.40, 0.60, 0.80, 1.00], 0.0);
-  mountains(W, groundY, groundY * 0.66, "#281e4c", [0.08, 0.30, 0.52, 0.74, 0.95], 0.0);
-  mountains(W, groundY, groundY * 0.82, "#1c1638", [0.04, 0.26, 0.46, 0.68, 0.88], 0.0);
-
-  // ---- 3. drifting fog band ----
-  ctx.save();
-  ctx.globalAlpha = 0.16;
-  ctx.fillStyle = "#c9bce0";
-  const fogY = groundY - groundY * 0.30;
-  for (let k = 0; k < 3; k++) {
-    const off = ((t * (8 + k * 5)) % (W + 240)) - 120;
-    cloud((off + k * 260) % (W + 240) - 60, fogY + k * 16, 60 + k * 10);
+  for (let i = 0; i < 900; i++) {
+    const px = shojiL + rnd() * panelW;
+    const py = shojiTop + rnd() * wallH;
+    const v = rnd();
+    ctx.fillStyle = v > 0.5 ? `rgba(60,42,22,${0.04 + rnd()*0.06})`
+                            : `rgba(255,240,205,${0.03 + rnd()*0.05})`;
+    ctx.fillRect(px, py, 1.2, 1.2);
+  }
+  // a couple of long vertical paper-seam creases
+  ctx.strokeStyle = "rgba(70,48,26,0.10)"; ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const cx0 = shojiL + (0.5 + i) / 5 * panelW + (rnd() - 0.5) * 20;
+    ctx.beginPath(); ctx.moveTo(cx0, shojiTop); ctx.lineTo(cx0 + (rnd()-0.5)*8, shojiBot); ctx.stroke();
   }
   ctx.restore();
 
-  // ---- 4. the platform ----
-  const platL = sx(plat.x_left), platR = sx(plat.x_right);
-  const platW = platR - platL;
-  const topH = 12;          // grass cap thickness
-  const bodyH = 50;         // dirt body that hangs below the play line
-
-  // soft ambient glow under the platform lip (grounds it in the scene)
-  const lip = ctx.createLinearGradient(0, groundY - 6, 0, groundY + 26);
-  lip.addColorStop(0, "rgba(120,200,255,0.10)");
-  lip.addColorStop(1, "rgba(120,200,255,0)");
-  ctx.fillStyle = lip;
-  ctx.fillRect(platL - 10, groundY - 6, platW + 20, 32);
-
-  // dirt body with vertical shading
-  const dirt = ctx.createLinearGradient(0, groundY, 0, groundY + bodyH);
-  dirt.addColorStop(0, "#7a5632");
-  dirt.addColorStop(0.5, "#553a20");
-  dirt.addColorStop(1, "#321f10");
-  ctx.fillStyle = dirt;
-  ctx.fillRect(platL, groundY, platW, bodyH);
-
-  // rock striations + speckle (cheap deterministic pattern)
-  ctx.fillStyle = "rgba(0,0,0,0.20)";
-  for (let i = 0; i < platW; i += 16) {
-    const dx = platL + i + ((i * 7) % 11);
-    ctx.fillRect(dx, groundY + 16 + ((i * 13) % 22), 3, 3);
-    ctx.fillRect(dx + 7, groundY + 30 + ((i * 5) % 14), 2, 2);
+  // ---- dark wooden lattice (kumiko) — beveled, with worn highlights ----
+  const cols = 6, rows = 4;
+  const drawLat = (x1, y1, x2, y2) => {
+    ctx.strokeStyle = "rgba(38,24,12,0.88)"; ctx.lineWidth = 3.4;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.strokeStyle = "rgba(120,84,44,0.30)"; ctx.lineWidth = 1;          // worn top-light
+    ctx.beginPath(); ctx.moveTo(x1 - 1, y1 - 1); ctx.lineTo(x2 - 1, y2 - 1); ctx.stroke();
+  };
+  for (let c = 0; c <= cols; c++) {
+    const x = shojiL + panelW * (c / cols);
+    drawLat(x, shojiTop, x, shojiBot);
   }
-  ctx.strokeStyle = "rgba(255,255,255,0.05)";
-  ctx.lineWidth = 1;
+  for (let r = 0; r <= rows; r++) {
+    const y = shojiTop + wallH * (r / rows);
+    drawLat(shojiL, y, shojiR, y);
+  }
+  // outer frame: dark lacquered wood with inner bevel
+  ctx.strokeStyle = "#1d1208"; ctx.lineWidth = 7;
+  roundRect(shojiL, shojiTop, panelW, wallH, 4); ctx.stroke();
+  ctx.strokeStyle = "rgba(140,96,50,0.25)"; ctx.lineWidth = 1.5;
+  roundRect(shojiL + 3, shojiTop + 3, panelW - 6, wallH - 6, 3); ctx.stroke();
+
+  // ---- hanging cloth banners (左 道場 / 右 空手) ----
+  drawBanner(W * 0.16, shojiTop - 4, 56, 150, "道場", "#7a1f17");
+  drawBanner(W * 0.84, shojiTop - 4, 56, 150, "空手", "#3a4a2a");
+
+  // ---- paper lanterns ----
+  drawLantern(W * 0.30, shojiTop + 8, 22);
+  drawLantern(W * 0.70, shojiTop + 8, 22);
+
+  // ---- katana mounted on the back wall (alcove), high & clear of fighters ----
+  drawKatana(W * 0.50, shojiTop + (shojiBot - shojiTop) * 0.30, 160);
+
+  // ---- wooden floor: planks + reflections ----
+  drawFloor(W, H, groundY);
+
+  // ---- "personal touch" set-dressing: bonsai L, stone lantern R, leaves ----
+  drawBonsai(shojiL + 24, groundY + 4, 0.95);
+  drawStoneLantern(shojiR - 30, groundY - 2, 0.95);
+  drawLeaves(W, groundY);
+
+  // ---- ambient overhead light / vignette ----
+  const amb = ctx.createRadialGradient(W/2, groundY - 40, 40, W/2, groundY - 20, W * 0.8);
+  amb.addColorStop(0, "rgba(255,225,170,0.10)");
+  amb.addColorStop(1, "rgba(0,0,0,0.30)");
+  ctx.fillStyle = amb;
+  ctx.fillRect(0, 0, W, H);
+
+  // gentle painterly grade over the whole stage (warm highs, cool-deep lows)
+  const grade = ctx.createLinearGradient(0, 0, 0, H);
+  grade.addColorStop(0, "rgba(255,210,140,0.05)");
+  grade.addColorStop(0.6, "rgba(0,0,0,0)");
+  grade.addColorStop(1, "rgba(10,6,3,0.22)");
+  ctx.fillStyle = grade; ctx.fillRect(0, 0, W, H);
+}
+
+// ---- bonsai in a glazed pot (lower-left) ----
+function drawBonsai(x, y, s) {
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(s, s);
+  // soft cast shadow
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.beginPath(); ctx.ellipse(0, 2, 30, 6, 0, 0, Math.PI*2); ctx.fill();
+  // glazed pot (warm brown, trapezoid, lip)
+  const potGrad = ctx.createLinearGradient(0, -14, 0, 2);
+  potGrad.addColorStop(0, "#6b4326"); potGrad.addColorStop(1, "#3e2614");
+  ctx.fillStyle = potGrad; ctx.strokeStyle = "#241408"; ctx.lineWidth = 1.4;
   ctx.beginPath();
-  ctx.moveTo(platL, groundY + bodyH * 0.55);
-  ctx.lineTo(platR, groundY + bodyH * 0.42);
-  ctx.stroke();
-
-  // grass cap with highlight
-  const grass = ctx.createLinearGradient(0, groundY - topH, 0, groundY);
-  grass.addColorStop(0, "#8fe87a");
-  grass.addColorStop(1, "#3f9a3a");
-  ctx.fillStyle = grass;
-  ctx.fillRect(platL, groundY - topH, platW, topH);
-  // bright top sheen
-  ctx.fillStyle = "rgba(220,255,200,0.35)";
-  ctx.fillRect(platL, groundY - topH, platW, 2);
-  // grass blades along the top edge
-  ctx.fillStyle = "#a7f48a";
-  for (let i = 0; i < platW; i += 7) {
-    const bh = 3 + ((i * 3) % 3);
-    ctx.fillRect(platL + i, groundY - topH - bh, 2, bh);
+  ctx.moveTo(-22, -14); ctx.lineTo(22, -14); ctx.lineTo(17, 0); ctx.lineTo(-17, 0); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#7a4e2c";
+  roundRect(-25, -18, 50, 5, 2); ctx.fill();
+  ctx.strokeStyle = "rgba(255,210,150,0.18)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-23, -16); ctx.lineTo(23, -16); ctx.stroke();
+  // moss/soil
+  ctx.fillStyle = "#2f3a1c";
+  ctx.beginPath(); ctx.ellipse(0, -16, 17, 3.5, 0, 0, Math.PI*2); ctx.fill();
+  // gnarled trunk
+  ctx.strokeStyle = "#4a3017"; ctx.lineWidth = 5; ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(2, -16); ctx.quadraticCurveTo(-6, -30, 0, -40);
+  ctx.quadraticCurveTo(6, -50, -2, -58); ctx.stroke();
+  ctx.strokeStyle = "#5c3c1d"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-1, -42); ctx.quadraticCurveTo(10, -46, 16, -54); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -50); ctx.quadraticCurveTo(-12, -54, -16, -62); ctx.stroke();
+  // foliage clouds (layered greens with warm rim)
+  const blobs = [[-16,-64,15],[2,-70,18],[18,-60,14],[-4,-58,12],[10,-72,11]];
+  for (const [bx, by, br] of blobs) {
+    const g = ctx.createRadialGradient(bx - br*0.3, by - br*0.4, 1, bx, by, br);
+    g.addColorStop(0, "#5c7a34"); g.addColorStop(0.7, "#3f5a23"); g.addColorStop(1, "#2c4019");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
   }
+  // warm rim-light on the canopy (matches upper-left key light)
+  ctx.fillStyle = "rgba(220,210,120,0.18)";
+  ctx.beginPath(); ctx.arc(-12, -70, 6, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -76, 5, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
 
-  // glowing danger edges (the ring-out cliffs) — pulse with t
-  const pulse = 0.4 + 0.25 * (0.5 + 0.5 * Math.sin(t * 3.0));
-  for (const [ex, dir] of [[platL, -1], [platR, 1]]) {
-    const eg = ctx.createLinearGradient(ex, 0, ex + dir * 26, 0);
-    eg.addColorStop(0, "rgba(255,90,70," + pulse.toFixed(3) + ")");
-    eg.addColorStop(1, "rgba(255,90,70,0)");
-    ctx.fillStyle = eg;
-    ctx.fillRect(dir < 0 ? ex - 26 : ex, groundY - topH, 26, topH + bodyH);
-    // chevron edge ticks
-    ctx.fillStyle = "#ffcf3f";
-    ctx.fillRect(ex + (dir < 0 ? -3 : 0), groundY - topH - 7, 3, 20);
-  }
-
-  // ---- 5. rising embers (warm particles drifting up over the void) ----
+// ---- stone lantern (ishidoro) with a warm glow (lower-right) ----
+function drawStoneLantern(x, y, s) {
   ctx.save();
-  for (let i = 0; i < EMBERS.length; i++) {
-    const e = EMBERS[i];
-    const life = (t * e.spd + e.ph) % 1;          // 0..1 rising loop
-    const ey = groundY + bodyH - life * (bodyH + 90);
-    const ex = (e.x * W) + Math.sin(t * 1.3 + e.ph * 6) * 10;
-    const a = (1 - life) * 0.7;
-    ctx.globalAlpha = a;
-    ctx.fillStyle = e.warm ? "#ffb84d" : "#ff6a3c";
-    ctx.beginPath(); ctx.arc(ex, ey, e.r, 0, Math.PI * 2); ctx.fill();
+  ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = "rgba(0,0,0,0.30)";
+  ctx.beginPath(); ctx.ellipse(0, 2, 24, 5, 0, 0, Math.PI*2); ctx.fill();
+  const stone = "#5a564e", stoneLt = "#74706857", stoneShade = "#3b3832";
+  const block = (bx, by, bw, bh, r) => {
+    const g = ctx.createLinearGradient(bx - bw/2, 0, bx + bw/2, 0);
+    g.addColorStop(0, stone); g.addColorStop(0.5, "#6a665d"); g.addColorStop(1, stoneShade);
+    ctx.fillStyle = g; ctx.strokeStyle = "#2c2925"; ctx.lineWidth = 1;
+    roundRect(bx - bw/2, by - bh, bw, bh, r||2); ctx.fill(); ctx.stroke();
+  };
+  // base + post + platform
+  block(0, 0, 30, 8, 3);
+  block(0, -8, 8, 26, 2);
+  block(0, -34, 26, 8, 3);
+  // light chamber (fire box) with warm glow
+  const glow = ctx.createRadialGradient(0, -48, 1, 0, -48, 18);
+  glow.addColorStop(0, "rgba(255,196,110,0.95)");
+  glow.addColorStop(0.6, "rgba(240,150,60,0.5)");
+  glow.addColorStop(1, "rgba(240,150,60,0)");
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, -48, 18, 0, Math.PI*2); ctx.fill();
+  // chamber walls (with a glowing window)
+  ctx.fillStyle = "#4f4b43"; ctx.strokeStyle = "#2c2925"; ctx.lineWidth = 1;
+  roundRect(-11, -58, 22, 22, 2); ctx.fill(); ctx.stroke();
+  const win = ctx.createRadialGradient(0, -47, 1, 0, -47, 9);
+  win.addColorStop(0, "#fff0c8"); win.addColorStop(0.6, "#ffbe66"); win.addColorStop(1, "#b9742a");
+  ctx.fillStyle = win; ctx.fillRect(-7, -54, 14, 14);
+  ctx.strokeStyle = "#2c2925"; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(0, -54); ctx.lineTo(0, -40); ctx.moveTo(-7, -47); ctx.lineTo(7, -47); ctx.stroke();
+  // umbrella roof (kasa) + finial
+  ctx.fillStyle = "#605b51"; ctx.strokeStyle = "#2c2925"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-16, -58); ctx.lineTo(16, -58); ctx.lineTo(11, -70); ctx.lineTo(-11, -70); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#6a665d";
+  ctx.beginPath(); ctx.arc(0, -73, 3.5, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// ---- a few scattered autumn leaves on the floor (stable scatter) ----
+function drawLeaves(W, groundY) {
+  const rnd = mulberry32(7);
+  const cols = ["#b4521f", "#c87a2a", "#9a3d18", "#caa23a"];
+  ctx.save();
+  for (let i = 0; i < 9; i++) {
+    const lx = 80 + rnd() * (W - 160);
+    const ly = groundY + 14 + rnd() * 60;
+    const rot = rnd() * Math.PI * 2;
+    const sc = 0.7 + rnd() * 0.7;
+    ctx.save();
+    ctx.translate(lx, ly); ctx.rotate(rot); ctx.scale(sc, sc * 0.78);
+    ctx.fillStyle = cols[(rnd() * cols.length) | 0];
+    // simple maple-ish leaf: three lobes
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.quadraticCurveTo(-6, 2, -5, -5);
+    ctx.quadraticCurveTo(-1, -3, 0, -8);
+    ctx.quadraticCurveTo(1, -3, 5, -5);
+    ctx.quadraticCurveTo(6, 2, 0, 6);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "rgba(60,30,10,0.4)"; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(0, 6); ctx.lineTo(0, -7); ctx.stroke();
+    ctx.restore();
   }
   ctx.restore();
-
-  // void below the platform body
-  const void_ = ctx.createLinearGradient(0, groundY + bodyH, 0, H);
-  void_.addColorStop(0, "#0a0712");
-  void_.addColorStop(1, "#000000");
-  ctx.fillStyle = void_;
-  ctx.fillRect(0, groundY + bodyH, W, H - groundY - bodyH);
 }
 
-// ============================================================================
-// KOTH TARGET ZONE — the "hill" the two Students fight to control.
-//   Resolve the zone geometry from the replay (KOTH traces carry it; fighter
-//   traces do not, so this returns null and the overlay is skipped). The zone is
-//   drawn ON the platform, beneath the fighters, as a glowing capture band with a
-//   centre flag — so a KOTH replay reads as King-of-the-Hill, not a plain duel.
-//   Coordinates are the SAME sim-x space as the platform, mapped via geo.sx.
-// ============================================================================
-function zoneGeometry(data, plat) {
-  if (!data) return null;
-  const meta = data.meta || {};
-  const isKoth = (meta.game === "koth" || meta.game === "king-of-the-hill");
-  // Accept several shapes: meta.zone {center,half|lo,hi}, or top-level zone_* fields.
-  let z = meta.zone || data.zone || null;
-  let lo, hi, center;
-  if (z && typeof z === "object") {
-    if (z.lo != null && z.hi != null) { lo = +z.lo; hi = +z.hi; }
-    else if (z.center != null && z.half != null) { lo = +z.center - +z.half; hi = +z.center + +z.half; }
-    else if (z.center_frac != null && z.half != null) {
-      const c = +z.center_frac * (plat.x_right - plat.x_left) + plat.x_left;
-      lo = c - +z.half; hi = c + +z.half;
-    }
-  } else if (data.zone_center != null && data.zone_half != null) {
-    lo = +data.zone_center - +data.zone_half; hi = +data.zone_center + +data.zone_half;
-  } else if (meta.zone_center != null && meta.zone_half != null) {
-    lo = +meta.zone_center - +meta.zone_half; hi = +meta.zone_center + +meta.zone_half;
-  }
-  // Only draw when this is a KOTH trace OR explicit zone fields are present.
-  if (lo == null || hi == null || !isFinite(lo) || !isFinite(hi)) return null;
-  if (!isKoth && !z && data.zone_center == null && meta.zone_center == null) return null;
-  center = (lo + hi) / 2;
-  return { lo, hi, center };
-}
+function drawFloor(W, H, groundY) {
+  // base wood
+  const floor = ctx.createLinearGradient(0, groundY, 0, H);
+  floor.addColorStop(0, "#6b4523");
+  floor.addColorStop(0.25, "#5a3a1d");
+  floor.addColorStop(1, "#3c2614");
+  ctx.fillStyle = floor;
+  ctx.fillRect(0, groundY, W, H - groundY);
 
-function drawZone(plat, geo, data, t) {
-  const zg = zoneGeometry(data, plat);
-  if (!zg) return;
-  const { sx, groundY } = geo;
-  const topH = 12;                 // matches the grass-cap thickness in drawStage
-  const zL = sx(zg.lo), zR = sx(zg.hi);
-  const zW = Math.max(2, zR - zL);
-  const capY = groundY - topH;     // top of the platform grass
-
-  const pulse = 0.5 + 0.3 * (0.5 + 0.5 * Math.sin(t * 2.2));
-
-  ctx.save();
-  // --- capture band on the platform surface (gold "hill" zone) ---
-  const band = ctx.createLinearGradient(0, capY - 60, 0, groundY + 6);
-  band.addColorStop(0, "rgba(255,210,90,0)");
-  band.addColorStop(0.72, "rgba(255,196,64," + (0.16 * pulse).toFixed(3) + ")");
-  band.addColorStop(1, "rgba(255,176,40," + (0.34 * pulse).toFixed(3) + ")");
-  ctx.fillStyle = band;
-  ctx.fillRect(zL, capY - 60, zW, 60 + topH + 6);
-
-  // bright contact line where the zone meets the grass
-  ctx.fillStyle = "rgba(255,224,120," + (0.85 * pulse).toFixed(3) + ")";
-  ctx.fillRect(zL, capY - 1, zW, 3);
-
-  // zone boundary posts (the edges of the hill)
-  ctx.strokeStyle = "rgba(255,210,90," + (0.7 * pulse).toFixed(3) + ")";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([5, 4]);
-  for (const ex of [zL, zR]) {
+  // perspective plank seams: vanishing toward a high vanishing point
+  const vpX = W / 2, vpY = groundY - (H - groundY) * 2.4;
+  ctx.strokeStyle = "rgba(30,18,9,0.55)";
+  ctx.lineWidth = 1.5;
+  const planks = 9;
+  for (let i = 0; i <= planks; i++) {
+    const fx = (i / planks) * W;
     ctx.beginPath();
-    ctx.moveTo(ex, capY - 54);
-    ctx.lineTo(ex, groundY + 2);
+    ctx.moveTo(fx, H);
+    // converge slightly toward the vanishing x
+    const tx = fx + (vpX - fx) * 0.18;
+    ctx.lineTo(tx, groundY);
     ctx.stroke();
   }
-  ctx.setLineDash([]);
+  // horizontal board breaks with subtle highlight
+  for (let r = 1; r <= 4; r++) {
+    const t = r / 5;
+    const y = groundY + (H - groundY) * t * t; // denser near front
+    ctx.strokeStyle = "rgba(20,12,6,0.5)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    ctx.strokeStyle = "rgba(255,210,150,0.06)";
+    ctx.beginPath(); ctx.moveTo(0, y + 1.5); ctx.lineTo(W, y + 1.5); ctx.stroke();
+  }
+  // glossy reflection band near the front edge
+  const gloss = ctx.createLinearGradient(0, groundY, 0, groundY + 46);
+  gloss.addColorStop(0, "rgba(255,236,200,0.16)");
+  gloss.addColorStop(1, "rgba(255,236,200,0)");
+  ctx.fillStyle = gloss;
+  ctx.fillRect(0, groundY, W, 46);
+}
 
-  // --- centre flag (marks the hill) ---
-  const cX = sx(zg.center);
-  const poleTop = capY - 50;
-  ctx.strokeStyle = "#ffe9a8";
-  ctx.lineWidth = 2;
+function drawBanner(cx, top, w, h, text, col) {
+  ctx.save();
+  // cord
+  ctx.strokeStyle = "#1d1208"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx, top - 8); ctx.lineTo(cx, top); ctx.stroke();
+  // cloth with slight bottom sway (notched bottom)
+  const x = cx - w/2;
+  const grad = ctx.createLinearGradient(x, top, x + w, top);
+  grad.addColorStop(0, shade(col, -18));
+  grad.addColorStop(0.5, col);
+  grad.addColorStop(1, shade(col, -28));
+  ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.moveTo(cX, capY); ctx.lineTo(cX, poleTop); ctx.stroke();
-  const flutter = 3 * Math.sin(t * 4 + 1);
-  ctx.fillStyle = "#ffcf3f";
-  ctx.beginPath();
-  ctx.moveTo(cX, poleTop);
-  ctx.lineTo(cX + 18, poleTop + 5 + flutter);
-  ctx.lineTo(cX, poleTop + 12);
-  ctx.closePath(); ctx.fill();
-
-  // --- label so the viewer reads as King-of-the-Hill ---
-  ctx.fillStyle = "rgba(255,233,168,0.92)";
-  ctx.font = "600 12px ui-sans-serif, system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("HILL", cX, poleTop - 6);
+  ctx.moveTo(x, top);
+  ctx.lineTo(x + w, top);
+  ctx.lineTo(x + w, top + h);
+  ctx.lineTo(cx + 6, top + h - 12);
+  ctx.lineTo(cx, top + h);
+  ctx.lineTo(cx - 6, top + h - 12);
+  ctx.lineTo(x, top + h);
+  ctx.closePath();
+  ctx.fill();
+  // border
+  ctx.strokeStyle = shade(col, -40); ctx.lineWidth = 2; ctx.stroke();
+  // kanji (vertical)
+  ctx.fillStyle = "#f2e6cf";
+  ctx.font = "700 26px ui-sans-serif, system-ui";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = 3;
+  for (let i = 0; i < text.length; i++) {
+    ctx.fillText(text[i], cx, top + 34 + i * 34);
+  }
   ctx.restore();
 }
 
-function cloud(x, y, r) {
+function drawLantern(cx, top, r) {
+  ctx.save();
+  // cord
+  ctx.strokeStyle = "#1d1208"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx, top - 12); ctx.lineTo(cx, top); ctx.stroke();
+  // glowing body
+  const g = ctx.createRadialGradient(cx, top + r, r*0.2, cx, top + r, r*1.4);
+  g.addColorStop(0, "#ffe7b0");
+  g.addColorStop(0.7, "#e8a23c");
+  g.addColorStop(1, "#9a5a1e");
+  ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.arc(x, y, r * 0.6, 0, Math.PI * 2);
-  ctx.arc(x + r * 0.6, y + 4, r * 0.5, 0, Math.PI * 2);
-  ctx.arc(x - r * 0.6, y + 5, r * 0.45, 0, Math.PI * 2);
-  ctx.arc(x + r * 0.1, y + 8, r * 0.7, 0, Math.PI * 2);
+  ctx.ellipse(cx, top + r, r, r * 1.25, 0, 0, Math.PI * 2);
   ctx.fill();
+  // ribs
+  ctx.strokeStyle = "rgba(120,60,20,0.5)"; ctx.lineWidth = 1;
+  for (let i = -2; i <= 2; i++) {
+    ctx.beginPath();
+    ctx.ellipse(cx, top + r, Math.abs(i) * (r/3) + 2, r * 1.25, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // caps
+  ctx.fillStyle = "#1d1208";
+  ctx.fillRect(cx - r*0.4, top - 2, r*0.8, 4);
+  ctx.fillRect(cx - r*0.4, top + r*2.3, r*0.8, 4);
+  // light bloom
+  const bloom = ctx.createRadialGradient(cx, top + r, 2, cx, top + r, r*3);
+  bloom.addColorStop(0, "rgba(255,210,130,0.30)");
+  bloom.addColorStop(1, "rgba(255,210,130,0)");
+  ctx.fillStyle = bloom;
+  ctx.beginPath(); ctx.arc(cx, top + r, r*3, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
 }
 
-function mountains(W, groundY, baseY, color, peaks) {
-  ctx.fillStyle = color;
+function drawKatana(cx, y, w) {
+  ctx.save();
+  // small alcove backing (a darker recessed panel — tokonoma feel)
+  ctx.fillStyle = "rgba(40,26,14,0.45)";
+  roundRect(cx - w/2 - 26, y - 30, w + 52, 64, 6); ctx.fill();
+  ctx.strokeStyle = "rgba(20,12,6,0.6)"; ctx.lineWidth = 2;
+  roundRect(cx - w/2 - 26, y - 30, w + 52, 64, 6); ctx.stroke();
+  // two-peg dark wood wall rack
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#2a1a0d"; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.moveTo(cx - w/2 - 14, y + 18); ctx.lineTo(cx - w/2 - 14, y - 8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + w/2 + 14, y + 18); ctx.lineTo(cx + w/2 + 14, y - 8); ctx.stroke();
+  // peg tips
+  ctx.fillStyle = "#3a2614";
+  ctx.beginPath(); ctx.arc(cx - w/2 - 14, y - 8, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + w/2 + 14, y - 8, 4, 0, Math.PI*2); ctx.fill();
+  // saya (sheath) — lacquer black with a faint highlight, gentle curve
+  ctx.strokeStyle = "#0c0a08"; ctx.lineWidth = 9;
   ctx.beginPath();
-  ctx.moveTo(0, groundY);
-  for (let i = 0; i < peaks.length; i++) {
-    const x = peaks[i] * W;
-    const h = baseY * (0.55 + ((i * 0.27) % 0.45));
-    ctx.lineTo(x, groundY - h);
-    if (i < peaks.length - 1) {
-      const nx = peaks[i + 1] * W;
-      ctx.lineTo((x + nx) / 2, groundY - h * 0.45);
-    }
-  }
-  ctx.lineTo(W, groundY);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(cx - w/2, y + 4);
+  ctx.quadraticCurveTo(cx, y - 9, cx + w/2, y + 4);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - w/2 + 6, y + 2);
+  ctx.quadraticCurveTo(cx, y - 11, cx + w/2 - 6, y + 2);
+  ctx.stroke();
+  // tsuka (handle wrap) + tsuba (guard) + gold menuki
+  ctx.strokeStyle = "#6b4a22"; ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(cx + w/2 - 34, y);
+  ctx.lineTo(cx + w/2, y + 4);
+  ctx.stroke();
+  ctx.fillStyle = "#1d1208";
+  ctx.fillRect(cx + w/2 - 36, y - 6, 4, 12);   // tsuba
+  ctx.fillStyle = "#c8972e";
+  ctx.beginPath(); ctx.arc(cx + w/2 - 22, y + 1, 3, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
 }
 
-// Deterministic decorative fields (computed once). A tiny seeded PRNG keeps the
-// star/ember layout stable across renders so nothing flickers between frames.
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let tt = Math.imul(a ^ (a >>> 15), 1 | a);
-    tt = (tt + Math.imul(tt ^ (tt >>> 7), 61 | tt)) ^ tt;
-    return ((tt ^ (tt >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const STARS = (() => {
-  const rnd = mulberry32(1337); const out = [];
-  for (let i = 0; i < 70; i++) {
-    out.push({ x: rnd(), y: rnd(), s: rnd() < 0.85 ? 1 : 2,
-               a: 0.3 + rnd() * 0.6, p: rnd() * Math.PI * 2 });
-  }
-  return out;
-})();
-const EMBERS = (() => {
-  const rnd = mulberry32(99); const out = [];
-  for (let i = 0; i < 26; i++) {
-    out.push({ x: rnd(), r: 1 + rnd() * 1.8, spd: 0.06 + rnd() * 0.12,
-               ph: rnd(), warm: rnd() < 0.55 });
-  }
-  return out;
-})();
-
-// ============================================================================
-// RENDER
-// ----------------------------------------------------------------------------
-//  We interpolate body state BETWEEN replay frames using a fractional `sub`
-//  phase (0..1) advanced by the continuous animation loop while playing. This
-//  is what turns the discrete ~15-frame replays into smooth motion: positions
-//  ease toward the next frame, and pose-internal animation (run cycle, idle
-//  breathing, punch wind-up) reads the same phase for fluid life.
-//  When paused/scrubbing we render the exact frame (sub forced toward 0).
-// ============================================================================
-let subPhase = 0;          // 0..1 progress from current frame -> next frame
-
-function lerp(a, b, t) { return a + (b - a) * t; }
-
-// Build the interpolated body we actually draw for one fighter this render.
-function interpBody(who, sub) {
-  const frames = replay.frames;
-  const cur = frames[frame][who];
-  const nextFr = frames[Math.min(frame + 1, frames.length - 1)];
-  const nxt = nextFr[who];
-  // Don't interpolate position across a ring-out launch boundary discontinuity
-  // in a way that hides the event; we still ease x/y, which reads as "launched".
-  return {
-    x: lerp(cur.x, nxt.x, sub),
-    y: lerp(cur.y, nxt.y, sub),
-    facing: cur.facing,
-    action: cur.action,
-  };
+// ===================================================================== render orchestration
+function requestRender() {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame((ts) => { rafPending = false; render(ts); });
 }
 
-function render() {
+function render(ts) {
   if (!replay) return;
-  frame = Math.max(0, Math.min(frame, replay.frames.length - 1));
-  const last = frame === replay.frames.length - 1;
-  const sub = (playing && !last) ? subPhase : 0;
+  const now = ts || performance.now();
+  const dt = Math.min(0.05, (now - lastRenderTs) / 1000 || 0.016);
+  lastRenderTs = now;
 
+  frame = Math.max(0, Math.min(frame, replay.frames.length - 1));
   const fr = replay.frames[frame];
   const plat = replay.platform || { x_left: 0, x_right: 10, y: 0 };
   const geo = worldToScreen(plat);
-  const { sx, sy, groundY, W } = geo;
+  const { sx, sy, groundY, padX, W, H } = geo;
+  const m = replay.meta || {};
 
-  ctx.clearRect(0, 0, W, canvas.height);
+  ctx.clearRect(0, 0, W, H);
 
-  // --- layered, animated stage ---
-  drawStage(plat, geo, animClock);
+  // ---- DOJO backdrop ----
+  drawDojo(W, H, groundY);
 
-  // --- KOTH target zone (the hill) drawn ON the platform, beneath the fighters.
-  //     No-op for fighter traces (no zone) so the fighter view is unchanged. ---
-  drawZone(plat, geo, replay, animClock);
+  // ---- platform: a tatami/wood dueling deck on the floor ----
+  drawPlatformDeck(geo, plat);
 
-  // interpolated bodies for smooth motion
-  const b1 = interpBody("p1", sub);
-  const b2 = interpBody("p2", sub);
+  // ---- KOTH zone (only when present) ----
+  const zone = m.zone || zoneFromFrame(fr);
+  const isKoth = gameKey(m) === "koth" || !!zone;
+  if (isKoth && zone) drawZone(geo, plat, zone, fr);
 
-  // --- fighters (draw the farther/lower one first for cheap depth) ---
-  const order = (b1.y >= b2.y) ? [["p1", b1], ["p2", b2]] : [["p2", b2], ["p1", b1]];
-  for (const [who, b] of order) {
-    drawFighter(b, who, sx, sy, plat, groundY, animClock, sub);
-  }
+  // ---- fighters (gi) ----
+  const ts2 = trainedSlot(m);
+  const p1Trained = ts2 === "p1";
+  const p2Trained = ts2 === "p2";
+  const p1Color = ts2 ? (p1Trained ? getCSS("--trained") : getCSS("--base")) : getCSS("--trained");
+  const p2Color = ts2 ? (p2Trained ? getCSS("--trained") : getCSS("--base")) : getCSS("--base");
 
-  // --- punch flashes (from events on the discrete current frame) ---
+  // draw shadows first so fighters sit on the deck
+  drawShadow(fr.p1, geo, plat);
+  drawShadow(fr.p2, geo, plat);
+
   const evs = fr.events || [];
-  if (evs.includes("p1_punch")) punchFlash(b1, KIT.p1.blade || "#aef0ff", sx, sy, plat, groundY, animClock);
-  if (evs.includes("p2_punch")) punchFlash(b2, KIT.p2.accent, sx, sy, plat, groundY, animClock);
+  const p1Hit = evs.includes("p1_punch");
+  const p2Hit = evs.includes("p2_punch");
+  const p1KO  = evs.includes("p1_ringout") || isOffEdge(fr.p1, plat);
+  const p2KO  = evs.includes("p2_ringout") || isOffEdge(fr.p2, plat);
 
-  // --- ring-out effect ---
-  if (evs.includes("p1_ringout")) ringOutMark(b1, sx, groundY, "p1");
-  if (evs.includes("p2_ringout")) ringOutMark(b2, sx, groundY, "p2");
+  // team identity per slot: trained side -> red sprite, base side -> blue.
+  // ts2 may be null for non-h2h traces; then P1 reads as "trained"-styled, P2 "base".
+  const p1Team = p2Trained ? "base" : "trained";   // p1 is base only when p2 is the trained slot
+  const p2Team = p2Trained ? "trained" : "base";
 
-  // --- HUD ---
-  $("aP1").textContent = fr.p1.action;
-  $("aP2").textContent = fr.p2.action;
-  frameLabel.textContent = frame + " / " + (replay.frames.length - 1);
+  drawFighter(fr.p1, "p1", p1Team, p1Color, geo, plat, now, p1Hit, p1KO);
+  drawFighter(fr.p2, "p2", p2Team, p2Color, geo, plat, now, p2Hit, p2KO);
+
+  // ---- punch impact bursts ----
+  if (p1Hit) impactBurst(fr.p1, p1Color, geo, plat);
+  if (p2Hit) impactBurst(fr.p2, p2Color, geo, plat);
+
+  // ---- floating player tags (eased follow) ----
+  drawTag("p1", fr.p1, slotLabel(m, "p1"), p1Color, geo, plat, dt, p1Hit, p1KO);
+  drawTag("p2", fr.p2, slotLabel(m, "p2"), p2Color, geo, plat, dt, p2Hit, p2KO);
+
+  // ---- HUD / scrubber ----
+  if (timeCur) timeCur.textContent = fmtTime(frame);
+  if (timeTot) timeTot.textContent = fmtTime(replay.frames.length - 1);
   scrub.value = frame;
 
-  // --- end banner ---
-  if (last) {
-    const meta = replay.meta || {};
-    const w = meta.winner || "draw";
-    const isKoth = (meta.game === "koth" || meta.game === "king-of-the-hill");
-    banner.style.display = "block";
-    if (w === "draw") {
-      banner.textContent = isKoth
-        ? "Draw — zone-time tied at the step budget."
-        : "Draw — no ring-out within the step budget.";
-      banner.style.background = "#1c1f12"; banner.style.borderColor = "#5a4a1f";
-    } else {
-      const zt = meta.zone_time_final;
-      const heldBy = (isKoth && Array.isArray(zt))
-        ? "  (held the hill " + zt[w === "p1" ? 0 : 1] + " ticks)" : "";
-      banner.textContent = (isKoth ? "Hill held by: " : "Winner: ") + w.toUpperCase() + heldBy;
-      banner.style.background = "#11210f"; banner.style.borderColor = "#1f5a23";
-    }
-  } else {
-    banner.style.display = "none";
-  }
+  // No on-stage victory banner by design — the outcome reads quietly in the
+  // side panels (Outcome row + a small 勝 mark on the winner). This matches the
+  // approved reference and avoids the "really AI" saturated win bar.
+
+  // keep animating (sprite idle/run cycles, tag easing) — sprites animate from
+  // wall-clock, so we keep a gentle render loop alive whenever a replay is shown.
+  if (tagsSettling() || playing || replay) requestRender();
 }
 
-// ----------------------------------------------------------------------------
-// FIGHTER — a fully procedural, shaded, articulated character.
-//   `b` is the (interpolated) body state {x,y,facing,action}. `t` is the global
-//   animation clock; `sub` is the within-frame phase (0..1). The body anchors
-//   its feet on the platform line (or falls into the void when off-edge), and
-//   limbs animate continuously per pose.
-// ----------------------------------------------------------------------------
-function drawFighter(b, who, sx, sy, plat, groundY, t, sub) {
-  const kit = KIT[who];
-  const onPlatform = b.x >= plat.x_left && b.x <= plat.x_right;
-  const flip = (b.facing < 0) ? -1 : 1;
-  const pose = poseFor(b.action);
+function tagsSettling() {
+  return false; // tags converge fast; re-render is driven by frame changes & play loop
+}
 
-  const cx = sx(b.x);
-  const feetY = onPlatform ? sy(b.y) : groundY + 80;   // fall into void off-edge
+// ===================================================================== outcome (no banner)
+// The loud on-stage victory plaque was removed by design. The result now reads
+// quietly in the side panels (Outcome row + a small 勝 mark on the winner), per
+// the approved reference. These remain as harmless no-ops so any legacy callers
+// don't throw — and #banner stays empty/hidden.
+function showVerdict() { /* intentionally no-op — outcome lives in the side panels */ }
+function hideVerdict() { if (banner && banner.innerHTML) banner.innerHTML = ""; }
 
-  // pose-driven body transforms
-  let bob = 0, squash = 1, lean = 0;
-  // a continuous cycle phase: combine the global clock with within-frame sub so
-  // motion stays smooth both while auto-playing and when scrubbed slowly.
-  const cyc = t * 4.6 + sub * Math.PI;
-  if (pose === "idle") { bob = Math.sin(t * 2.2) * 1.6; }
-  if (pose === "run")  { bob = Math.abs(Math.sin(cyc)) * 2.2; lean = flip * 0.14; }
-  if (pose === "jump") { squash = 1.10; }
+// ===================================================================== platform deck
+function drawPlatformDeck(geo, plat) {
+  const { sx, groundY, H, W } = geo;
+  const platL = sx(plat.x_left), platR = sx(plat.x_right);
+  const span = platR - platL;
+  // soft contact shadow the plinth casts on the floor
+  ctx.fillStyle = "rgba(0,0,0,0.32)";
+  ctx.beginPath(); ctx.ellipse((platL+platR)/2, groundY + 16, span/2 + 14, 9, 0, 0, Math.PI*2); ctx.fill();
 
-  const H = FIGHTER_H;
-  const scale = H / 64;
-  const groundedY = feetY + bob;
-  const dim = !onPlatform;
-
-  // soft contact shadow on the platform (shrinks with jump height)
-  if (onPlatform && b.y < 2.0) {
-    const shrink = Math.max(0.25, 1 - b.y * 0.35);
-    ctx.save();
-    ctx.globalAlpha = 0.30 * shrink;
-    ctx.fillStyle = "#000";
-    ctx.beginPath();
-    ctx.ellipse(cx, sy(0) + 2, 20 * scale * shrink, 5 * shrink, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+  // ---- warm worn-wood plinth (a low raised stage) ----
+  const deckH = 16;            // visible top thickness
+  const faceH = 12;            // front face (depth)
+  // front face — warm worn wood (lit from upper-left, in partial shadow)
+  const face = ctx.createLinearGradient(0, groundY + deckH, 0, groundY + deckH + faceH);
+  face.addColorStop(0, "#6e451f"); face.addColorStop(0.5, "#553418"); face.addColorStop(1, "#3c2511");
+  ctx.fillStyle = face;
+  roundRect(platL - 4, groundY + deckH - 3, span + 8, faceH + 4, 3); ctx.fill();
+  // vertical grain on the face so it reads as wood, not a flat bar
+  ctx.strokeStyle = "rgba(30,18,8,0.35)"; ctx.lineWidth = 1;
+  for (let i = 1; i < 24; i++) {
+    const gx = platL + span * (i / 24);
+    ctx.beginPath(); ctx.moveTo(gx, groundY + deckH - 1); ctx.lineTo(gx, groundY + deckH + faceH); ctx.stroke();
   }
+  // warm top catch-light along the lit edge of the face
+  ctx.strokeStyle = "rgba(255,196,120,0.18)"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(platL - 2, groundY + deckH - 2); ctx.lineTo(platR + 2, groundY + deckH - 2); ctx.stroke();
+  // top surface — warm worn planks
+  const top = ctx.createLinearGradient(0, groundY, 0, groundY + deckH);
+  top.addColorStop(0, "#9a6a38"); top.addColorStop(0.5, "#7d5028"); top.addColorStop(1, "#5e3a1c");
+  ctx.fillStyle = top;
+  roundRect(platL - 4, groundY - 1, span + 8, deckH + 2, 3); ctx.fill();
+  // plank seams across the top
+  ctx.strokeStyle = "rgba(40,24,10,0.5)"; ctx.lineWidth = 1;
+  const seams = 7;
+  for (let i = 1; i < seams; i++) {
+    const x = platL + span * (i / seams);
+    ctx.beginPath(); ctx.moveTo(x, groundY); ctx.lineTo(x - 2, groundY + deckH); ctx.stroke();
+  }
+  // grain highlights + a warm top edge catch-light (key light from upper-left)
+  ctx.strokeStyle = "rgba(255,214,150,0.22)"; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(platL - 2, groundY + 0.5); ctx.lineTo(platR + 2, groundY + 0.5); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,196,120,0.10)"; ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const yy = groundY + 3 + i * 3;
+    ctx.beginPath(); ctx.moveTo(platL, yy); ctx.lineTo(platL + span * (0.4 + i*0.12), yy); ctx.stroke();
+  }
+  // lacquer-capped ring-out edges (the only team-neutral accent — restrained)
+  ctx.fillStyle = "#5a1f17";
+  roundRect(platL - 6, groundY - 2, 5, deckH + faceH + 2, 2); ctx.fill();
+  roundRect(platR + 1, groundY - 2, 5, deckH + faceH + 2, 2); ctx.fill();
+  ctx.fillStyle = "rgba(196,69,60,0.7)";
+  ctx.fillRect(platL - 6, groundY - 2, 5, 3);
+  ctx.fillRect(platR + 1, groundY - 2, 5, 3);
+}
+
+// ===================================================================== KOTH zone
+function zoneFromFrame(fr) {
+  // some traces could carry zone bounds per-frame; meta is the source of truth here
+  return null;
+}
+function drawZone(geo, plat, zone, fr) {
+  const { sx, groundY } = geo;
+  const center = zone.center != null ? zone.center : (plat.x_left + plat.x_right) / 2;
+  const half = zone.half != null ? zone.half
+             : (zone.hi != null && zone.lo != null) ? (zone.hi - zone.lo) / 2 : 1.0;
+  const lo = zone.lo != null ? zone.lo : center - half;
+  const hi = zone.hi != null ? zone.hi : center + half;
+  const xl = sx(lo), xr = sx(hi), xc = sx(center);
 
   ctx.save();
-  ctx.translate(cx, groundedY);
-  ctx.scale(flip, 1);          // face right by default; flip mirrors everything
-  ctx.scale(scale, scale * squash);
-  ctx.rotate(lean);
+  // contested glow on the deck — the hill
+  const anyone = fr && (fr.p1_in_zone || fr.p2_in_zone);
+  const glow = ctx.createLinearGradient(0, groundY - 64, 0, groundY + 14);
+  const gc = anyone ? "200,151,46" : "150,120,70";
+  glow.addColorStop(0, `rgba(${gc},0)`);
+  glow.addColorStop(1, `rgba(${gc},${anyone ? 0.35 : 0.18})`);
+  ctx.fillStyle = glow;
+  ctx.fillRect(xl, groundY - 64, xr - xl, 78);
 
-  // After this transform, (0,0) is at the feet, +y is UP-from-feet handled by
-  // using negative y for body parts. We draw in a "feet at origin" local space.
-  if (who === "p1") drawFrostKnight(kit, pose, cyc, sub, dim);
-  else              drawEmberBrawler(kit, pose, cyc, sub, dim);
+  // hill markers — paper boundary posts with rope
+  ctx.strokeStyle = "rgba(232,210,160,0.85)";
+  ctx.setLineDash([6, 6]); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(xl, groundY - 60); ctx.lineTo(xl, groundY + 12); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xr, groundY - 60); ctx.lineTo(xr, groundY + 12); ctx.stroke();
+  ctx.setLineDash([]);
+  // posts
+  ctx.fillStyle = "#7a1f17";
+  ctx.fillRect(xl - 3, groundY - 60, 6, 16);
+  ctx.fillRect(xr - 3, groundY - 60, 6, 16);
 
-  ctx.restore();
-
-  // floating P1/P2 tag above the head
-  ctx.save();
-  ctx.font = "bold 11px ui-sans-serif, system-ui";
+  // center line + 'HILL' label
+  ctx.strokeStyle = "rgba(200,151,46,0.6)"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(xc, groundY - 58); ctx.lineTo(xc, groundY + 12); ctx.stroke();
+  ctx.fillStyle = "rgba(232,210,160,0.9)";
+  ctx.font = "700 11px ui-sans-serif, system-ui";
   ctx.textAlign = "center";
-  ctx.fillStyle = kit.tag;
-  ctx.strokeStyle = "rgba(0,0,0,0.65)"; ctx.lineWidth = 3;
-  const headTop = groundedY - (H * squash) - 6;
-  ctx.strokeText(who.toUpperCase(), cx, headTop);
-  ctx.fillText(who.toUpperCase(), cx, headTop);
+  ctx.fillText("CONTROL ZONE", xc, groundY - 66);
+
+  // who-holds-it indicator
+  if (fr) {
+    const holder = fr.p1_in_zone && !fr.p2_in_zone ? "p1"
+                 : fr.p2_in_zone && !fr.p1_in_zone ? "p2" : null;
+    if (holder) {
+      const m = replay.meta || {};
+      const tcolor = trainedSlot(m) === holder ? getCSS("--trained") : getCSS("--base");
+      ctx.fillStyle = tcolor;
+      ctx.beginPath(); ctx.arc(xc, groundY - 78, 5, 0, Math.PI*2); ctx.fill();
+    }
+  }
   ctx.restore();
 }
 
-// Small helpers used by both character draw routines. All coordinates are in
-// local "feet at origin, character ~64 tall, facing right" space.
-function limb(x0, y0, x1, y1, w, col) {
-  ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
-}
-function roundedTorso(x, y, w, h, grad) {
-  const r = Math.min(w, h) * 0.34;
-  ctx.fillStyle = grad;
+// ===================================================================== fighter helpers
+function isOffEdge(b, plat) { return b.x < plat.x_left || b.x > plat.x_right; }
+
+function drawShadow(b, geo, plat) {
+  const { sx, sy, groundY } = geo;
+  if (isOffEdge(b, plat)) return;
+  const cx = sx(b.x);
+  const yOff = (b.y || 0);
+  const r = 24 - Math.min(11, yOff * 4);     // slightly wider for the chibi footprint
+  ctx.save();
+  ctx.globalAlpha = Math.max(0.12, 0.34 - yOff * 0.06);
+  // soft feathered contact shadow
+  const sg = ctx.createRadialGradient(cx, groundY + 1, 1, cx, groundY + 1, r);
+  sg.addColorStop(0, "rgba(0,0,0,0.55)");
+  sg.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = sg;
   ctx.beginPath();
-  ctx.moveTo(x - w / 2 + r, y);
-  ctx.arcTo(x + w / 2, y, x + w / 2, y + h, r);
-  ctx.arcTo(x + w / 2, y + h, x - w / 2, y + h, r);
-  ctx.arcTo(x - w / 2, y + h, x - w / 2, y, r);
-  ctx.arcTo(x - w / 2, y, x + w / 2, y, r);
-  ctx.closePath();
+  ctx.ellipse(cx, groundY + 2, r, 5.5, 0, 0, Math.PI * 2);
   ctx.fill();
-}
-function maybeDim(col, dim) { return dim ? grayish(col) : col; }
-
-// ---- P1: Frost Knight -------------------------------------------------------
-// Armored knight: horned helm w/ glowing visor, plated torso w/ trim, a back
-// leg + front leg that cycle on run, and an energy-blade arm that winds up and
-// extends on punch.
-function drawFrostKnight(kit, pose, cyc, sub, dim) {
-  const armor   = maybeDim(kit.armor, dim);
-  const armorHi = maybeDim(kit.armorHi, dim);
-  const armorLo = maybeDim(kit.armorLo, dim);
-  const trim    = maybeDim(kit.trim, dim);
-  const accent  = maybeDim(kit.accent, dim);
-  const skin    = maybeDim(kit.skin, dim);
-  const blade   = maybeDim(kit.blade, dim);
-
-  // --- legs (origin is feet at y=0; body extends to negative y = upward) ---
-  // run: alternate a forward/back stride; idle/jump: planted/tucked.
-  let frontLegX = 6, backLegX = -6, kneeLift = 0;
-  if (pose === "run") {
-    const s = Math.sin(cyc);
-    frontLegX = 6 + s * 6; backLegX = -6 + s * 6; kneeLift = Math.max(0, Math.cos(cyc)) * 5;
-  } else if (pose === "jump") {
-    frontLegX = 5; backLegX = -7; kneeLift = 8;   // tucked
-  }
-  const hipY = -26;
-  limb(backLegX, 0, -2, hipY, 7, armorLo);                 // back leg
-  limb(frontLegX, -kneeLift, 2, hipY, 8, armor);           // front leg
-  // boots
-  ctx.fillStyle = trim;
-  ctx.fillRect(backLegX - 4, -3, 9, 4);
-  ctx.fillRect(frontLegX - 4, -kneeLift - 3, 9, 4);
-
-  // --- torso (plated, vertical shading + trim seam + glowing core) ---
-  const tgrad = ctx.createLinearGradient(-10, -52, 10, -26);
-  tgrad.addColorStop(0, armorHi);
-  tgrad.addColorStop(0.5, armor);
-  tgrad.addColorStop(1, armorLo);
-  roundedTorso(0, -52, 22, 26, tgrad);
-  ctx.fillStyle = trim;                                     // chest trim seam
-  ctx.fillRect(-1.5, -50, 3, 22);
-  ctx.fillStyle = accent;                                   // glowing core gem
-  ctx.beginPath(); ctx.arc(0, -42, 3, 0, Math.PI * 2); ctx.fill();
-  // shoulder pauldron
-  ctx.fillStyle = armorHi;
-  ctx.beginPath(); ctx.arc(-9, -50, 6, 0, Math.PI * 2); ctx.fill();
-
-  // --- back arm (shield-ish guard, tucked) ---
-  limb(-7, -48, -12, -34, 6, armorLo);
-
-  // --- front arm + energy blade: winds up then extends on punch ---
-  let shX = 9, shY = -48, hX = 16, hY = -40;               // default guard
-  if (pose === "punch") {
-    // sub 0..1: 0=wind back, ~1=full extension
-    const ext = sub;
-    hX = lerp(6, 30, ext); hY = lerp(-34, -42, ext);
-  } else if (pose === "run") {
-    hX = 14 + Math.sin(cyc + Math.PI) * 4; hY = -40;
-  } else if (pose === "idle") {
-    hY = -40 + Math.sin(cyc * 0.5) * 1.2;
-  }
-  limb(shX, shY, hX, hY, 7, armor);                        // upper+forearm
-  // gauntlet fist
-  ctx.fillStyle = armorHi;
-  ctx.beginPath(); ctx.arc(hX, hY, 4.5, 0, Math.PI * 2); ctx.fill();
-  // energy blade extending from the fist (longer + brighter on punch)
-  const bladeLen = pose === "punch" ? lerp(8, 22, sub) : 12;
-  const bgrad = ctx.createLinearGradient(hX, hY, hX + bladeLen, hY - 2);
-  bgrad.addColorStop(0, "#ffffff");
-  bgrad.addColorStop(1, blade);
-  ctx.strokeStyle = bgrad; ctx.lineWidth = 4; ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(hX, hY); ctx.lineTo(hX + bladeLen, hY - bladeLen * 0.25); ctx.stroke();
-  // blade glow
-  ctx.save(); ctx.globalAlpha = 0.4; ctx.strokeStyle = blade; ctx.lineWidth = 9;
-  ctx.beginPath(); ctx.moveTo(hX, hY); ctx.lineTo(hX + bladeLen, hY - bladeLen * 0.25); ctx.stroke();
   ctx.restore();
-
-  // --- head: helm + horns + glowing visor ---
-  const hcx = 0, hcy = -62;
-  // helm dome
-  const hgrad = ctx.createLinearGradient(hcx - 8, hcy - 8, hcx + 8, hcy + 8);
-  hgrad.addColorStop(0, armorHi); hgrad.addColorStop(1, armor);
-  ctx.fillStyle = hgrad;
-  ctx.beginPath(); ctx.arc(hcx, hcy, 9, 0, Math.PI * 2); ctx.fill();
-  // visor (glowing slit)
-  ctx.fillStyle = skin; ctx.fillRect(hcx - 6, hcy - 1, 12, 6);
-  ctx.fillStyle = accent; ctx.fillRect(hcx - 5, hcy + 1, 11, 2);
-  // horns
-  ctx.strokeStyle = trim; ctx.lineWidth = 3; ctx.lineCap = "round";
-  ctx.beginPath(); ctx.moveTo(hcx - 6, hcy - 6); ctx.lineTo(hcx - 12, hcy - 13); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(hcx + 6, hcy - 6); ctx.lineTo(hcx + 12, hcy - 13); ctx.stroke();
-  // crest spark
-  ctx.fillStyle = accent;
-  ctx.beginPath(); ctx.arc(hcx, hcy - 10, 2, 0, Math.PI * 2); ctx.fill();
-
-  // rim light down the leading edge
-  if (!dim) {
-    ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = kit.rim; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(10, -30); ctx.lineTo(11, -50); ctx.stroke();
-    ctx.restore();
-  }
 }
 
-// ---- P2: Ember Brawler ------------------------------------------------------
-// Bare-knuckle brawler: flame-mohawk head, broad shaded chest, heavy red
-// gloves. Big telegraphed hook on punch; bouncy run cycle.
-function drawEmberBrawler(kit, pose, cyc, sub, dim) {
-  const armor   = maybeDim(kit.armor, dim);
-  const armorHi = maybeDim(kit.armorHi, dim);
-  const armorLo = maybeDim(kit.armorLo, dim);
-  const trim    = maybeDim(kit.trim, dim);
-  const accent  = maybeDim(kit.accent, dim);
-  const skin    = maybeDim(kit.skin, dim);
-  const glove   = maybeDim(kit.glove, dim);
-  const gloveHi = maybeDim(kit.gloveHi, dim);
+// ===================================================================== sprite fighter
+// Real-art fighter: slices the correct frame out of a LuizMelo sprite sheet and
+// draws it positioned from the replay frame's world x/y, flipped by `facing`,
+// tinted to the team color. Advances the animation frame from the replay
+// timeline (so scrubbing/stepping shows a consistent pose) plus a little wall-
+// clock motion for idle/run liveliness. Falls back to the procedural drawGi if
+// the sheets haven't loaded (keeps file:// + first-paint from going blank).
+function drawFighter(b, slot, team, color, geo, plat, now, hit, ko) {
+  const char = TEAM_CHAR[team] || "samuraiMack";
+  const store = spriteStore[char];
 
-  // --- legs ---
-  let frontLegX = 7, backLegX = -7, kneeLift = 0;
-  if (pose === "run") {
-    const s = Math.sin(cyc);
-    frontLegX = 7 + s * 7; backLegX = -7 + s * 7; kneeLift = Math.max(0, Math.cos(cyc)) * 6;
-  } else if (pose === "jump") {
-    frontLegX = 6; backLegX = -8; kneeLift = 9;
-  }
-  const hipY = -25;
-  limb(backLegX, 0, -2, hipY, 8, armorLo);
-  limb(frontLegX, -kneeLift, 2, hipY, 9, armor);
-  // shoes
-  ctx.fillStyle = trim;
-  ctx.fillRect(backLegX - 5, -3, 10, 4);
-  ctx.fillRect(frontLegX - 5, -kneeLift - 3, 10, 4);
+  // pick animation from the replay action + state
+  const off = isOffEdge(b, plat) || ko;
+  const action = b.action || "idle";
+  const falling = action === "jump" && (b.__lastY != null && b.y < b.__lastY);
+  // alternate punch sheets per replay-frame so repeated punches don't look static
+  const attack2 = (frame % 2) === 1;
+  const animName = animForAction(action, { ko: off, hit, attack2, falling });
+  b.__lastY = b.y;
 
-  // --- torso (broad, warm shading, ab seams) ---
-  const tgrad = ctx.createLinearGradient(-12, -50, 12, -25);
-  tgrad.addColorStop(0, armorHi);
-  tgrad.addColorStop(0.5, armor);
-  tgrad.addColorStop(1, armorLo);
-  roundedTorso(0, -50, 24, 25, tgrad);
-  // chest/ab seams
-  ctx.strokeStyle = armorLo; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(0, -48); ctx.lineTo(0, -28); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-7, -38); ctx.lineTo(7, -38); ctx.stroke();
-  // belt
-  ctx.fillStyle = trim; ctx.fillRect(-11, -29, 22, 4);
-  ctx.fillStyle = accent; ctx.fillRect(-2, -29, 4, 4);   // buckle
-
-  // --- back arm (guard, bouncing on run) ---
-  let bhX = -15, bhY = -38;
-  if (pose === "run") { bhX = -14 + Math.sin(cyc) * 4; }
-  limb(-9, -47, bhX, bhY, 7, armor);
-  ctx.fillStyle = glove;
-  ctx.beginPath(); ctx.arc(bhX, bhY, 5, 0, Math.PI * 2); ctx.fill();
-
-  // --- front arm: big hook that winds up then extends on punch ---
-  let shX = 9, shY = -47, hX = 16, hY = -42;
-  if (pose === "punch") {
-    const ext = sub;
-    hX = lerp(4, 30, ext); hY = lerp(-30, -44, ext);
-  } else if (pose === "run") {
-    hX = 15 + Math.sin(cyc + Math.PI) * 5; hY = -42;
-  } else if (pose === "idle") {
-    hY = -42 + Math.sin(cyc * 0.5) * 1.4;
-  }
-  limb(shX, shY, hX, hY, 8, armor);
-  // big red glove fist (with highlight) — grows slightly on full punch
-  const gr = pose === "punch" ? lerp(5, 7.5, sub) : 6;
-  ctx.fillStyle = glove;
-  ctx.beginPath(); ctx.arc(hX, hY, gr, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = gloveHi;
-  ctx.beginPath(); ctx.arc(hX - gr * 0.3, hY - gr * 0.3, gr * 0.4, 0, Math.PI * 2); ctx.fill();
-
-  // --- head: skin face + glowing flame mohawk ---
-  const hcx = 0, hcy = -60;
-  const fgrad = ctx.createLinearGradient(hcx - 8, hcy - 8, hcx + 8, hcy + 8);
-  fgrad.addColorStop(0, skin); fgrad.addColorStop(1, maybeDim(kit.skinLo, dim));
-  ctx.fillStyle = fgrad;
-  ctx.beginPath(); ctx.arc(hcx, hcy, 9, 0, Math.PI * 2); ctx.fill();
-  // eye + brow
-  ctx.fillStyle = "#2a0d06"; ctx.fillRect(hcx + 2, hcy - 2, 3, 3);
-  ctx.strokeStyle = "#2a0d06"; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(hcx, hcy - 4); ctx.lineTo(hcx + 6, hcy - 3); ctx.stroke();
-  // flame mohawk: a row of flickering spikes (phase-driven flicker)
-  for (let i = -2; i <= 2; i++) {
-    const fx = hcx + i * 3.2;
-    const flick = 6 + Math.sin(cyc * 1.7 + i) * 2.5 + (3 - Math.abs(i));
-    const g = ctx.createLinearGradient(fx, hcy - 8, fx, hcy - 8 - flick);
-    g.addColorStop(0, glove);
-    g.addColorStop(0.5, armor);
-    g.addColorStop(1, accent);
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(fx - 2, hcy - 7);
-    ctx.lineTo(fx, hcy - 8 - flick);
-    ctx.lineTo(fx + 2, hcy - 7);
-    ctx.closePath(); ctx.fill();
+  const rec = store && store[animName];
+  if (!rec || !rec.base) {
+    // sheets not ready (or this anim missing) — keep the viewer alive.
+    drawGi(b, color, geo, plat, now, hit, ko);
+    return;
   }
 
-  // rim light
-  if (!dim) {
-    ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = kit.rim; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(11, -28); ctx.lineTo(12, -48); ctx.stroke();
-    ctx.restore();
+  // pick the frame index within the animation
+  const nFrames = rec.frames;
+  let fi;
+  if (off && animName === "Death") {
+    // play the death sheet ONCE and hold the last (fallen) frame as it sinks
+    const t = Math.min(1, ((now % 100000) - (b.__koStart || (b.__koStart = now))) / 700);
+    fi = Math.min(nFrames - 1, Math.floor(t * nFrames));
+  } else if (animName === "Attack1" || animName === "Attack2" || animName === "TakeHit") {
+    // one-shot poses: drive the strike pose from wall-clock so it visibly swings
+    fi = Math.floor((now / 80)) % nFrames;
+  } else {
+    // looping anims (Idle/Run/Jump/Fall): wall-clock cycle, fast enough to read
+    const speed = animName === "Run" ? 70 : animName === "Idle" ? 130 : 110;
+    fi = Math.floor(now / speed) % nFrames;
   }
-}
+  if (!off) b.__koStart = undefined;
 
-// desaturate toward gray for the "defeated / falling" look
-function grayish(hex) {
-  const n = parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  const lum = Math.round(0.3 * r + 0.59 * g + 0.11 * b);
-  const mix = (ch) => Math.round(ch * 0.35 + lum * 0.65);
-  const h = (v) => v.toString(16).padStart(2, "0");
-  return "#" + h(mix(r)) + h(mix(g)) + h(mix(b));
-}
+  const sheet = rec.tinted[team] || rec.base;
 
-// Impact burst at the fist when a punch event fires.
-function punchFlash(b, color, sx, sy, plat, groundY, t) {
-  const onPlatform = b.x >= plat.x_left && b.x <= plat.x_right;
+  // ---- placement: bottom-centre the character on the deck at its world x ----
+  const { sx, sy, groundY } = geo;
   const dir = (b.facing < 0) ? -1 : 1;
-  const feetY = onPlatform ? sy(b.y) : groundY + 80;
-  const cx = sx(b.x) + dir * 30;
-  const cy = feetY - 44;                  // roughly fist height in screen space
+  const cx = sx(b.x);
+  // sprite draw box: the 200px source frame scaled to a readable fighter height.
+  const DRAW = 200;                       // on-canvas frame size (px)
+  // In these LuizMelo sheets the character's feet sit ~13% above the frame's
+  // bottom edge (transparent pad below). Subtract that so the feet land on the
+  // deck surface (sy(0) = groundY) instead of floating.
+  const footPad = DRAW * 0.13;            // transparent pad below the feet
+  let footY = off
+    ? Math.min(groundY + 150, sy(b.y) + (now % 1000) / 1000 * 80)  // sink on KO
+    : sy(b.y);
+  const dx = cx - DRAW / 2;
+  const dy = footY - DRAW + footPad;
 
   ctx.save();
-  // radial glow
-  const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, 30);
-  g.addColorStop(0, "rgba(255,255,255,0.95)");
-  g.addColorStop(0.4, color);
-  g.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.fill();
+  if (off) ctx.globalAlpha = 0.92;
+  // horizontal flip about the sprite centre when facing left
+  if (dir < 0) {
+    ctx.translate(cx, 0);
+    ctx.scale(-1, 1);
+    ctx.translate(-cx, 0);
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(
+    sheet,
+    fi * SPRITE_FRAME, 0, SPRITE_FRAME, SPRITE_FRAME,  // src frame
+    dx, dy, DRAW, DRAW                                  // dest box
+  );
+  ctx.restore();
 
-  // spark spikes (slowly rotate with the clock for a little life)
-  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineCap = "round";
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + t * 0.8;
-    const r0 = 9, r1 = 22 + (i % 2) * 9;
+  // remember the figure's "core" screen position for the tag follow (above head).
+  // head sits roughly 30% down from the top of the drawn box.
+  b.__sx = cx;
+  b.__sy = dy + DRAW * 0.30;
+}
+
+// The CHIBI gi fighter — a stylized karate kid: big expressive head, small body,
+// gi + colored belt + headband. Fully procedural so it animates per-frame
+// (idle / move / jump / punch / KO). Clean line + soft shading, warm light.
+// Retained as a fallback for first-paint / file:// when sprite sheets are absent.
+function drawGi(b, color, geo, plat, now, hit, ko) {
+  const { sx, sy, groundY } = geo;
+  const off = isOffEdge(b, plat) || ko;
+  const dir = (b.facing < 0) ? -1 : 1;
+  const action = b.action || "idle";
+
+  // base anchor: feet on deck (or falling into void if KO/off-edge)
+  let footX = sx(b.x);
+  let footY = off ? Math.min(groundY + 130, groundY + 30 + (now % 1000) / 1000 * 70) : sy(b.y);
+
+  // KO: tip the figure over as it falls
+  let koTilt = off ? dir * 0.9 : 0;
+
+  // ---- chibi proportions: head ≈ 40% of total height ----
+  const scale = 1.05;
+  const headR   = 18 * scale;      // BIG head — the chibi signature
+  const bodyH   = 30 * scale;      // short torso
+  const bodyW   = 26 * scale;      // body half-handled below
+  const legH    = 12 * scale;      // stubby legs
+
+  // idle breathing + a tiny side-to-side weight shift
+  const breathe = Math.sin(now / 520) * 1.6;
+  const sway    = Math.sin(now / 700) * 1.0;
+
+  // pose params (chibi-scaled)
+  let crouch = 0, lean = 0, armSwing = 0, stance = 7 * scale, jumpLift = 0, squash = 1;
+  if (action === "punch")            { lean = dir * 4; armSwing = 1; crouch = 2; stance = 11 * scale; }
+  else if (action === "left" || action === "right") {
+    const moving = (action === "left") ? -1 : 1;
+    lean = moving * 3 + sway * 0.4; stance = 10 * scale; armSwing = 0.5 * moving;
+  } else if (action === "jump")      { jumpLift = 14; crouch = -3; stance = 5 * scale; squash = 1.06; }
+  else                               { crouch = breathe; lean = sway; }
+
+  // body anchor points (hips just above the legs)
+  const hipX = footX + lean;
+  const hipY = footY - legH - jumpLift + crouch;          // top of legs
+  const bodyTopY = hipY - bodyH;                           // shoulders
+  const headCX = hipX + dir * 1 + koTilt * 16;
+  const headCY = bodyTopY - headR * 0.78 + (off ? koTilt * 22 : 0);
+
+  ctx.save();
+  if (off) { ctx.globalAlpha = 0.9; ctx.translate(headCX, headCY); ctx.rotate(koTilt * 0.55); ctx.translate(-headCX, -headCY); }
+
+  const robe      = off ? "#8b7d68" : "#f3ecda";   // gi off-white
+  const robeShade = off ? "#675c4b" : "#dcd2b8";   // fold shade
+  const robeLine  = off ? "#4f463a" : "#b9ad8d";   // clean outline
+  const skin      = off ? "#cdb79a" : "#f0cda0";   // warm skin
+  const skinShade = off ? "#b39e83" : "#e0b386";
+  const dark      = "#2a2018";
+  const hair      = "#2a1d14";
+  const ink       = off ? "#4a4036" : "#33281d";   // line color
+
+  const half = bodyW / 2;
+
+  // ===== legs (two short stubby legs in gi pants) =====
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const footY2 = footY;
+  for (const s of [-1, 1]) {
+    const lx = hipX + s * stance;
+    ctx.strokeStyle = robe; ctx.lineWidth = 9 * scale;
+    ctx.beginPath(); ctx.moveTo(hipX + s * (half * 0.45), hipY - 1); ctx.lineTo(lx, footY2 - 3); ctx.stroke();
+    ctx.strokeStyle = robeLine; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(hipX + s * (half * 0.45), hipY - 1); ctx.lineTo(lx, footY2 - 3); ctx.stroke();
+    // bare foot
+    ctx.fillStyle = skin; ctx.strokeStyle = ink; ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.ellipse(lx + dir * 2, footY2 - 1, 5.2 * scale, 3.2 * scale, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  }
+
+  // ===== gi jacket (rounded little torso, crossed front, sleeves) =====
+  const jl = hipX - half, jr = hipX + half;
+  ctx.fillStyle = robe; ctx.strokeStyle = ink; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(jl + 2, bodyTopY + 3);
+  ctx.quadraticCurveTo(hipX, bodyTopY - 3, jr - 2, bodyTopY + 3);   // rounded shoulders
+  ctx.lineTo(jr + 1, hipY + 2);
+  ctx.quadraticCurveTo(hipX, hipY + 6, jl - 1, hipY + 2);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // soft side shade for volume
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(jl + 2, bodyTopY + 3);
+  ctx.quadraticCurveTo(hipX, bodyTopY - 3, jr - 2, bodyTopY + 3);
+  ctx.lineTo(jr + 1, hipY + 2);
+  ctx.quadraticCurveTo(hipX, hipY + 6, jl - 1, hipY + 2);
+  ctx.closePath(); ctx.clip();
+  const sg = ctx.createLinearGradient(jl, 0, jr, 0);
+  sg.addColorStop(0, "rgba(0,0,0,0)");
+  sg.addColorStop(dir > 0 ? 1 : 0, "rgba(70,55,35,0.18)");
+  ctx.fillStyle = sg; ctx.fillRect(jl - 2, bodyTopY - 4, bodyW + 4, bodyH + 12);
+  ctx.restore();
+  // crossed lapel V
+  ctx.strokeStyle = robeLine; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(hipX - half * 0.62, bodyTopY + 2);
+  ctx.lineTo(hipX, hipY - 4);
+  ctx.lineTo(hipX + half * 0.62, bodyTopY + 2);
+  ctx.stroke();
+  // inner collar line
+  ctx.strokeStyle = "rgba(50,40,28,0.35)"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(hipX, bodyTopY + 1); ctx.lineTo(hipX, hipY - 5); ctx.stroke();
+
+  // ===== belt (colored obi — team color) =====
+  const beltY = hipY - 6 * scale;
+  const beltH = 6 * scale;
+  ctx.fillStyle = color;
+  roundRect(jl - 1, beltY, bodyW + 2, beltH, 2); ctx.fill();
+  ctx.fillStyle = shade(color, 22);
+  ctx.fillRect(jl - 1, beltY, bodyW + 2, 1.6);     // top highlight
+  ctx.fillStyle = shade(color, -28);
+  ctx.fillRect(jl - 1, beltY + beltH - 1.6, bodyW + 2, 1.6); // bottom shade
+  // belt knot + two hanging tails
+  ctx.fillStyle = shade(color, -16);
+  roundRect(hipX - 3.5 * scale, beltY - 0.5, 7 * scale, beltH + 1, 1.5); ctx.fill();
+  ctx.fillStyle = color;
+  ctx.fillRect(hipX - 3 * scale, beltY + beltH - 1, 2.6 * scale, 9 * scale);
+  ctx.fillRect(hipX + 0.6 * scale, beltY + beltH - 1, 2.6 * scale, 7 * scale);
+
+  // ===== arms / sleeves (drawn over jacket) =====
+  ctx.strokeStyle = robe; ctx.lineWidth = 7.5 * scale; ctx.lineCap = "round";
+  const shY = bodyTopY + 5;
+  const drawSleeve = (x1, y1, x2, y2) => {
+    ctx.strokeStyle = robe;      ctx.lineWidth = 7.5 * scale;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.strokeStyle = robeLine;  ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  };
+  const fist = (fx, fy, r) => {
+    ctx.fillStyle = skin; ctx.strokeStyle = ink; ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.arc(fx, fy, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  };
+  if (action === "punch") {
+    const reach = 24 * scale;
+    const fistX = hipX + dir * reach, fistY = shY + 3;
+    drawSleeve(hipX - dir * half * 0.45, shY + 1, hipX - dir * (half + 2), shY + 9); // rear guard
+    fist(hipX - dir * (half + 2), shY + 9, 4 * scale);
+    drawSleeve(hipX + dir * half * 0.35, shY, fistX, fistY);                         // strike
+    fist(fistX, fistY, 5 * scale);
+  } else if (action === "jump") {
+    drawSleeve(hipX - half * 0.5, shY, hipX - half - 5, shY - 13);
+    fist(hipX - half - 5, shY - 13, 3.6 * scale);
+    drawSleeve(hipX + half * 0.5, shY, hipX + half + 5, shY - 13);
+    fist(hipX + half + 5, shY - 13, 3.6 * scale);
+  } else {
+    const s = armSwing * 5;
+    drawSleeve(hipX - half * 0.5, shY, hipX - dir * 5 - s, shY + 12);
+    fist(hipX - dir * 5 - s, shY + 12, 3.6 * scale);
+    drawSleeve(hipX + half * 0.5, shY, hipX + dir * 5 + s, shY + 11);
+    fist(hipX + dir * 5 + s, shY + 11, 3.6 * scale);
+  }
+
+  // ===== BIG chibi head =====
+  // head fill + outline
+  ctx.fillStyle = skin; ctx.strokeStyle = ink; ctx.lineWidth = 1.7;
+  ctx.beginPath();
+  ctx.ellipse(headCX, headCY, headR, headR * 1.02, 0, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+  // soft cheek/jaw shade
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(headCX, headCY, headR, headR * 1.02, 0, 0, Math.PI * 2); ctx.clip();
+  const hg = ctx.createLinearGradient(headCX - headR, 0, headCX + headR, 0);
+  hg.addColorStop(0, "rgba(255,240,210,0.25)");
+  hg.addColorStop(1, "rgba(150,110,70,0.18)");
+  if (dir < 0) { hg.addColorStop(0, "rgba(150,110,70,0.18)"); hg.addColorStop(1, "rgba(255,240,210,0.25)"); }
+  ctx.fillStyle = hg; ctx.fillRect(headCX - headR, headCY - headR, headR * 2, headR * 2.1);
+  ctx.restore();
+
+  // hair: a rounded cap with little spikes/fringe over the brow
+  ctx.fillStyle = hair;
+  ctx.beginPath();
+  ctx.moveTo(headCX - headR * 0.98, headCY - headR * 0.18);
+  ctx.quadraticCurveTo(headCX - headR * 1.05, headCY - headR * 1.05, headCX, headCY - headR * 1.12);
+  ctx.quadraticCurveTo(headCX + headR * 1.05, headCY - headR * 1.05, headCX + headR * 0.98, headCY - headR * 0.18);
+  // little fringe scallops along the brow
+  const fr = headR * 0.98;
+  for (let i = 2; i >= -2; i--) {
+    const fx = headCX + (i / 2.6) * fr;
+    ctx.quadraticCurveTo(fx + fr * 0.12, headCY - headR * 0.02, fx, headCY - headR * 0.30);
+    ctx.quadraticCurveTo(fx - fr * 0.12, headCY - headR * 0.02, fx - fr * 0.18, headCY - headR * 0.12);
+  }
+  ctx.closePath(); ctx.fill();
+  // hair sheen
+  ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(headCX, headCY - headR * 0.55, headR * 0.7, Math.PI * 1.15, Math.PI * 1.6);
+  ctx.stroke();
+
+  // ===== hachimaki (headband in team color, across the forehead) =====
+  const bandY = headCY - headR * 0.30;
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(headCX, headCY, headR, headR * 1.02, 0, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = color;
+  ctx.fillRect(headCX - headR - 2, bandY - headR * 0.16, headR * 2 + 4, headR * 0.34);
+  ctx.fillStyle = shade(color, -26);
+  ctx.fillRect(headCX - headR - 2, bandY + headR * 0.10, headR * 2 + 4, headR * 0.07);
+  ctx.fillStyle = shade(color, 26);
+  ctx.fillRect(headCX - headR - 2, bandY - headR * 0.16, headR * 2 + 4, headR * 0.06);
+  // knot
+  const knotX = headCX - dir * headR * 0.9;
+  ctx.fillStyle = shade(color, -14);
+  ctx.beginPath(); ctx.arc(knotX, bandY, headR * 0.14, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  // trailing band tails (outside the head, behind facing)
+  ctx.fillStyle = color;
+  const tx0 = headCX - dir * headR * 0.92;
+  const flick = hit ? -3 : Math.sin(now / 240) * 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx0, bandY - 2);
+  ctx.quadraticCurveTo(tx0 - dir * 12, bandY - 1 + flick, tx0 - dir * 16, bandY + 4 + flick);
+  ctx.lineTo(tx0 - dir * 12, bandY + 4);
+  ctx.quadraticCurveTo(tx0 - dir * 6, bandY + 3, tx0, bandY + 3);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(tx0, bandY + 1);
+  ctx.quadraticCurveTo(tx0 - dir * 9, bandY + 7 - flick * 0.5, tx0 - dir * 13, bandY + 11);
+  ctx.lineTo(tx0 - dir * 9, bandY + 9);
+  ctx.quadraticCurveTo(tx0 - dir * 4, bandY + 6, tx0, bandY + 5);
+  ctx.closePath(); ctx.fill();
+
+  // ===== expressive face =====
+  const eyeY = headCY + headR * 0.12;
+  const eyeDX = headR * 0.34;
+  const eyeOff = dir * headR * 0.08;   // look toward opponent
+  if (!off) {
+    // determined eyebrows
+    ctx.strokeStyle = "#3a2a1c"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
+    const browY = eyeY - headR * 0.34;
+    const angry = (action === "punch") ? 1.0 : 0.55;   // sharper brow on attack
+    ctx.beginPath();
+    ctx.moveTo(headCX - eyeDX - headR * 0.16, browY - angry * 2.4);
+    ctx.lineTo(headCX - eyeDX + headR * 0.18, browY + angry * 1.6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(headCX + eyeDX + headR * 0.16, browY - angry * 2.4);
+    ctx.lineTo(headCX + eyeDX - headR * 0.18, browY + angry * 1.6);
+    ctx.stroke();
+    // big chibi eyes (white + dark iris + catchlight)
+    for (const s of [-1, 1]) {
+      const ex = headCX + s * eyeDX + eyeOff;
+      ctx.fillStyle = "#fbf6ec"; ctx.strokeStyle = "#33281d"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(ex, eyeY, headR * 0.20, headR * 0.27, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#241a12";
+      ctx.beginPath(); ctx.arc(ex + dir * headR * 0.05, eyeY + headR * 0.03, headR * 0.12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.95)";
+      ctx.beginPath(); ctx.arc(ex + dir * headR * 0.05 - 1.4, eyeY - headR * 0.02, headR * 0.045, 0, Math.PI * 2); ctx.fill();
+    }
+    // small mouth — set jaw when punching, neutral otherwise
+    ctx.strokeStyle = "#7a4a36"; ctx.lineWidth = 1.8; ctx.lineCap = "round";
+    const my = headCY + headR * 0.55;
+    ctx.beginPath();
+    if (action === "punch") { ctx.moveTo(headCX - headR * 0.16, my - 1); ctx.lineTo(headCX + headR * 0.16, my - 1); }
+    else { ctx.arc(headCX, my - headR * 0.10, headR * 0.16, 0.2 * Math.PI, 0.8 * Math.PI); }
+    ctx.stroke();
+    // tiny cheek blush
+    ctx.fillStyle = "rgba(224,120,90,0.16)";
+    ctx.beginPath(); ctx.arc(headCX - headR * 0.5, headCY + headR * 0.42, headR * 0.14, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headCX + headR * 0.5, headCY + headR * 0.42, headR * 0.14, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // KO: >_< eyes + open mouth
+    ctx.strokeStyle = "#33281d"; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+    for (const s of [-1, 1]) {
+      const ex = headCX + s * eyeDX;
+      ctx.beginPath();
+      ctx.moveTo(ex - headR * 0.14, eyeY - headR * 0.12); ctx.lineTo(ex + headR * 0.14, eyeY + headR * 0.12);
+      ctx.moveTo(ex - headR * 0.14, eyeY + headR * 0.12); ctx.lineTo(ex + headR * 0.14, eyeY - headR * 0.12);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#7a4a36";
+    ctx.beginPath(); ctx.arc(headCX, headCY + headR * 0.52, headR * 0.12, 0, Math.PI * 2); ctx.fill();
+  }
+
+  ctx.restore();
+
+  // remember the figure's "core" screen position for the tag follow (above head)
+  b.__sx = headCX; b.__sy = headCY - headR * 1.1;
+}
+
+// A restrained sumi-ink impact: a thin shock-ring and a few short brush flecks,
+// muted and translucent — reads as a felt strike, not a cartoon star sticker.
+function impactBurst(b, color, geo, plat) {
+  const { sx, sy } = geo;
+  if (isOffEdge(b, plat)) return;
+  const dir = (b.facing < 0) ? -1 : 1;
+  const cx = sx(b.x) + dir * 40;   // forward of the extended fist (sprite-scale)
+  const cy = sy(b.y) - 86;         // sprite fist / mid-torso height
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  // soft warm bloom (low, no hard white core)
+  const bloom = ctx.createRadialGradient(cx, cy, 1, cx, cy, 16);
+  bloom.addColorStop(0, "rgba(240,224,190,0.30)");
+  bloom.addColorStop(1, "rgba(240,224,190,0)");
+  ctx.fillStyle = bloom;
+  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI*2); ctx.fill();
+  ctx.globalCompositeOperation = "source-over";
+  // thin shock ring in muted team color
+  ctx.strokeStyle = withAlpha(color, 0.55); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI*2); ctx.stroke();
+  // four short brush flecks forward of the fist
+  ctx.strokeStyle = withAlpha(color, 0.7); ctx.lineWidth = 2; ctx.lineCap = "round";
+  const base = dir > 0 ? 0 : Math.PI;
+  for (const off of [-0.55, -0.18, 0.18, 0.55]) {
+    const a = base + off;
+    const r0 = 8, r1 = 8 + (Math.abs(off) < 0.3 ? 9 : 6);
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
     ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
     ctx.stroke();
   }
-  // hot core
-  ctx.fillStyle = "#ffffff";
-  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
-// Ring-out: a streaking "KO!" star where the fighter was launched, plus a bold
-// RING-OUT banner pinned to the edge they flew off.
-function ringOutMark(b, sx, groundY, who) {
-  const cx = Math.max(60, Math.min(sx(b.x), canvas.width - 60));
+// ===================================================================== floating tags (eased follow)
+function drawTag(slot, b, label, color, geo, plat, dt, hit, ko) {
+  // target = above the fighter's head
+  const tx = (b.__sx != null) ? b.__sx : geo.sx(b.x);
+  const ty = (b.__sy != null) ? b.__sy : geo.sy(b.y) - 56;
+  const targetX = tx;
+  const targetY = ty - 26;
+
+  // ease the tag toward the target (critically-damped-ish lerp)
+  const s = tagState[slot] || (tagState[slot] = { x: targetX, y: targetY });
+  const k = 1 - Math.pow(0.0001, dt); // frame-rate independent smoothing
+  s.x += (targetX - s.x) * Math.min(1, k * 4);
+  s.y += (targetY - s.y) * Math.min(1, k * 4);
+
+  // tag geometry
+  const text = label;
+  ctx.font = "700 12px ui-sans-serif, system-ui";
+  const tw = ctx.measureText(text).width;
+  const padX = 9, padY = 5, dot = 7;
+  const w = tw + padX * 2 + dot + 6;
+  const h = 22;
+  let x = s.x - w / 2;
+  let y = s.y - h;
+  // clamp to canvas
+  x = Math.max(6, Math.min(x, geo.W - w - 6));
+  y = Math.max(6, y);
+
   ctx.save();
+  // hit-flash: tag pulses bright, KO: tag desaturates + 'KO'
+  const flash = hit ? 1 : 0;
 
-  // launch streak
-  ctx.globalAlpha = 0.9;
-  const dir = b.x > 5 ? 1 : -1;
-  const streak = ctx.createLinearGradient(cx - dir * 60, groundY, cx, groundY + 30);
-  streak.addColorStop(0, "rgba(255,210,60,0)");
-  streak.addColorStop(1, "rgba(255,210,60,0.85)");
-  ctx.strokeStyle = streak; ctx.lineWidth = 5; ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(cx - dir * 60, groundY - 10);
-  ctx.lineTo(cx, groundY + 36);
-  ctx.stroke();
+  // pointer/leader line from tag to head
+  ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(s.x, y + h); ctx.lineTo(tx, ty + 4); ctx.stroke();
 
-  // burst star at the launch point
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = "#ffd23c";
-  star(cx, groundY + 8, 5, 16, 7);
-  ctx.fillStyle = "#fff";
-  star(cx, groundY + 8, 5, 8, 3);
-
-  // RING-OUT! banner
-  ctx.font = "900 22px ui-sans-serif, system-ui";
-  ctx.textAlign = "center";
-  ctx.lineWidth = 5; ctx.strokeStyle = "#2a0606";
-  ctx.strokeText("RING-OUT!", cx, groundY + 70);
-  const bg = ctx.createLinearGradient(cx - 60, 0, cx + 60, 0);
-  bg.addColorStop(0, "#ff5a46"); bg.addColorStop(1, "#ffd23c");
+  // body
+  const bg = ko ? "rgba(60,52,42,0.92)" : flash ? mix(color, "#ffffff", 0.55) : "rgba(28,20,12,0.9)";
   ctx.fillStyle = bg;
-  ctx.fillText("RING-OUT!", cx, groundY + 70);
+  ctx.strokeStyle = ko ? "rgba(150,140,120,0.7)" : color;
+  ctx.lineWidth = flash ? 2.5 : 1.5;
+  roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();
 
+  // color dot
+  ctx.fillStyle = ko ? "#8a7458" : color;
+  ctx.beginPath(); ctx.arc(x + padX + dot/2, y + h/2, dot/2, 0, Math.PI*2); ctx.fill();
+
+  // text
+  ctx.fillStyle = flash ? "#1a120a" : "#f3e9d8";
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(text, x + padX + dot + 6, y + h/2 + 0.5);
+
+  // KO badge (clamped so it never spills off the canvas edge)
+  if (ko) {
+    ctx.fillStyle = "#b1392f";
+    ctx.font = "700 9.5px ui-sans-serif, system-ui";
+    ctx.textAlign = "center";
+    ctx.letterSpacing = "1.5px";
+    const badgeX = Math.max(48, Math.min(s.x, geo.W - 48));
+    ctx.fillText("RING-OUT", badgeX, y - 6);
+    ctx.letterSpacing = "0px";
+  } else if (hit) {
+    // a small muted strike-dot over the tag (no emoji)
+    ctx.fillStyle = withAlpha(color, 0.85);
+    ctx.beginPath(); ctx.arc(x + w - 7, y + 4, 2.4, 0, Math.PI*2); ctx.fill();
+  }
   ctx.restore();
 }
 
-function star(cx, cy, spikes, outer, inner) {
-  let rot = -Math.PI / 2;
-  const step = Math.PI / spikes;
+// ===================================================================== small canvas utils
+function roundRect(x, y, w, h, r) {
+  r = Math.min(r, w/2, h/2);
   ctx.beginPath();
-  ctx.moveTo(cx, cy - outer);
-  for (let i = 0; i < spikes; i++) {
-    ctx.lineTo(cx + Math.cos(rot) * outer, cy + Math.sin(rot) * outer); rot += step;
-    ctx.lineTo(cx + Math.cos(rot) * inner, cy + Math.sin(rot) * inner); rot += step;
-  }
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
-  ctx.fill();
 }
-
-// ============================================================================
-// CONTINUOUS ANIMATION LOOP
-// ----------------------------------------------------------------------------
-//  A requestAnimationFrame loop advances `animClock` every visible frame so the
-//  stage (stars, embers, fog, edge pulse) and idle/run cycles stay alive even
-//  when the replay is paused. It only repaints when there's something to animate
-//  (a replay loaded), and it's a no-op under node (no rAF) so headless rendering
-//  via render() is unaffected. `subPhase` is advanced by the playback timer so
-//  motion eases smoothly between discrete replay frames.
-// ============================================================================
-function startAnimLoop() {
-  if (typeof requestAnimationFrame !== "function") return;  // headless: skip
-  let lastTs = performance.now();
-  const loop = (ts) => {
-    const dt = Math.min(0.05, (ts - lastTs) / 1000);
-    lastTs = ts;
-    animClock += dt;
-    if (replay) render();
-    rafId = requestAnimationFrame(loop);
+function shade(hex, amt) {
+  const c = hexToRgb(hex); if (!c) return hex;
+  const f = (v) => Math.max(0, Math.min(255, v + amt));
+  return `rgb(${f(c.r)},${f(c.g)},${f(c.b)})`;
+}
+function withAlpha(col, a) {
+  const c = hexToRgb(col) || { r: 200, g: 160, b: 80 };
+  return `rgba(${c.r},${c.g},${c.b},${a})`;
+}
+function mix(a, b, t) {
+  const ca = hexToRgb(a) || {r:200,g:200,b:200};
+  const cb = hexToRgb(b) || {r:255,g:255,b:255};
+  const m = (x,y) => Math.round(x + (y - x) * t);
+  return `rgb(${m(ca.r,cb.r)},${m(ca.g,cb.g)},${m(ca.b,cb.b)})`;
+}
+// tiny seeded PRNG so wall grunge / leaf scatter is stable across renders
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-  rafId = requestAnimationFrame(loop);
+}
+function hexToRgb(hex) {
+  let h = String(hex).trim();
+  if (h.startsWith("rgb")) {
+    const m = h.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+    return m ? { r:+m[1], g:+m[2], b:+m[3] } : null;
+  }
+  h = h.replace("#", "");
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  if (h.length !== 6) return null;
+  return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
 }
 
-// ------------------------------------------------------------------ transport
+// ===================================================================== transport
 function play() {
   if (!replay) return;
-  if (frame >= replay.frames.length - 1) frame = 0; // restart from end
-  playing = true; playBtn.textContent = "⏸ Pause";
+  if (frame >= replay.frames.length - 1) frame = 0;
+  playing = true; playBtn.textContent = "Pause"; playBtn.classList.add("playing");
   clearInterval(timer);
   const ms = parseInt($("speed").value, 10);
-  subPhase = 0;
-  // advance the discrete frame on the chosen interval; the rAF loop handles the
-  // smooth in-between (subPhase) so motion reads fluid between frames.
   timer = setInterval(() => {
-    if (frame >= replay.frames.length - 1) { pause(); return; }
-    frame++; subPhase = 0; render();
+    if (frame >= replay.frames.length - 1) { pause(); requestRender(); return; }
+    frame++; requestRender();
   }, ms);
-  // smooth sub-frame interpolation tied to the same interval
-  startSubTween(ms);
 }
-let subTween = null;
-function startSubTween(ms) {
-  clearInterval(subTween);
-  if (typeof requestAnimationFrame !== "function") return;  // headless: skip
-  const start = () => { tweenStart = performance.now(); };
-  let tweenStart = performance.now();
-  start();
-  subTween = setInterval(() => {
-    if (!playing) return;
-    const elapsed = performance.now() - tweenStart;
-    subPhase = Math.max(0, Math.min(1, elapsed / ms));
-    if (subPhase >= 1) tweenStart = performance.now();
-  }, 16);
-}
-function pause() {
-  playing = false; playBtn.textContent = "▶ Play"; clearInterval(timer);
-  clearInterval(subTween); subPhase = 0;
-}
+function pause() { playing = false; playBtn.textContent = "Play"; playBtn.classList.remove("playing"); clearInterval(timer); }
 function togglePlay() { playing ? pause() : play(); }
-function step(d) { pause(); frame += d; render(); }
+function step(d) { pause(); frame += d; requestRender(); }
 
-// ------------------------------------------------------------------ wiring
+// ===================================================================== wiring
 playBtn.onclick = togglePlay;
 $("stepFwd").onclick = () => step(1);
 $("stepBack").onclick = () => step(-1);
-scrub.oninput = () => { pause(); frame = parseInt(scrub.value, 10); render(); };
+scrub.oninput = () => { pause(); frame = parseInt(scrub.value, 10); requestRender(); };
 $("speed").onchange = () => { if (playing) play(); };
 sel.onchange = () => { if (sel.value) loadExample(sel.value); };
 $("fileInput").onchange = (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); };
@@ -1208,44 +2159,92 @@ const drop = $("drop");
   drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("hot"); }));
 ["dragleave", "drop"].forEach(ev =>
   drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("hot"); }));
-drop.addEventListener("drop", (e) => {
-  const f = e.dataTransfer.files[0];
-  if (f) loadFile(f);
-});
-// allow drop anywhere on the body too
+drop.addEventListener("drop", (e) => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
 window.addEventListener("dragover", (e) => e.preventDefault());
 window.addEventListener("drop", (e) => {
   e.preventDefault();
   if (e.target.id !== "drop" && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
 });
-
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space") { e.preventDefault(); togglePlay(); }
   else if (e.code === "ArrowRight") { e.preventDefault(); step(1); }
   else if (e.code === "ArrowLeft") { e.preventDefault(); step(-1); }
 });
+window.addEventListener("resize", requestRender);
 
-// ------------------------------------------------------------------ boot
-populateDropdown();      // empty dropdown until discovery resolves (file:// stays empty)
-startAnimLoop();
-// Show the inlined default replay immediately, so the canvas is never blank —
-// this works even from file:// with no server. Then discover the live replays
-// in /replays/ and populate the dropdown from THAT (no hardcoded list); if the
-// discovery finds files, upgrade the canvas to the first one. If discovery
-// finds nothing (file:// / indexing off) we keep the inlined fight and clear
-// any scary error text — Load file… / drag-drop still work.
-setReplay(DEFAULT_REPLAY);
+// ===================================================================== boot
+// Real-art fighter sprite sheets (LuizMelo "Martial Hero", CC0) — start loading
+// immediately; the renderer falls back to the procedural figure until ready.
+loadSprites();
+
+// Optional real-art backdrop (assets/dojo.png) — used if it loads.
+(function tryDojoArt() {
+  const img = new Image();
+  img.onload = () => { dojoImg = img; dojoImgReady = true; requestRender(); };
+  img.onerror = () => { dojoImgReady = false; };
+  img.src = DOJO_IMG_URL;
+})();
+
+// Inline default first so the canvas is never blank (works from file://).
+setReplay(DEFAULT_REPLAY, "inline-demo");
+
+// Then upgrade over http: load dashboard + manifest + descriptive dropdown,
+// and auto-open the headline draw match if available.
 (async () => {
+  // dashboard (for spec panels) — best effort
   try {
-    EXAMPLES = await discoverReplays();
-    populateDropdown();
-    if (EXAMPLES.length) {
-      const res = await fetch(REPLAY_BASE + EXAMPLES[0], { cache: "no-store" });
-      if (res.ok) { sel.value = EXAMPLES[0]; setReplay(await res.json()); }
+    const res = await fetch(DASHBOARD_URL, { cache: "no-store" });
+    if (res.ok) { dashboard = await res.json(); renderSpecPanels(); }
+  } catch (_) { /* file:// — keep panels from meta only */ }
+
+  // manifest -> descriptive dropdown
+  let files = null;
+  try {
+    const res = await fetch(MANIFEST_URL, { cache: "no-store" });
+    if (res.ok) files = await res.json();
+  } catch (_) { /* fall through */ }
+  if (!Array.isArray(files) || !files.length) {
+    // try a directory listing as a secondary source
+    try {
+      const res = await fetch(REPLAY_BASE, { cache: "no-store" });
+      if (res.ok) {
+        const html = await res.text();
+        files = Array.from(html.matchAll(/href="([^"]+\.json)"/g))
+          .map(m => decodeURIComponent(m[1].split("/").pop()))
+          .filter(n => n && n !== "manifest.json");
+        files = Array.from(new Set(files));
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  // optional URL overrides: ?r=<file> picks a match, &f=<frame> jumps to it.
+  const params = new URLSearchParams(location.search);
+  const wantFile = params.get("r");
+  const wantFrame = params.get("f");
+
+  if (Array.isArray(files) && files.length) {
+    await buildDropdown(files);
+    // explicit ?r= wins; otherwise the headline h2h draw (the centerpiece story).
+    let pick = null;
+    if (wantFile) {
+      pick = manifestEntries.find(e => e.file === wantFile) ||
+             manifestEntries.find(e => e.file.includes(wantFile));
     }
-  } catch (_) {
-    // file:// — keep the inlined default; not an error worth surfacing.
+    pick = pick ||
+      manifestEntries.find(e => /h2h_fighter_draw_trained_as_P1/.test(e.file)) ||
+      manifestEntries.find(e => /h2h_fighter_draw/.test(e.file)) ||
+      manifestEntries.find(e => e.key === "ringout");
+    if (pick) {
+      sel.value = pick.file;
+      await loadExample(pick.file);
+      if (wantFrame != null && replay) {
+        frame = Math.max(0, Math.min(parseInt(wantFrame, 10) || 0, replay.frames.length - 1));
+        requestRender();
+      }
+    }
     loadErr.textContent = "";
+  } else {
+    fallbackDropdown();
   }
 })();
 </script>

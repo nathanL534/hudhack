@@ -1,6 +1,24 @@
 {
-  "experiment": "stage6_student_vs_student",
-  "count": 4,
+  "headline_metric": "base_student_vs_trained_student",
+  "trained_student_win_rate": 0.35,
+  "base_student_win_rate": 0.276667,
+  "draw_rate": 0.373333,
+  "mean_paired_advantage": 0.073333,
+  "ci_low": -0.288676,
+  "ci_high": 0.435343,
+  "n_replicates": 3,
+  "trained_win_rate_as_p0": 0.313333,
+  "trained_win_rate_as_p1": 0.386667,
+  "primary_pass": false,
+  "anti_circularity_passed": false,
+  "per_arena_family_advantage": {
+    "narrow_ledge": -0.0,
+    "wide_arena": -0.033333,
+    "floaty_lowg": 0.166667,
+    "heavy_knock": 0.166667,
+    "high_grav": 0.066667
+  },
+  "cross_game_koth": null,
   "replays": [
     {
       "source_teacher_trained": "trained",
@@ -35,7 +53,7 @@
         "spawn_gap": 3.0,
         "difficulty": 0.4
       },
-      "match_seed": 4,
+      "match_seed": 0,
       "side": "trained_as_P0",
       "outcome": "base_win",
       "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_base_win_trained_as_P0.json"
@@ -54,7 +72,7 @@
         "spawn_gap": 3.0,
         "difficulty": 0.4
       },
-      "match_seed": 0,
+      "match_seed": 1,
       "side": "trained_as_P0",
       "outcome": "draw",
       "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P0.json"
@@ -75,8 +93,9 @@
       },
       "match_seed": 0,
       "side": "trained_as_P1",
-      "outcome": "draw",
-      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_draw_trained_as_P1.json"
+      "outcome": "trained_win",
+      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/replays/h2h_fighter_trained_win_trained_as_P1.json"
     }
-  ]
+  ],
+  "is_smoke": false
 }

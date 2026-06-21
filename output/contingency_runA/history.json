@@ -1500,5 +1500,4174 @@
       }
     },
     "adapter_path": "/adapters/runA/update3"
+  },
+  {
+    "step": 4,
+    "tag": "update4",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889,
+          0.0889
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0889,
+        "reward_std": 0.0,
+        "advantages": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.2,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.5,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.5,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.5,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.2,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.5,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.5,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.2,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.2,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 1.0\n}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.1479,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          -0.0467,
+          -0.0689,
+          -0.0978,
+          0.0756,
+          -0.0133,
+          -0.0978,
+          0.0556,
+          0.0556,
+          -0.0689,
+          -0.0689,
+          -0.0978,
+          -0.0689
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": -0.0369,
+        "reward_std": 0.0617,
+        "advantages": [
+          -0.1597,
+          -0.5197,
+          -0.9882,
+          1.8233,
+          0.3818,
+          -0.9882,
+          1.499,
+          1.499,
+          -0.5197,
+          -0.5197,
+          -0.9882,
+          -0.5197
+        ],
+        "params": [
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 4.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 1.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 4.0,\n  \"gravity\": 0.6,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\"difficulty\": 0.5, \"platform_width\": 4.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 3.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 5.0,\n  \"gravity\": 0.5,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 6.0,\n  \"gravity\": 0.5,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 8.0,\n  \"gravity\": 0.5,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 4.0,\n  \"gravity\": 0.5,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 5.0,\n  \"gravity\": 0.5,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 5.0,\n  \"gravity\": 0.5,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\"difficulty\": 0.5, \"platform_width\": 4.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 3.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 4.0,\n  \"gravity\": 0.5,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.5833,
+          "difficulty_std": 0.1863,
+          "difficulty_unique": 2,
+          "knob_std": {
+            "difficulty": 0.1863,
+            "gravity": 0.1187,
+            "knockback": 0.5893,
+            "platform_width": 0.0,
+            "spawn_gap": 0.8292,
+            "zone_center_frac": 0.0745,
+            "zone_half": 0.5217
+          }
+        }
+      }
+    },
+    "score_wall_s": 300.6,
+    "train_seeds": {
+      "ring_out": [
+        110,
+        111,
+        112
+      ],
+      "target_knockback": [
+        1000110,
+        1000111,
+        1000112
+      ]
+    },
+    "update_stats": {
+      "loss": 0.2542266249656677,
+      "grad_norm": 42.048484802246094,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -1.2878,
+        "target_knockback": -2.6157
+      }
+    },
+    "adapter_path": "/adapters/runA/update4"
+  },
+  {
+    "step": 5,
+    "tag": "update5",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.072,
+          0.0893,
+          0.1124,
+          0.1169,
+          0.0893,
+          0.1169,
+          0.2378,
+          0.2258,
+          0.1169,
+          0.0982,
+          0.0982,
+          0.1169
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1242,
+        "reward_std": 0.0501,
+        "advantages": [
+          -1.0431,
+          -0.6969,
+          -0.2353,
+          -0.1465,
+          -0.6969,
+          -0.1465,
+          2.2682,
+          2.0285,
+          -0.1465,
+          -0.5193,
+          -0.5193,
+          -0.1465
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 1.0, \"spawn_gap\": 4.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 1.0, \"spawn_gap\": 4.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.6, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.6, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.1256,
+            "knockback": 0.493,
+            "platform_width": 0.0,
+            "spawn_gap": 0.5774
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          -0.0222,
+          0.0422,
+          0.04,
+          0.0978,
+          -0.2,
+          -0.0222,
+          -0.0222,
+          -0.1156,
+          0.1044,
+          -0.0222,
+          0.0978,
+          0.0844
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0052,
+        "reward_std": 0.0892,
+        "advantages": [
+          -0.3069,
+          0.4148,
+          0.3902,
+          1.0379,
+          -2.2994,
+          -0.3069,
+          -0.3069,
+          -1.3536,
+          1.1119,
+          -0.3069,
+          1.0379,
+          0.8878
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 1.0,
+            "spawn_gap": 3.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 1.0,
+            "spawn_gap": 2.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 2.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 4.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 1.0, \"spawn_gap\": 4.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 8.0, \"gravity\": 0.5, \"knockback\": 1.0, \"spawn_gap\": 3.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 8.0, \"gravity\": 0.5, \"knockback\": 1.0, \"spawn_gap\": 2.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 2.0, \"platform_width\": 8.0, \"gravity\": 0.5, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 2.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 4.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.1572,
+            "knockback": 0.8026,
+            "platform_width": 0.0,
+            "spawn_gap": 1.6894,
+            "zone_center_frac": 0.0986,
+            "zone_half": 0.6902
+          }
+        }
+      }
+    },
+    "score_wall_s": 161.6,
+    "train_seeds": {
+      "ring_out": [
+        113,
+        114,
+        115
+      ],
+      "target_knockback": [
+        1000113,
+        1000114,
+        1000115
+      ]
+    },
+    "update_stats": {
+      "loss": 0.13069260120391846,
+      "grad_norm": 68.43877410888672,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -2.2845,
+        "target_knockback": -3.5281
+      }
+    },
+    "adapter_path": "/adapters/runA/update5"
+  },
+  {
+    "step": 6,
+    "tag": "update6",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.0258,
+          0.0716,
+          0.0124,
+          0.0258,
+          0.0258,
+          0.0258,
+          0.0258,
+          0.0258,
+          0.0716,
+          0.0258,
+          0.0258,
+          0.0124
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0312,
+        "reward_std": 0.0187,
+        "advantages": [
+          -0.2892,
+          2.1588,
+          -1.0022,
+          -0.2892,
+          -0.2892,
+          -0.2892,
+          -0.2892,
+          -0.2892,
+          2.1588,
+          -0.2892,
+          -0.2892,
+          -1.0022
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 1.0,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 1.0,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 1.0, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 4.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 1.0, \"knockback\": 3.0, \"spawn_gap\": 6.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0745,
+            "knockback": 0.3727,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.1222,
+          -0.0022,
+          0.0311,
+          -0.0289,
+          -0.0289,
+          -0.0333,
+          0.0289,
+          -0.0333,
+          -0.1,
+          0.0311,
+          0.0311,
+          0.0311
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0041,
+        "reward_std": 0.0527,
+        "advantages": [
+          2.2413,
+          -0.1191,
+          0.5128,
+          -0.6257,
+          -0.6257,
+          -0.7092,
+          0.471,
+          -0.7092,
+          -1.9747,
+          0.5128,
+          0.5128,
+          0.5128
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 10.0,
+            "gravity": 0.5,
+            "knockback": 6.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 2.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 2.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 10.0, \"gravity\": 0.5, \"knockback\": 6.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 3.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.6, \"knockback\": 2.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.6, \"knockback\": 2.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.1801,
+            "knockback": 1.3668,
+            "platform_width": 0.5528,
+            "spawn_gap": 1.6562,
+            "zone_center_frac": 0.0745,
+            "zone_half": 0.5217
+          }
+        }
+      }
+    },
+    "score_wall_s": 170.0,
+    "train_seeds": {
+      "ring_out": [
+        116,
+        117,
+        118
+      ],
+      "target_knockback": [
+        1000116,
+        1000117,
+        1000118
+      ]
+    },
+    "update_stats": {
+      "loss": 0.23626333475112915,
+      "grad_norm": 70.02938842773438,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -2.6297,
+        "target_knockback": -4.2378
+      }
+    },
+    "adapter_path": "/adapters/runA/update6"
+  },
+  {
+    "step": 7,
+    "tag": "update7",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.0996,
+          0.0,
+          0.0427,
+          0.0427,
+          0.0427,
+          0.096,
+          0.036,
+          0.0333,
+          0.036,
+          0.0333,
+          0.0427,
+          0.0427
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0456,
+        "reward_std": 0.0259,
+        "advantages": [
+          2.0808,
+          -1.7607,
+          -0.1143,
+          -0.1143,
+          -0.1143,
+          1.9436,
+          -0.3716,
+          -0.4745,
+          -0.3716,
+          -0.4745,
+          -0.1143,
+          -0.1143
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.5,
+            "knockback": 2.0,
+            "spawn_gap": 5.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.7,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.7,
+            "knockback": 2.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 5.0, \"platform_width\": 5.0, \"gravity\": 0.5, \"knockback\": 2.0, \"spawn_gap\": 5.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.7, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 5.0, \"gravity\": 0.7, \"knockback\": 2.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 6.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.8, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.1876,
+            "knockback": 0.9317,
+            "platform_width": 0.0,
+            "spawn_gap": 1.8465
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.1,
+          0.1044,
+          0.1044,
+          0.0867,
+          0.1,
+          0.1,
+          0.1,
+          0.1689,
+          0.0867,
+          0.1,
+          0.0867,
+          0.1
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1032,
+        "reward_std": 0.0208,
+        "advantages": [
+          -0.1513,
+          0.0601,
+          0.0601,
+          -0.7904,
+          -0.1513,
+          -0.1513,
+          -0.1513,
+          3.1591,
+          -0.7904,
+          -0.1513,
+          -0.7904,
+          -0.1513
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 5.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 7.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 5.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 5.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 5.0, \"platform_width\": 6.5, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.1658,
+            "knockback": 0.8292,
+            "platform_width": 1.1055,
+            "spawn_gap": 1.8465,
+            "zone_center_frac": 0.0553,
+            "zone_half": 0.5528
+          }
+        }
+      }
+    },
+    "score_wall_s": 142.0,
+    "train_seeds": {
+      "ring_out": [
+        119,
+        120,
+        121
+      ],
+      "target_knockback": [
+        1000119,
+        1000120,
+        1000121
+      ]
+    },
+    "update_stats": {
+      "loss": 1.0658597350120544,
+      "grad_norm": 59.569190979003906,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -3.3926,
+        "target_knockback": -3.2249
+      }
+    },
+    "adapter_path": "/adapters/runA/update7"
+  },
+  {
+    "step": 8,
+    "tag": "update8",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.036,
+          0.1258,
+          0.036,
+          0.1258,
+          0.1258,
+          0.1258,
+          0.064,
+          0.036,
+          0.1258,
+          0.0356,
+          0.1071,
+          0.0409
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.082,
+        "reward_std": 0.0416,
+        "advantages": [
+          -1.1076,
+          1.0523,
+          -1.1076,
+          1.0523,
+          1.0523,
+          1.0523,
+          -0.4339,
+          -1.1076,
+          1.0523,
+          -1.1182,
+          0.6032,
+          -0.9899
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 1.0,
+            "knockback": 3.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.8,
+            "knockback": 2.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\":1.0,\"platform_width\":30.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 30.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 8.0, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 30.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 6.0, \"gravity\": 1.0, \"knockback\": 3.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 2.0, \"platform_width\": 5.0, \"gravity\": 0.8, \"knockback\": 2.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 30.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.2867,
+            "knockback": 1.8759,
+            "platform_width": 9.3274,
+            "spawn_gap": 3.5227
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.16,
+          0.1133,
+          0.1889,
+          0.1489,
+          0.2578,
+          0.16,
+          0.1533,
+          0.1533,
+          0.1667,
+          0.16,
+          0.1533,
+          0.1667
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1652,
+        "reward_std": 0.0324,
+        "advantages": [
+          -0.1599,
+          -1.6007,
+          0.7317,
+          -0.5024,
+          2.8574,
+          -0.1599,
+          -0.3666,
+          -0.3666,
+          0.0468,
+          -0.1599,
+          -0.3666,
+          0.0468
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 0.0,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\":1.0,\"platform_width\":30.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0,\"zone_half\":4.0,\"zone_center_frac\":0.7}",
+          "{\"difficulty\": 0.0, \"platform_width\": 1.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0,\"zone_half\":4.0,\"zone_center_frac\":0.7}",
+          "{\"difficulty\": 0.5, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 1.0, \"platform_width\": 30.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 4.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 1.0, \"platform_width\": 30.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.875,
+          "difficulty_std": 0.2976,
+          "difficulty_unique": 3,
+          "knob_std": {
+            "difficulty": 0.2976,
+            "gravity": 0.3944,
+            "knockback": 2.1295,
+            "platform_width": 8.7353,
+            "spawn_gap": 4.259,
+            "zone_center_frac": 0.1528,
+            "zone_half": 1.3354
+          }
+        }
+      }
+    },
+    "score_wall_s": 150.4,
+    "train_seeds": {
+      "ring_out": [
+        122,
+        123,
+        124
+      ],
+      "target_knockback": [
+        1000122,
+        1000123,
+        1000124
+      ]
+    },
+    "update_stats": {
+      "loss": 0.27609987929463387,
+      "grad_norm": 24.93112564086914,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -2.9281,
+        "target_knockback": -3.3093
+      }
+    },
+    "adapter_path": "/adapters/runA/update8"
+  },
+  {
+    "step": 9,
+    "tag": "update9",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.1102,
+          0.1102,
+          0.1102,
+          0.1102,
+          0.0502,
+          0.1258,
+          0.1102,
+          0.1102,
+          0.1102,
+          0.1102,
+          0.1258,
+          0.1102
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1078,
+        "reward_std": 0.0183,
+        "advantages": [
+          0.1316,
+          0.1316,
+          0.1316,
+          0.1316,
+          -3.1486,
+          0.9821,
+          0.1316,
+          0.1316,
+          0.1316,
+          0.1316,
+          0.9821,
+          0.1316
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 30.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 8.0, \"platform_width\": 30.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 30.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 4.9749,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          -0.0911,
+          -0.0911,
+          -0.02,
+          -0.0911,
+          -0.0911,
+          -0.0533,
+          -0.0867,
+          -0.0867,
+          -0.0911,
+          -0.0533,
+          -0.0533,
+          -0.0533
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": -0.0718,
+        "reward_std": 0.023,
+        "advantages": [
+          -0.8366,
+          -0.8366,
+          2.252,
+          -0.8366,
+          -0.8366,
+          0.8054,
+          -0.6454,
+          -0.6454,
+          -0.8366,
+          0.8054,
+          0.8054,
+          0.8054
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 0.6,
+            "knockback": 3.0,
+            "spawn_gap": 6.0,
+            "zone_half": 2.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 0.5, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 3.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 2.0, \"platform_width\": 6.0, \"gravity\": 0.6, \"knockback\": 3.0, \"spawn_gap\": 6.0, \"zone_half\": 2.0, \"zone_center_frac\": 0.5}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.9583,
+          "difficulty_std": 0.1382,
+          "difficulty_unique": 2,
+          "knob_std": {
+            "difficulty": 0.1382,
+            "gravity": 0.3312,
+            "knockback": 1.7614,
+            "platform_width": 1.7321,
+            "spawn_gap": 3.5227,
+            "zone_center_frac": 0.1247,
+            "zone_half": 1.1179
+          }
+        }
+      }
+    },
+    "score_wall_s": 135.3,
+    "train_seeds": {
+      "ring_out": [
+        125,
+        126,
+        127
+      ],
+      "target_knockback": [
+        1000125,
+        1000126,
+        1000127
+      ]
+    },
+    "update_stats": {
+      "loss": -0.3592328131198883,
+      "grad_norm": 18.652502059936523,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -1.361,
+        "target_knockback": -1.7992
+      }
+    },
+    "adapter_path": "/adapters/runA/update9"
+  },
+  {
+    "step": 10,
+    "tag": "update10",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.1164,
+          0.1164,
+          0.1164,
+          0.0364,
+          0.1164,
+          0.1164,
+          0.1164,
+          0.1164,
+          0.1164,
+          0.1164,
+          0.1164,
+          0.1164
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1098,
+        "reward_std": 0.0221,
+        "advantages": [
+          0.3015,
+          0.3015,
+          0.3015,
+          -3.3165,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\":6.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 0.5, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.2, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\":6.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.9583,
+          "difficulty_std": 0.1382,
+          "difficulty_unique": 2,
+          "knob_std": {
+            "difficulty": 0.1382,
+            "gravity": 0.2764,
+            "knockback": 1.5201,
+            "platform_width": 1.1055,
+            "spawn_gap": 3.0402
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          -0.0533,
+          -0.0889,
+          -0.0756,
+          -0.0511,
+          -0.0533,
+          -0.0533,
+          -0.0533,
+          -0.0533,
+          -0.0756,
+          -0.0533,
+          -0.0533,
+          -0.0533
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": -0.0598,
+        "reward_std": 0.0121,
+        "advantages": [
+          0.5367,
+          -2.4028,
+          -1.3046,
+          0.7184,
+          0.5367,
+          0.5367,
+          0.5367,
+          0.5367,
+          -1.3046,
+          0.5367,
+          0.5367,
+          0.5367
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 0.5,
+            "platform_width": 8.0,
+            "gravity": 0.2,
+            "knockback": 0.5,
+            "spawn_gap": 1.0,
+            "zone_half": 0.6,
+            "zone_center_frac": 0.3
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 0.5, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 0.5, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 0.5, \"platform_width\": 8.0, \"gravity\": 0.2, \"knockback\": 0.5, \"spawn_gap\": 1.0, \"zone_half\": 0.6, \"zone_center_frac\": 0.3}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0,\"zone_half\":4.0,\"zone_center_frac\":0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 0.875,
+          "difficulty_std": 0.2165,
+          "difficulty_unique": 2,
+          "knob_std": {
+            "difficulty": 0.2165,
+            "gravity": 0.433,
+            "knockback": 2.3816,
+            "platform_width": 1.7321,
+            "spawn_gap": 4.7631,
+            "zone_center_frac": 0.1732,
+            "zone_half": 1.4722
+          }
+        }
+      }
+    },
+    "score_wall_s": 135.6,
+    "train_seeds": {
+      "ring_out": [
+        128,
+        129,
+        130
+      ],
+      "target_knockback": [
+        1000128,
+        1000129,
+        1000130
+      ]
+    },
+    "update_stats": {
+      "loss": -0.6164475083351135,
+      "grad_norm": 19.090063095092773,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -2.3316,
+        "target_knockback": -1.7127
+      }
+    },
+    "adapter_path": "/adapters/runA/update10"
+  },
+  {
+    "step": 11,
+    "tag": "update11",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.048,
+          0.048,
+          0.0556,
+          0.048,
+          0.0556,
+          0.0556,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0499,
+        "reward_std": 0.0033,
+        "advantages": [
+          -0.5772,
+          -0.5772,
+          1.7315,
+          -0.5772,
+          1.7315,
+          1.7315,
+          -0.5772,
+          -0.5772,
+          -0.5772,
+          -0.5772,
+          -0.5772,
+          -0.5772
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.2, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 1.2, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.0289,
+          -0.0089,
+          0.0289,
+          -0.0044,
+          -0.0044,
+          -0.0044,
+          -0.0044,
+          -0.0044,
+          0.0289,
+          -0.0044,
+          -0.0044,
+          -0.0044
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0035,
+        "reward_std": 0.0147,
+        "advantages": [
+          1.7259,
+          -0.8476,
+          1.7259,
+          -0.5413,
+          -0.5413,
+          -0.5413,
+          -0.5413,
+          -0.5413,
+          1.7259,
+          -0.5413,
+          -0.5413,
+          -0.5413
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 4.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0,
+            "zone_center_frac": 0.0,
+            "zone_half": 0.0
+          }
+        }
+      }
+    },
+    "score_wall_s": 171.0,
+    "train_seeds": {
+      "ring_out": [
+        131,
+        132,
+        133
+      ],
+      "target_knockback": [
+        1000131,
+        1000132,
+        1000133
+      ]
+    },
+    "update_stats": {
+      "loss": -0.46528099477291107,
+      "grad_norm": 10.134664535522461,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -1.5415,
+        "target_knockback": -1.327
+      }
+    },
+    "adapter_path": "/adapters/runA/update11"
+  },
+  {
+    "step": 12,
+    "tag": "update12",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.1209,
+          0.1209,
+          0.1209,
+          0.1209,
+          0.1209,
+          0.1209,
+          0.0756,
+          0.1209,
+          0.1209,
+          0.1209,
+          0.1209,
+          0.1209
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1171,
+        "reward_std": 0.0125,
+        "advantages": [
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          -3.3164,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015,
+          0.3015
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 8.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 6.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 6.0, \"gravity\": 6.0, \"knockback\": 6.0, \"spawn_gap\": 6.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 1.1055,
+            "spawn_gap": 1.6583
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044,
+          -0.1044
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": -0.1044,
+        "reward_std": 0.0,
+        "advantages": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0,\"zone_half\":4.0,\"zone_center_frac\":0.7}",
+          "{\"difficulty\": 6.0, \"platform_width\": 12.0, \"gravity\": 6.0, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 12.0, \"platform_width\": 12.0, \"gravity\": 12.0, \"knockback\": 12.0, \"spawn_gap\": 12.0, \"zone_half\": 12.0, \"zone_center_frac\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 12.0, \"platform_width\": 12.0, \"gravity\": 12.0, \"knockback\": 12.0, \"spawn_gap\": 12.0, \"zone_half\": 12.0, \"zone_center_frac\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0,
+            "zone_center_frac": 0.0,
+            "zone_half": 0.0
+          }
+        }
+      }
+    },
+    "score_wall_s": 196.9,
+    "train_seeds": {
+      "ring_out": [
+        134,
+        135,
+        136
+      ],
+      "target_knockback": [
+        1000134,
+        1000135,
+        1000136
+      ]
+    },
+    "update_stats": {
+      "loss": -0.5968921184539795,
+      "grad_norm": 28.757104873657227,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -1.2619,
+        "target_knockback": -1.4982
+      }
+    },
+    "adapter_path": "/adapters/runA/update12"
+  },
+  {
+    "step": 13,
+    "tag": "update13",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964,
+          0.0964
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.0964,
+        "reward_std": 0.0,
+        "advantages": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\":1.0,\"platform_width\":12.0,\"gravity\":1.2,\"knockback\":6.0,\"spawn_gap\":12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 12.0, \"platform_width\": 12.0, \"gravity\": 12.0, \"knockback\": 12.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.4422,
+          0.4444,
+          0.4422,
+          0.4444,
+          0.4444,
+          0.4444,
+          0.4444,
+          0.4444,
+          0.4444,
+          0.4444,
+          0.4444,
+          0.4444
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.444,
+        "reward_std": 0.0008,
+        "advantages": [
+          -2.2333,
+          0.4467,
+          -2.2333,
+          0.4467,
+          0.4467,
+          0.4467,
+          0.4467,
+          0.4467,
+          0.4467,
+          0.4467,
+          0.4467,
+          0.4467
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 12.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 12.0, \"platform_width\": 12.0, \"gravity\": 12.0, \"knockback\": 12.0, \"spawn_gap\": 12.0, \"zone_half\": 12.0, \"zone_center_frac\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0,
+            "zone_center_frac": 0.0,
+            "zone_half": 0.0
+          }
+        }
+      }
+    },
+    "score_wall_s": 207.5,
+    "train_seeds": {
+      "ring_out": [
+        137,
+        138,
+        139
+      ],
+      "target_knockback": [
+        1000137,
+        1000138,
+        1000139
+      ]
+    },
+    "update_stats": {
+      "loss": -0.16543616354465485,
+      "grad_norm": 16.706926345825195,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -0.8273,
+        "target_knockback": -0.7111
+      }
+    },
+    "adapter_path": "/adapters/runA/update13"
+  },
+  {
+    "step": 14,
+    "tag": "update14",
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048,
+          0.048
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.048,
+        "reward_std": 0.0,
+        "advantages": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467,
+          0.1467
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 12,
+        "reward_mean": 0.1467,
+        "reward_std": 0.0,
+        "advantages": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 12.0,
+            "gravity": 1.2,
+            "knockback": 6.0,
+            "spawn_gap": 12.0,
+            "zone_half": 4.0,
+            "zone_center_frac": 0.7
+          }
+        ],
+        "completions_preview": [
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}",
+          "{\"difficulty\": 1.0, \"platform_width\": 12.0, \"gravity\": 1.2, \"knockback\": 6.0, \"spawn_gap\": 12.0, \"zone_half\": 4.0, \"zone_center_frac\": 0.7}"
+        ],
+        "arena_diversity": {
+          "n_valid": 12,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0,
+            "zone_center_frac": 0.0,
+            "zone_half": 0.0
+          }
+        }
+      }
+    },
+    "score_wall_s": 237.2,
+    "train_seeds": {
+      "ring_out": [
+        140,
+        141,
+        142
+      ],
+      "target_knockback": [
+        1000140,
+        1000141,
+        1000142
+      ]
+    },
+    "update_stats": {
+      "loss": 0.0,
+      "grad_norm": 0.0,
+      "games": [
+        "ring_out",
+        "target_knockback"
+      ],
+      "n_completions": 24,
+      "mean_completion_logprob_by_game": {
+        "ring_out": -0.0048,
+        "target_knockback": -0.0082
+      }
+    },
+    "adapter_path": "/adapters/runA/update14"
   }
 ]

@@ -496,6 +496,46 @@ def _arenas_from_specs(specs: list[dict], arena_cls):
     return out
 
 
+def _load_prior_student_artifact(prior_student_path) -> dict | None:
+    """Load a prior-Student ``PolicyArtifact`` dict from disk (no torch/SB3 needed).
+
+    Returns the raw artifact DICT, or ``None`` when no path is given OR the file is
+    absent — in which case ``resolve_league`` simply drops the ``prior_student`` league
+    entry, so the default styles-only behavior is unaffected. The dict is turned into a
+    runnable ``Policy`` later by ``_restore_prior_student_policy`` (which needs an env).
+    """
+    if not prior_student_path:
+        return None
+    import json
+    import os
+
+    if not os.path.exists(prior_student_path):
+        return None
+    with open(prior_student_path) as fh:
+        return json.load(fh)
+
+
+def _restore_prior_student_policy(artifact: dict | None, arena_cls, arenas, seed: int):
+    """Restore a prior-Student artifact into an ``obs -> action`` ``Policy`` callable.
+
+    ``games.opponents_league.make_opponent`` types ``prior_student`` as a Policy (a
+    callable), not an artifact dict — so the frozen earlier Student must be restored
+    BEFORE it is threaded into the trainer. A throwaway fighter env (built from the
+    league arenas) supplies the obs/action spaces ``restore_policy`` loads the weights
+    into. Returns ``None`` when there is no artifact (the league then has no
+    ``prior_student`` entry, so this policy is never selected).
+    """
+    if artifact is None:
+        return None
+    from harness.ppo_trainer import _MultiArenaFighterEnv
+    from output.stage6.policy import DEFAULT_NET_ARCH, restore_policy
+
+    restore_env = _MultiArenaFighterEnv(arenas, seed=int(seed))
+    return restore_policy(
+        artifact, restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed)
+    )
+
+
 def _train_student_policy(payload: dict, seed: int) -> dict:
     """Train ONE fresh Student on a whole curriculum SET; return a frozen artifact.
 
@@ -536,6 +576,25 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         modal_parallel=False,
     )
 
+    # OPPONENT LEAGUE (fighter Student path ONLY, default OFF). Resolve here so the
+    # Teacher inner-reward workers (which never set these payload keys) are untouched.
+    # ``active_league`` is None unless the payload explicitly opts in.
+    active_league = None
+    prior_student_artifact = None
+    if game in ("fighter", "ring-out-duel", "ring_out_duel") and payload.get(
+        "opponent_league_enabled"
+    ):
+        from games.opponents_league import DEFAULT_LEAGUE, resolve_league
+
+        prior_student_artifact = _load_prior_student_artifact(
+            payload.get("prior_student_path")
+        )
+        league_spec = payload.get("opponent_league") or DEFAULT_LEAGUE
+        active_league = resolve_league(
+            league_spec, has_prior_student=prior_student_artifact is not None
+        )
+
+    prior_student = None  # only the fighter league branch restores one
     if game in ("koth", "king-of-the-hill"):
         from harness.koth_trainer import KothPlayerTrainer
         from harness.koth_adapter import KothGameAdapter
@@ -552,18 +611,33 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         from harness.fighter_adapter import FighterGameAdapter
 
         adapter = FighterGameAdapter(eval_seeds=eval_seeds)
+        # Restore the frozen prior Student into a runnable Policy (only when the
+        # league is active AND a prior-student artifact was supplied). ``make_opponent``
+        # expects a callable, not an artifact dict — so restore it here.
+        if active_league is not None:
+            prior_student = _restore_prior_student_policy(
+                prior_student_artifact, arena_cls, arenas, int(seed)
+            )
         # Explicit Stage-6-only anti-camping settings. The nested Teacher reward
         # workers instantiate PPOPlayerTrainer with its original defaults.
+        # ``opponent_league`` defaults to None => the ORIGINAL single-parametric
+        # opponent training env, unchanged.
         trainer = PPOPlayerTrainer(
             eval_seeds=eval_seeds,
             ent_coef=float(payload.get("student_ent_coef", 0.03)),
             min_timesteps=int(payload.get("student_min_timesteps", 60_000)),
             anti_camping_reward=bool(payload.get("student_anti_camping", True)),
+            opponent_league=active_league,
+            prior_student=prior_student,
         )
 
     train_arenas = adapter.arenas_from_configs(arenas, curriculum_id=curriculum_id)
     job = trainer.submit(config, train_arenas)
     train_result = job.result()
+
+    # Audit which opponent styles the Student actually trained against (empty when
+    # the league is OFF — the original single-parametric path records nothing).
+    opp_counts = dict(getattr(job, "opp_counts", {}) or {})
 
     artifact = serialize_policy(
         job.model,  # both trainers attach the SB3 model to the finished job
@@ -574,7 +648,10 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         obs_dim=int(obs_dim),
         net_arch=DEFAULT_NET_ARCH,
         extra={"train_arena_winrate": float(train_result.mean_score),
-               "n_curriculum_arenas": len(arenas)},
+               "n_curriculum_arenas": len(arenas),
+               "opponent_league_enabled": active_league is not None,
+               "opponent_ids": sorted(opp_counts),
+               "opponent_episode_counts": opp_counts},
     )
     return {
         "status": "student_policy",
@@ -583,6 +660,9 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         "curriculum_id": curriculum_id,
         "game": game,
         "train_arena_winrate": float(train_result.mean_score),
+        "opponent_league_enabled": active_league is not None,
+        "opponent_ids": sorted(opp_counts),
+        "opponent_episode_counts": opp_counts,
         "policy": artifact.as_dict(),
     }
 

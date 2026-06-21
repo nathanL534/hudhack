@@ -548,7 +548,7 @@ def _run_one_replicate(
 def _student_payload(teacher: str, curriculum_id: str, arenas: list[dict],
                      cfg: EvalConfig, game: str) -> dict:
     """Build the train-Student payload (the SAME budget knobs for both Teachers)."""
-    return {
+    payload = {
         "game": game,
         "teacher": teacher,
         "curriculum_id": curriculum_id,
@@ -557,6 +557,10 @@ def _student_payload(teacher: str, curriculum_id: str, arenas: list[dict],
         "architecture": cfg.architecture,
         "curriculum_arenas": [dict(a) for a in arenas],
     }
+    # Opponent league (default OFF — a no-op when disabled). Applied here, in the
+    # SINGLE Student-payload builder, so the base and trained Students receive the
+    # IDENTICAL league config by construction (the fairness invariant).
+    return cfg.apply_opponent_league(payload)
 
 
 def _print_primary_verdict(summary: dict) -> None:

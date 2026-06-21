@@ -120,6 +120,7 @@ def _build_config(args, *, smoke: bool) -> EvalConfig:
         curriculum_arenas=args.curriculum_arenas if args.curriculum_arenas is not None else base.curriculum_arenas,
         match_seeds_per_arena=args.match_seeds if args.match_seeds is not None else base.match_seeds_per_arena,
         head_to_head_grid=args.h2h_grid if args.h2h_grid is not None else base.head_to_head_grid,
+        opponent_league_enabled=bool(getattr(args, "opponent_league", False)) or base.opponent_league_enabled,
     )
 
 
@@ -274,6 +275,10 @@ def main(argv: list[str] | None = None) -> int:
                    help="match seeds per held-out arena per side (paired across the swap)")
     p.add_argument("--h2h-grid", dest="h2h_grid", choices=["full", "diagonal"], default=None,
                    help="primary head-to-head held-out grid (default: full)")
+    p.add_argument("--opponent-league", dest="opponent_league", action="store_true",
+                   help="enable the Stage-6 Student opponent league (aggressive/turtle/"
+                        "random opponents) so Students fight decisively -> fewer draws. "
+                        "Applied IDENTICALLY to base and trained Students (fairness).")
     p.add_argument("--no-secondary", dest="no_secondary", action="store_true",
                    help="skip the secondary fixed-bot transfer diagnostic (primary only)")
     p.add_argument("--koth-cross-game", dest="koth_cross_game", action="store_true",

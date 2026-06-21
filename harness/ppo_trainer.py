@@ -82,18 +82,34 @@ class _MultiArenaFighterEnv(gym.Env):
     quantity the milestone compares between config A and config B. Thin wrapper
     around ``FighterEnv`` — delegates the Gym API, just swaps the arena on reset.
     Subclasses ``gymnasium.Env`` so SB3 accepts it directly.
+
+    OPPONENT LEAGUE (Stage-6 Student path only, default OFF). When ``opponent_league``
+    is ``None`` the opponent is ALWAYS the single difficulty-scaled ``parametric_fighter``
+    — exactly the original behavior. When a league is supplied, each reset deterministically
+    picks an opponent style from the active league (via the teammate's
+    ``select_opponent_id`` / ``make_opponent``, seeded by this env's ``self._rng``) and
+    fights the Student against THAT style, so a Stage-6 Student trains against a SPREAD of
+    opponent behaviors instead of one parametric fighter (the 48.5%-draw fix). Per-episode
+    opponent-id counts are recorded in ``self._opp_counts`` for auditing.
     """
 
     metadata = {"render_modes": []}
 
     def __init__(self, arenas: list[FighterArena], seed: int,
-                 anti_camping_reward: bool = False):
+                 anti_camping_reward: bool = False,
+                 opponent_league: Optional[list] = None,
+                 prior_student=None):
         super().__init__()
         assert arenas, "need at least one arena to train on"
         self._arenas = arenas
         self._rng = np.random.default_rng(seed)
         self._seed = seed
         self._anti_camping_reward = anti_camping_reward
+        # League is OPT-IN. ``None`` => single parametric opponent (original path).
+        self._opponent_league = opponent_league
+        self._prior_student = prior_student
+        # Per-opponent-id episode counter (audit which styles were actually used).
+        self._opp_counts: dict[str, int] = {}
         self._inner = FighterEnv(
             arenas[0],
             opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=seed),
@@ -110,9 +126,25 @@ class _MultiArenaFighterEnv(gym.Env):
         # arena.difficulty via epsilon-mixing), seeded per-episode so its random
         # choices are reproducible — the whole run replays for a fixed base seed.
         ep_seed = int(self._rng.integers(1_000_000))
+        if self._opponent_league is None:
+            # ORIGINAL behavior, byte-identical: single parametric opponent.
+            opponent_factory = lambda a: parametric_fighter(a, ego=1, seed=ep_seed)
+        else:
+            # Stage-6 league path: pick an opponent style deterministically from
+            # this env's RNG, build it for THIS arena, and capture it so a fresh
+            # FighterEnv re-uses the SAME opponent for the whole episode.
+            from games.opponents_league import make_opponent, select_opponent_id
+
+            oid = select_opponent_id(self._opponent_league, self._rng)
+            opp = make_opponent(
+                oid, arena, ego=1, seed=ep_seed,
+                prior_student=self._prior_student,
+            )
+            self._opp_counts[oid] = self._opp_counts.get(oid, 0) + 1
+            opponent_factory = lambda a: opp
         self._inner = FighterEnv(
             arena,
-            opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=ep_seed),
+            opponent_factory=opponent_factory,
             seed=ep_seed,
             anti_camping_reward=self._anti_camping_reward,
         )
@@ -143,13 +175,17 @@ class _PPOTrainingJob(TrainingJob):
     """
 
     def __init__(self, result: MatchResult, policy: Callable[[np.ndarray], int],
-                 model=None):
+                 model=None, opp_counts: Optional[dict] = None):
         self._result = result
         self.policy = policy
         # The trained SB3 model is exposed so callers that need the raw weights
         # (e.g. Stage-6 policy serialization for Student-vs-Student) can pull
         # ``job.model.policy.state_dict()``. ``None`` for jobs that predate this.
         self.model = model
+        # Per-opponent-id episode counts when the opponent league was active
+        # (Stage-6 Student path); empty dict for the original single-opponent path.
+        # Lets the Student artifact audit which opponent styles were actually trained on.
+        self.opp_counts = dict(opp_counts) if opp_counts else {}
 
     def is_done(self) -> bool:
         return True
@@ -163,12 +199,19 @@ class PPOPlayerTrainer(PlayerTrainer):
 
     def __init__(self, *, eval_seeds: int = 25, verbose: int = 0,
                  ent_coef: float = 0.0, min_timesteps: int = _MIN_TIMESTEPS,
-                 anti_camping_reward: bool = False):
+                 anti_camping_reward: bool = False,
+                 opponent_league: Optional[list] = None,
+                 prior_student=None):
         self._eval_seeds = eval_seeds
         self._verbose = verbose
         self._ent_coef = ent_coef
         self._min_timesteps = min_timesteps
         self._anti_camping_reward = anti_camping_reward
+        # Stage-6 Student-only opponent league. ``None`` (default) => the original
+        # single-parametric-opponent training env, UNCHANGED. The Teacher inner-reward
+        # workers construct this trainer without the flag, so they keep the old path.
+        self._opponent_league = opponent_league
+        self._prior_student = prior_student
 
     def submit(self, config: PlayerConfig, arenas: list[Arena]) -> TrainingJob:
         if config.modal_parallel:
@@ -195,6 +238,8 @@ class PPOPlayerTrainer(PlayerTrainer):
             fighter_arenas,
             seed=config.seed,
             anti_camping_reward=self._anti_camping_reward,
+            opponent_league=self._opponent_league,
+            prior_student=self._prior_student,
         )
         model = PPO(
             "MlpPolicy",
@@ -231,7 +276,9 @@ class PPOPlayerTrainer(PlayerTrainer):
             arena_scores=arena_scores,
             mean_score=mean_score,
         )
-        return _PPOTrainingJob(result, policy, model=model)
+        return _PPOTrainingJob(
+            result, policy, model=model, opp_counts=getattr(env, "_opp_counts", None)
+        )
 
     def _winrate(self, arena: FighterArena, policy: Callable[[np.ndarray], int]) -> float:
         # Score against the SAME parametric opponent the Player trained on, with
