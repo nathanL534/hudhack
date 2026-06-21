@@ -156,6 +156,20 @@ select:focus-visible, button:focus-visible, label.file:focus-visible {
 button:active, label.file:active { transform: translateY(1px); }
 select optgroup { color: var(--accent-gold); background: #100c08; }
 
+/* dropdowns: kill the native macOS arrows, layer one themed chevron over the gradient */
+#replaySel, #speed {
+  -webkit-appearance: none; appearance: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23d8a24a' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center / 11px 7px,
+    linear-gradient(180deg, #1b150e, #15100a);
+  padding-right: 34px;
+}
+#replaySel:hover, #speed:hover {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23e8a85a' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center / 11px 7px,
+    linear-gradient(180deg, #221a11, #1a140d);
+}
+
 /* transport pills */
 .transport-cluster { gap: 8px; }
 .transport-cluster .tb {
@@ -223,9 +237,9 @@ select optgroup { color: var(--accent-gold); background: #100c08; }
   box-shadow: 0 0 0 1px rgba(255,255,255,.035) inset;
 }
 
-/* the single team-color energy edge (keeps the viewer's ::before edge) */
-.spec-panel.left::before  { width: 4px; background: linear-gradient(180deg, var(--trained), #6e221c); }
-.spec-panel.right::before { width: 4px; background: linear-gradient(180deg, var(--base), #2b3a6a); }
+/* team-color side stripe REMOVED — redundant (headband + dot + pill + avatar ring
+   already convey team) and it read as an artifact. Suppress the ::before entirely. */
+.spec-panel.left::before, .spec-panel.right::before { content: none; }
 
 /* -------------------------------------------------- panel head: name / avatar
    The text column (role + name + sensei) and the avatar share the head row.

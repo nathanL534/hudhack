@@ -259,6 +259,32 @@ class HeadToHeadRequest:
     verbose: bool = True
 
 
+def _aggregate_behavior_audit(per_rep_audits):
+    """Roll up per-replicate behavior audits (movement / real-ring-outs / timeout-wins /
+    draws / action histogram) into one summary. Returns None if no replicate produced an
+    audit (cfg.audit_behavior off). Numeric fields are averaged across replicates; dict
+    fields (e.g. action histograms) are summed key-wise.
+    """
+    audits = [a for a in per_rep_audits if a]
+    if not audits:
+        return None
+    out = {"n_replicates_audited": len(audits)}
+    keys = set().union(*(a.keys() for a in audits))
+    for k in keys:
+        vals = [a[k] for a in audits if k in a]
+        if vals and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in vals):
+            out[k] = round(sum(vals) / len(vals), 4)
+        elif vals and all(isinstance(v, dict) for v in vals):
+            agg: dict = {}
+            for v in vals:
+                for kk, vv in v.items():
+                    agg[kk] = agg.get(kk, 0) + (vv if isinstance(vv, (int, float)) else 0)
+            out[k] = agg
+        else:
+            out[k] = vals
+    return out
+
+
 def run_head_to_head(
     req: HeadToHeadRequest, *, run_train=_run_train, run_h2h=_run_h2h,
 ) -> dict:
@@ -366,6 +392,11 @@ def run_head_to_head(
     std = aggregate.sample_std(rep_advantages)
     effect_size = round(mean_adv / std, 4) if std > 0 else None
 
+    # --- behaviour audit roll-up (None unless cfg.audit_behavior was on) ---
+    behavior_audit = _aggregate_behavior_audit(
+        [rep.get("_behavior_audit") for rep in replicate_rows]
+    )
+
     summary = {
         "metric": "primary_student_vs_student_head_to_head",
         "game": game.name,
@@ -389,6 +420,7 @@ def run_head_to_head(
         "held_out_overlap_total": all_overlap,
         "anti_circularity": gaming.as_dict(),
         "primary_pass": primary_pass,
+        "behavior_audit": behavior_audit,
         "wall_clock_s": round(wall, 2),
         "replicates": [
             {k: v for k, v in rep.items() if not k.startswith("_")}
@@ -456,8 +488,27 @@ def _run_one_replicate(
             "arena": payload_arena,
             "match_seeds": match_seeds,
             "capture_replays": bool(r == 0 and ai == 0),
+            # Behaviour audit (default OFF): a no-op key when disabled. When enabled the
+            # worker captures the trained Student's movement / action / ring-out trace.
+            "audit_behavior": bool(getattr(cfg, "audit_behavior", False)),
         })
     h2h_rows = run_h2h(h2h_payloads, [r] * len(h2h_payloads), backend=req.backend)
+
+    # --- behaviour audit accumulation (default OFF; rows omit it when disabled) ---
+    audit_acc = {"steps": 0, "move_steps": 0, "matches": 0,
+                 "ringout_decisive_wins": 0, "timeout_wins": 0, "ringout_losses": 0,
+                 "draws": 0, "action_counts": [0, 0, 0, 0, 0]}
+    audit_seen = False
+    for hrow in h2h_rows:
+        ba = hrow.get("behavior_audit")
+        if not ba:
+            continue
+        audit_seen = True
+        for k in ("steps", "move_steps", "matches", "ringout_decisive_wins",
+                  "timeout_wins", "ringout_losses", "draws"):
+            audit_acc[k] += int(ba.get(k, 0))
+        for i, c in enumerate(ba.get("action_counts", [])):
+            audit_acc["action_counts"][i] += int(c)
 
     # --- tally win/loss/draw per side + per arena family ---
     trained_wins = base_wins = draws = 0
@@ -542,6 +593,7 @@ def _run_one_replicate(
         "_total_matches": total,
         "_side_p0_wins": p0_wins, "_side_p0_total": p0_total,
         "_side_p1_wins": p1_wins, "_side_p1_total": p1_total,
+        "_behavior_audit": audit_acc if audit_seen else None,
     }
 
 

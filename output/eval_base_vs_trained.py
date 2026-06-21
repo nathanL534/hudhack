@@ -86,6 +86,20 @@ from output.stage6.evaluator import (  # noqa: E402
     write_result,
 )
 from output.stage6.games import all_games, get_game  # noqa: E402
+from games.opponents_league import FOCUSED_LEAGUE  # noqa: E402
+
+# Focused-population Student presets. These make the Stage-6 Student match how the
+# leagueB Teachers were retrained: the FOCUSED_LEAGUE (70% aggressive / 30% self-play
+# prior_student — NOT the broken DEFAULT_LEAGUE that gives ~80% draws), the matching
+# net arch, the mounted prior-Student artifact, and decisive reward. Applied
+# IDENTICALLY to BOTH Students via the EvalConfig fairness invariant.
+STUDENT_CFG_PRESETS = {
+    "focused128": {"student_net_arch": (128, 128)},
+    "focused256": {"student_net_arch": (256, 256)},
+}
+# The prior-Student self-play artifact mounted on crucible-player at this path
+# (see modal_player.py: .add_local_file("replays/prior_student.json", ...)).
+PRIOR_STUDENT_MOUNT = "/root/prior_student.json"
 
 # The default BASE handle is the MODAL base-no-adapter Teacher: Fireworks gives a 404
 # for serverless qwen3-4b inference on this account and the host venv has no
@@ -108,6 +122,26 @@ def _build_config(args, *, smoke: bool) -> EvalConfig:
         base = smoke_config()
     else:
         base = EvalConfig()
+
+    # --student-cfg-preset focused128|focused256 makes BOTH Students match the
+    # leagueB Teacher retrains: FOCUSED_LEAGUE (70% aggressive / 30% prior_student
+    # self-play — NOT the broken DEFAULT_LEAGUE), the matching net arch, the mounted
+    # prior-Student artifact, and decisive reward. A preset implies the league is on.
+    preset = getattr(args, "student_cfg_preset", None)
+    if preset is not None:
+        spec = STUDENT_CFG_PRESETS[preset]
+        league_enabled = True
+        opponent_league = list(FOCUSED_LEAGUE)
+        student_net_arch = spec["student_net_arch"]
+        prior_student_path = PRIOR_STUDENT_MOUNT
+        student_decisive_reward = True
+    else:
+        league_enabled = bool(getattr(args, "opponent_league", False)) or base.opponent_league_enabled
+        opponent_league = base.opponent_league
+        student_net_arch = base.student_net_arch
+        prior_student_path = base.prior_student_path
+        student_decisive_reward = base.student_decisive_reward
+
     return EvalConfig(
         temperature=args.temperature,
         ppo_episodes=args.episodes if args.episodes is not None else base.ppo_episodes,
@@ -120,7 +154,11 @@ def _build_config(args, *, smoke: bool) -> EvalConfig:
         curriculum_arenas=args.curriculum_arenas if args.curriculum_arenas is not None else base.curriculum_arenas,
         match_seeds_per_arena=args.match_seeds if args.match_seeds is not None else base.match_seeds_per_arena,
         head_to_head_grid=args.h2h_grid if args.h2h_grid is not None else base.head_to_head_grid,
-        opponent_league_enabled=bool(getattr(args, "opponent_league", False)) or base.opponent_league_enabled,
+        opponent_league_enabled=league_enabled,
+        opponent_league=opponent_league,
+        student_net_arch=student_net_arch,
+        prior_student_path=prior_student_path,
+        student_decisive_reward=student_decisive_reward,
     )
 
 
@@ -279,6 +317,13 @@ def main(argv: list[str] | None = None) -> int:
                    help="enable the Stage-6 Student opponent league (aggressive/turtle/"
                         "random opponents) so Students fight decisively -> fewer draws. "
                         "Applied IDENTICALLY to base and trained Students (fairness).")
+    p.add_argument("--student-cfg-preset", dest="student_cfg_preset",
+                   choices=["focused128", "focused256"], default=None,
+                   help="match the leagueB Teacher retrains: trains BOTH Students on the "
+                        "FOCUSED_LEAGUE (70%% aggressive / 30%% prior_student self-play, NOT "
+                        "the draw-prone DEFAULT_LEAGUE), with decisive reward + the mounted "
+                        "prior-Student artifact. focused128 => net_arch [128,128]; focused256 "
+                        "=> [256,256]. Applied IDENTICALLY to base and trained (fairness).")
     p.add_argument("--no-secondary", dest="no_secondary", action="store_true",
                    help="skip the secondary fixed-bot transfer diagnostic (primary only)")
     p.add_argument("--koth-cross-game", dest="koth_cross_game", action="store_true",

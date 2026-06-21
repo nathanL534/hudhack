@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>sprite_anim.js — DOJO fighter demo</title>
+<style>
+  /* dojo palette, mirrored from viewer.html so the demo reads as the same product */
+  :root{
+    --bg:#0c0a09; --bg2:#070605; --panel:#14110d; --panel2:#1a1611;
+    --line:#2a231b; --line2:#3a3025; --ink:#efe6d6; --muted:#a8967a; --muted2:#786650;
+    --orange:#e08c3f; --gold:#c8972e; --trained:#c4453c; --base:#4a63b0;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 680px at 50% -14%,#19140e 0%,var(--bg) 52%,var(--bg2) 100%);
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  header{ width:100%; padding:20px 32px 16px; border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; gap:14px; }
+  header .kanji{ color:var(--orange); font-size:26px; font-weight:800; letter-spacing:.5px; }
+  header h1{ font-size:16px; font-weight:700; margin:0; }
+  header .dim{ color:var(--muted2); margin:0 6px; }
+  header .sub{ color:var(--muted); font-size:12.5px; }
+  main{ width:min(1040px,100%); padding:22px 24px 60px; }
+  .stage-wrap{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
+    border:1px solid var(--line); border-radius:14px; padding:14px; position:relative;
+    box-shadow:0 18px 50px -28px #000, inset 0 1px 0 #ffffff0a;
+  }
+  canvas#stage{ display:block; width:100%; height:auto; border-radius:10px; background:transparent; }
+  .controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:16px 0 10px; }
+  .lbl{ color:var(--orange); font-weight:700; font-size:13px; letter-spacing:.2px; margin-right:2px; }
+  button{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line2);
+    border-radius:8px; padding:7px 13px; font:inherit; font-size:13px; cursor:pointer;
+    transition:border-color .12s, background .12s;
+  }
+  button:hover{ border-color:var(--gold); }
+  button.on{ border-color:var(--orange); background:#1e1813; color:#ffe7b0; }
+  .seq{ color:var(--muted); font-size:12.5px; margin-left:auto; }
+  .seq b{ color:var(--gold); }
+  .legend{ display:flex; gap:18px; margin-top:8px; color:var(--muted); font-size:12.5px; }
+  .legend .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:middle; margin-right:6px; }
+  .note{ color:var(--muted2); font-size:12px; margin-top:18px; line-height:1.6; max-width:720px; }
+  .note code{ color:var(--gold); background:#1c1712; padding:1px 5px; border-radius:4px; }
+  #err{ color:#ff8a7a; font-size:13px; margin-top:10px; white-space:pre-wrap; display:none; }
+  .pill{ font-size:11px; color:var(--muted); border:1px solid var(--line2); border-radius:999px;
+    padding:2px 9px; }
+</style>
+</head>
+<body>
+  <header>
+    <span class="kanji">道</span>
+    <h1>sprite_anim.js<span class="dim">·</span><span class="sub">fighter animation engine — standalone demo</span></h1>
+  </header>
+
+  <main>
+    <div class="stage-wrap">
+      <canvas id="stage" width="1000" height="420"></canvas>
+    </div>
+
+    <div class="controls">
+      <span class="lbl">ACTION</span>
+      <button data-act="auto" class="on">Auto loop</button>
+      <button data-act="idle">Idle</button>
+      <button data-act="walk">Walk</button>
+      <button data-act="jump">Jump</button>
+      <button data-act="fall">Fall</button>
+      <button data-act="punch">Punch</button>
+      <button data-act="hit">Hit</button>
+      <button data-act="ko">KO</button>
+      <span class="seq">now: <b id="now">—</b></span>
+    </div>
+
+    <div class="controls">
+      <span class="lbl">SOURCE</span>
+      <button id="srcProc" class="on">Procedural (vector)</button>
+      <button id="srcSheet">Real sprites <span class="pill">samuraiMack / kenji</span></button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--base)"></span>BLUE headband — Player 1 / Base</span>
+      <span><span class="dot" style="background:var(--trained)"></span>RED headband — Player 2 / Trained</span>
+    </div>
+
+    <div id="err"></div>
+
+    <p class="note">
+      Left = Player 1 (base, blue). Right = Player 2 (trained, red), facing in.
+      <strong>Auto loop</strong> cycles idle → walk → jump → punch → hit so every clip is
+      visible without input. <strong>Procedural</strong> draws a crisp canvas karate figure
+      (works with zero assets); <strong>Real sprites</strong> loads
+      <code>assets/sprites/&lt;char&gt;/*.png</code> through the same interface — if the PNGs
+      aren't served, it silently keeps the vector fallback. Drop-in for viewer.html:
+      <code>anim.draw(ctx, action, facing, feetX, feetY, scale, performance.now())</code>.
+    </p>
+  </main>
+
+<script type="module">
+  import { SpriteAnimator, selectAction } from "./sprite_anim.js";
+
+  const errEl = document.getElementById("err");
+  function fail(e){
+    errEl.style.display = "block";
+    errEl.textContent = "ERROR: " + (e && e.stack ? e.stack : e);
+    console.error(e);
+  }
+  window.addEventListener("error", (ev)=>fail(ev.error || ev.message));
+
+  try {
+    const cv  = document.getElementById("stage");
+    const ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height;
+    const groundY = H - 56;
+
+    // two fighters, both teams, facing each other
+    let useSheets = false;
+    let p1, p2;
+    function buildAnimators(){
+      if (useSheets){
+        p1 = SpriteAnimator.fromCharacter("kenji",       { team:"base",    baseHeight:230 });
+        p2 = SpriteAnimator.fromCharacter("samuraiMack", { team:"trained", baseHeight:230 });
+      } else {
+        p1 = SpriteAnimator.procedural({ team:"base",    baseHeight:230 });
+        p2 = SpriteAnimator.procedural({ team:"trained", baseHeight:230 });
+      }
+    }
+    buildAnimators();
+
+    // ----- auto choreography: a looping sequence so every clip shows -----
+    const SEQ = [
+      ["idle", 900], ["walk", 1500], ["jump", 700], ["fall", 500],
+      ["idle", 400], ["punch", 700], ["punch", 700], ["hit", 700],
+      ["idle", 700], ["ko", 1200], ["idle", 600],
+    ];
+    const seqTotal = SEQ.reduce((a,[,d])=>a+d, 0);
+    function seqAction(tMs){
+      let t = tMs % seqTotal;
+      for (const [act, dur] of SEQ){ if (t < dur) return act; t -= dur; }
+      return "idle";
+    }
+
+    // ----- manual override -----
+    let forced = "auto";
+    document.querySelectorAll("[data-act]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        forced = b.dataset.act;
+        document.querySelectorAll("[data-act]").forEach(x=>x.classList.toggle("on", x===b));
+      });
+    });
+    const srcProc = document.getElementById("srcProc");
+    const srcSheet = document.getElementById("srcSheet");
+    function setSrc(sheets){
+      useSheets = sheets;
+      srcProc.classList.toggle("on", !sheets);
+      srcSheet.classList.toggle("on", sheets);
+      buildAnimators();
+    }
+    srcProc.addEventListener("click", ()=>setSrc(false));
+    srcSheet.addEventListener("click", ()=>setSrc(true));
+
+    // ----- dojo floor (so the figures have ground to stand on) -----
+    function drawFloor(){
+      ctx.clearRect(0,0,W,H);
+      // ambient vignette
+      const g = ctx.createRadialGradient(W/2, H*0.2, 60, W/2, H*0.2, W*0.8);
+      g.addColorStop(0, "#1a140d"); g.addColorStop(1, "#0a0807");
+      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      // floor plane
+      ctx.fillStyle = "#120e0a";
+      ctx.fillRect(0, groundY, W, H-groundY);
+      ctx.strokeStyle = "#2a231b"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+      // tatami seams
+      ctx.strokeStyle = "rgba(200,151,46,0.10)"; ctx.lineWidth = 1;
+      for (let i=1;i<8;i++){ const x=(W/8)*i; ctx.beginPath(); ctx.moveTo(x,groundY); ctx.lineTo(x,H); ctx.stroke(); }
+      // center mark
+      ctx.strokeStyle = "rgba(224,140,63,0.18)";
+      ctx.beginPath(); ctx.moveTo(W/2, groundY-10); ctx.lineTo(W/2, groundY+10); ctx.stroke();
+    }
+
+    // for jump/fall we lift the figure off the ground for readability
+    function feetYFor(action, tMs){
+      if (action === "jump" || action === "fall"){
+        // a little parabola so air clips literally leave the floor
+        const phase = (tMs % 1200) / 1200;            // 0..1
+        const lift = Math.sin(phase * Math.PI) * 90;  // px up
+        return groundY - lift;
+      }
+      return groundY;
+    }
+
+    const nowEl = document.getElementById("now");
+
+    function frame(now){
+      drawFloor();
+
+      const act1 = forced === "auto" ? seqAction(now)         : forced;
+      // p2 runs the sequence offset so the two aren't perfectly in lockstep
+      const act2 = forced === "auto" ? seqAction(now + 1300)  : forced;
+
+      // P1 (blue) on the left facing RIGHT (+1); P2 (red) on the right facing LEFT (-1)
+      p1.draw(ctx, act1,  1, W*0.34, feetYFor(act1, now), 1, now);
+      p2.draw(ctx, act2, -1, W*0.66, feetYFor(act2, now), 1, now);
+
+      // labels under each
+      ctx.font = "600 13px ui-sans-serif,system-ui";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#7fa0e0"; ctx.fillText("P1 · BASE · " + act1.toUpperCase(), W*0.34, H-16);
+      ctx.fillStyle = "#e08a82"; ctx.fillText("P2 · TRAINED · " + act2.toUpperCase(), W*0.66, H-16);
+
+      nowEl.textContent = (now/1000).toFixed(1) + "s" +
+        (useSheets ? (p1.hasSprites() ? " · sheets live" : " · sheets pending/missing → vector") : " · vector");
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // expose for quick console poking / external smoke checks
+    window.__demo = { p1, p2, selectAction, SpriteAnimator };
+  } catch (e) { fail(e); }
+</script>
+</body>
+</html>

@@ -70,7 +70,8 @@ DEFAULT_EVAL_SEEDS = 50
 def _arena_payload(spec: ArenaSpec, *, episodes: int, eval_seeds: int, curriculum_id: str,
                    capture_replay_id: str | None = None,
                    held_out_arenas: list[dict] | None = None,
-                   geometry_override: dict | None = None) -> dict:
+                   geometry_override: dict | None = None,
+                   student_cfg: dict | None = None) -> dict:
     """Translate one ArenaSpec into the transfer-worker payload.
 
     The fighter knobs the worker reads are ``difficulty`` (the Teacher's primary
@@ -89,6 +90,14 @@ def _arena_payload(spec: ArenaSpec, *, episodes: int, eval_seeds: int, curriculu
     structurally-diverse held-out population from ``output/broad_eval_set.py``). The
     worker (``modal_player._held_out_reference_arenas``) honors this key and scores
     transfer on it instead of the two narrow default-geometry turtle references.
+
+    ``student_cfg`` (optional): the FOCUSED-population spec for the INNER Student the
+    Ring-Out reward trains — wider MLP (``arch``), a focused opponent league
+    (70% aggressive / 30% prior_student), the gated decisive ring-out reward, and a
+    higher ``ent_coef``. Threaded VERBATIM into the worker as ``payload["student_cfg"]``
+    so ``modal_player._real_ppo_transfer_result`` trains a FIGHTING (not camping)
+    inner Student. When ``None``/absent the key is simply not set, so the worker runs
+    the ORIGINAL byte-identical vanilla inner reward (demo-safe default).
     """
     payload: dict = {
         "difficulty": float(spec.difficulty),
@@ -106,6 +115,8 @@ def _arena_payload(spec: ArenaSpec, *, episodes: int, eval_seeds: int, curriculu
         payload["held_out_arenas"] = held_out_arenas
     if capture_replay_id:
         payload["capture_replay_id"] = capture_replay_id
+    if student_cfg:
+        payload["student_cfg"] = student_cfg
     return payload
 
 
@@ -145,6 +156,7 @@ def teacher_reward(
     capture_replay: bool = False,
     held_out_arenas: list[dict] | None = None,
     geometry_override: dict | None = None,
+    student_cfg: dict | None = None,
     _detail_sink: dict | None = None,
 ) -> float:
     """The nested-RL Teacher reward in [0, 1] for a curriculum spec.
@@ -160,6 +172,11 @@ def teacher_reward(
     For a multi-arena curriculum each arena is evaluated and the per-arena rewards
     are averaged (the Teacher's curriculum-level signal). ``_detail_sink``, if
     given, is populated with the raw per-seed rows for reporting.
+
+    ``student_cfg`` (optional): the FOCUSED-population spec for the INNER Student.
+    Passed straight through to the transfer worker (see ``_arena_payload``); when it
+    is ``None``/absent the worker runs the ORIGINAL vanilla inner reward, so the old
+    Teacher / demo path is byte-identical.
     """
     curriculum_spec.validate()
     per_arena_rewards: list[float] = []
@@ -181,6 +198,7 @@ def teacher_reward(
                 capture_replay_id=(replay_id if (replay_id and si == 0) else None),
                 held_out_arenas=held_out_arenas,
                 geometry_override=geometry_override,
+                student_cfg=student_cfg,
             )
             for si in range(len(seed_list))
         ]

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dojo Viewer — Theme Preview</title>
+
+<!--
+  Standalone preview of theme.css applied to the SAME markup structure as
+  viewer.html (same classes/ids). Static placeholder data only — no fetch,
+  no JS behavior, no build step. Open via file:// to review the upgrade.
+
+  This file intentionally carries NO base styles of its own beyond a tiny
+  reset + the layout scaffolding that viewer.html's first <style> block
+  provides. theme.css is the thing under review.
+-->
+
+<!-- minimal layout scaffold mirroring viewer.html's structural CSS -->
+<style>
+  :root {
+    --bg:#0c0a09; --bg2:#070605; --panel:#14110d; --panel2:#1a1611;
+    --line:#2a231b; --line2:#3a3025; --ink:#efe6d6; --muted:#a8967a; --muted2:#786650;
+    --trained:#c4453c; --base:#4a63b0; --accent:#c8972e; --gold:#c8972e; --orange:#e0863a; --warn:#d29922;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; color: var(--ink);
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 680px at 50% -14%, #19140e 0%, var(--bg) 52%, var(--bg2) 100%);
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  header { padding: 22px 40px 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; border-bottom: 1px solid var(--line2); }
+  .brand { display: flex; align-items: center; gap: 20px; min-width: 0; }
+  .kanji { font-size: 50px; line-height: .92; color: var(--orange); flex: none; }
+  .headtxt { display: flex; flex-direction: column; min-width: 0; }
+  header h1 { font-size: 28px; margin: 0; line-height: 1.06; font-weight: 800; color: var(--ink); white-space: nowrap; }
+  header .sub { color: var(--muted); font-size: 14.5px; margin-top: 5px; }
+  .legend { margin-left: auto; display: flex; gap: 40px; align-items: center; font-size: 14.5px; flex-wrap: wrap; color: var(--muted); }
+  .legend > span { display: inline-flex; align-items: center; white-space: nowrap; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 11px; flex: none; }
+  .legend b { font-weight: 600; color: var(--ink); margin-right: 7px; }
+  .legend .sep { color: var(--muted2); margin: 0 7px 0 0; }
+  main { flex: 1; width: 100%; margin: 0 auto; padding: 20px 40px 26px; display: flex; flex-direction: column; }
+  .controls-bar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  select, button, label.file { cursor: pointer; }
+  select { min-width: 300px; }
+  .btn-import { display: inline-flex; align-items: center; gap: 9px; }
+  .transport-cluster { display: inline-flex; align-items: center; gap: 10px; }
+  .transport-cluster .tb { display: inline-flex; align-items: center; gap: 8px; }
+  /* glyphs (copied from viewer.html so transport buttons render correctly) */
+  .gl { width: 0; height: 0; display: inline-block; }
+  .gl-play { border-left: 8px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+  .gl-chev { width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+  .gl-prev { transform: rotate(135deg); }
+  .gl-next { transform: rotate(-45deg); }
+  .gl-bar { width: 2px; height: 11px; background: currentColor; display: inline-block; }
+  .btn-import .ic { width: 13px; height: 13px; position: relative; display: inline-block; }
+  .btn-import .ic::before { content: ""; position: absolute; left: 5px; top: 0; width: 3px; height: 8px; background: var(--muted); }
+  .btn-import .ic::after { content: ""; position: absolute; left: 2px; top: 0; width: 8px; height: 8px; border-left: 2px solid var(--muted); border-top: 2px solid var(--muted); transform: rotate(45deg); transform-origin: top left; }
+  .btn-import .tray { position: absolute; left: 0; bottom: 0; width: 13px; height: 4px; border: 2px solid var(--muted); border-top: 0; border-radius: 0 0 2px 2px; }
+  .arena { margin-top: 16px; flex: 1; display: grid; grid-template-columns: 288px minmax(560px, 1fr) 288px; gap: 24px; align-items: stretch; }
+  @media (max-width: 1280px) { .arena { grid-template-columns: 252px minmax(480px, 1fr) 252px; gap: 18px; } }
+  @media (max-width: 1080px) { .arena { grid-template-columns: 1fr; } .spec-panel { order: 3; } .stage-wrap { order: 1; } }
+  .spec-panel { position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .spec-panel.left::before, .spec-panel.right::before { content: ""; position: absolute; top: 0; bottom: 0; width: 4px; }
+  .spec-panel.left::before { left: 0; }
+  .spec-panel.right::before { right: 0; }
+  .panel-head { position: relative; min-height: 116px; padding-right: 8px; }
+  .spec-panel .role { display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+  .spec-panel .name { white-space: nowrap; }
+  .avatar { width: 92px; height: 92px; border-radius: 50%; position: absolute; bottom: -10px; right: 0; display: grid; place-items: center; overflow: hidden; }
+  .side-pill { align-self: flex-start; }
+  .spec-row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .spec-row .v { text-align: right; }
+  .details-btn { margin-top: auto; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .details-btn .chev { width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin-top: -2px; }
+  .stage-wrap { display: flex; flex-direction: column; }
+  .canvas-frame { position: relative; border-radius: 12px; overflow: hidden; flex: 1; aspect-ratio: 1000 / 640; min-height: 0; }
+  #canvas { display: block; width: 100%; height: 100%; }
+  .transport { display: flex; gap: 16px; align-items: center; }
+  .transport .ts { min-width: 90px; }
+  .transport .ts.right { text-align: right; }
+  .transport input[type=range] { flex: 1; min-width: 120px; }
+  .fs-btn { background: transparent; border: 0; padding: 4px; width: 22px; height: 22px; position: relative; flex: none; cursor: pointer; }
+  .fs-btn .c { position: absolute; width: 7px; height: 7px; }
+  .fs-btn .c1 { top: 2px; left: 2px; border-left: 2px solid currentColor; border-top: 2px solid currentColor; }
+  .fs-btn .c2 { top: 2px; right: 2px; border-right: 2px solid currentColor; border-top: 2px solid currentColor; }
+  .fs-btn .c3 { bottom: 2px; left: 2px; border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+  .fs-btn .c4 { bottom: 2px; right: 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; }
+  #banner { display: none; }
+  /* preview-only canvas placeholder art (the real viewer paints sprites here) */
+  .canvas-frame .stage-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(60% 50% at 50% 18%, rgba(232,137,58,.18), rgba(232,137,58,0) 70%),
+      linear-gradient(180deg, #1c140c 0%, #120c07 55%, #0b0805 100%);
+    display: grid; place-items: end center;
+  }
+  .canvas-frame .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 26%;
+    background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.5)),
+                repeating-linear-gradient(90deg, #15100a 0 60px, #181208 60px 120px); opacity: .9; }
+  .fighter { position: absolute; bottom: 26%; width: 56px; height: 120px; border-radius: 40% 40% 18% 18%; }
+  .fighter.red  { left: 30%;  background: radial-gradient(60% 40% at 50% 25%, #e26a60, #8a2a20); box-shadow: 0 0 26px rgba(207,74,64,.5); }
+  .fighter.blue { right: 30%; background: radial-gradient(60% 40% at 50% 25%, #7e95dd, #2b3a6a); box-shadow: 0 0 26px rgba(85,112,196,.5); }
+  .stage-tag { position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    font: 600 11px/1 ui-sans-serif; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    background: rgba(0,0,0,.4); padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.06); }
+</style>
+
+<!-- the theme under review -->
+<link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="kanji">道場</span>
+    <div class="headtxt">
+      <h1>DOJO<span class="dim">·</span><span class="lite">Sensei vs Sensei</span></h1>
+      <span class="sub">Two students. One trained by a sharper sensei.</span>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--trained)"></span><b>Trained Student</b> <span class="sep">—</span> good sensei</span>
+    <span><span class="dot" style="background:var(--base)"></span><b>Base Student</b> <span class="sep">—</span> base sensei</span>
+  </div>
+</header>
+
+<main>
+  <div class="controls-bar">
+    <span class="lbl">Match</span>
+    <select id="replaySel">
+      <option>Ring-Out · Trained WINS · samuraiMack vs kenji · seed 3</option>
+      <option>King of the Hill · Base wins · seed 11</option>
+      <option>Target Knockback · Draw · seed 7</option>
+    </select>
+    <label class="file btn-import" title="Load a replay .json">
+      <span class="ic"><span class="tray"></span></span> Import Replay
+    </label>
+    <div class="transport-cluster" style="margin-left:auto">
+      <button class="tb" title="First frame"><span class="gl gl-chev gl-prev"></span><span class="gl-bar" style="margin-left:-4px"></span> First</button>
+      <button class="tb" title="Previous frame"><span class="gl gl-chev gl-prev"></span> Prev</button>
+      <button class="tb play" title="Play / pause"><span class="gl gl-play"></span> Play</button>
+      <button class="tb" title="Next frame">Next <span class="gl gl-chev gl-next"></span></button>
+      <button class="tb" title="Last frame">Last <span class="gl-bar" style="margin-right:-4px"></span><span class="gl gl-chev gl-next"></span></button>
+    </div>
+    <select id="speed" title="playback speed">
+      <option>2x</option><option selected>1.5x</option><option>1x</option><option>0.75x</option><option>0.5x</option>
+    </select>
+  </div>
+
+  <div class="arena">
+
+    <!-- LEFT panel — Player 2 Trained (red) — WINNER -->
+    <aside class="spec-panel left is-winner" id="panelL">
+      <div class="panel-head">
+        <div class="role"><span class="dot" style="background:var(--trained)"></span>Player 2 <span class="sep">/</span> Student</div>
+        <div class="name">Trained Student</div>
+        <div class="sensei">Modal Sensei · good sensei</div>
+        <div class="avatar"></div>
+      </div>
+      <span class="side-pill trained">Trained</span>
+      <div class="spec-rows">
+        <div class="spec-row"><span class="k">Side</span><span class="v">P2 (Left)</span></div>
+        <div class="spec-row"><span class="k">Role</span><span class="v">Student</span></div>
+        <div class="spec-row"><span class="k">Sensei</span><span class="v">Modal Sensei</span></div>
+        <div class="spec-row"><span class="k">Outcome</span><span class="v">Win <span class="win-mark">勝</span></span></div>
+      </div>
+      <button class="details-btn">View Details <span class="chev"></span></button>
+    </aside>
+
+    <!-- CENTER stage -->
+    <section class="stage-wrap">
+      <div class="canvas-frame">
+        <!-- placeholder art standing in for the real sprite canvas -->
+        <div class="stage-bg" aria-hidden="true">
+          <div class="floor"></div>
+          <div class="fighter red"></div>
+          <div class="fighter blue"></div>
+        </div>
+        <div class="stage-tag">Ring-Out Duel</div>
+        <canvas id="canvas" width="1000" height="640" style="position:relative;background:transparent"></canvas>
+      </div>
+      <div class="transport">
+        <span class="ts" id="timeCur">00:00.600</span>
+        <input id="scrub" type="range" min="0" max="100" value="62" style="--scrub-pct:62%" />
+        <span class="ts right" id="timeTot">00:01.000</span>
+        <button class="fs-btn" title="Fullscreen"><span class="c c1"></span><span class="c c2"></span><span class="c c3"></span><span class="c c4"></span></button>
+      </div>
+      <div id="banner"></div>
+    </section>
+
+    <!-- RIGHT panel — Player 1 Base (blue) — LOSER -->
+    <aside class="spec-panel right is-loser" id="panelR">
+      <div class="panel-head">
+        <div class="role"><span class="dot" style="background:var(--base)"></span>Player 1 <span class="sep">/</span> Student</div>
+        <div class="name">Base Student</div>
+        <div class="sensei">Base Sensei · base sensei</div>
+        <div class="avatar"></div>
+      </div>
+      <span class="side-pill base">Base</span>
+      <div class="spec-rows">
+        <div class="spec-row"><span class="k">Side</span><span class="v">P1 (Right)</span></div>
+        <div class="spec-row"><span class="k">Role</span><span class="v">Student</span></div>
+        <div class="spec-row"><span class="k">Sensei</span><span class="v">Base Sensei</span></div>
+        <div class="spec-row"><span class="k">Outcome</span><span class="v">Loss</span></div>
+      </div>
+      <button class="details-btn">View Details <span class="chev"></span></button>
+    </aside>
+
+  </div>
+
+  <p style="margin:22px 4px 0;color:var(--muted2);font-size:12px;letter-spacing:.3px;">
+    Preview: left panel rendered as <b style="color:var(--accent-gold)">winner</b>
+    (lift · warm wash · 勝 plaque) · right panel as <b>loser</b> (desaturated · receded) ·
+    scrubber shown at 62% played. All static placeholder data.
+  </p>
+</main>
+
+</body>
+</html>

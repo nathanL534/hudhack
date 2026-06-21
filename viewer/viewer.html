@@ -742,9 +742,21 @@ async function buildDropdown(files) {
     return { file, meta, label: describeReplay(meta, file), key: gameKey(meta) };
   }).filter(Boolean);
 
-  // group by game family
+  // group by game family — DEMO CURATION: show only the trained-vs-base story
+  // matches. Drop debug/calibration replays (random/scripted/parametric/stage
+  // tests) and collapse seed/difficulty variants of the same matchup so the
+  // dropdown is a clean, readable highlight reel rather than a debug dump.
+  const DEBUG_RX = /random|scripted|parametric|floaty|heavy_knock|narrow_ledge|wide_arena/i;
+  const seenKey = new Set();
+  const curated = manifestEntries.filter((e) => {
+    if (DEBUG_RX.test(e.label)) return false;
+    const key = String(e.label).split(/\s+[·•]\s+/).slice(0, 3).join(" | ");
+    if (seenKey.has(key)) return false;
+    seenKey.add(key);
+    return true;
+  });
   const groups = { koth: [], tk: [], ringout: [] };
-  for (const e of manifestEntries) (groups[e.key] || groups.ringout).push(e);
+  for (const e of (curated.length ? curated : manifestEntries)) (groups[e.key] || groups.ringout).push(e);
 
   sel.innerHTML = "";
   const ph = document.createElement("option");

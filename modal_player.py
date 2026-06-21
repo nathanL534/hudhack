@@ -258,6 +258,70 @@ def _held_out_reference_arenas(payload: dict):
     return [FighterArena(difficulty=float(d)) for d in diffs]
 
 
+def _resolve_inner_student(student_cfg: dict | None, train_arena, seed: int):
+    """Resolve the INNER Student's training config for the Ring-Out reward.
+
+    Returns ``(net_arch, trainer_kwargs, train_arena)``:
+
+      * ``net_arch``     — the MLP hidden-layer widths (BOTH the BEFORE untrained net
+                           and the AFTER trainer must use the SAME arch so the
+                           before/after delta is apples-to-apples).
+      * ``trainer_kwargs`` — extra kwargs for ``PPOPlayerTrainer`` (league / prior_student
+                           / decisive_reward / ent_coef / net_arch).
+      * ``train_arena``  — the arena the inner Student trains on; when the decisive
+                           reward is on it carries ``decisive_timeout=True`` so a
+                           timeout resolves by the aggression tiebreak (otherwise a
+                           timeout is always a -0.5 draw and the +0.1 tier is dead).
+
+    When ``student_cfg`` is None/empty this returns the ORIGINAL vanilla config —
+    ``net_arch=[64,64]``, NO league, NO decisive reward, NO ent_coef override, the
+    arena unchanged — so the default Ring-Out reward path is byte-identical.
+    """
+    import dataclasses
+
+    if not student_cfg:
+        return [64, 64], {}, train_arena
+
+    # Inner-Student MLP width (default [128,128] for the focused population). The
+    # SAME arch feeds the BEFORE untrained net so the held-out delta is fair.
+    net_arch = [int(h) for h in (student_cfg.get("arch") or [128, 128])]
+
+    # Focused opponent league (default OFF; only built when the cfg opts in). The
+    # frozen prior-Student is loaded + restored into a runnable Policy here, so
+    # ``resolve_league`` correctly keeps/drops the 30% ``prior_student`` member.
+    active_league = None
+    prior_student = None
+    if student_cfg.get("opponent_league_enabled"):
+        from games.opponents_league import FOCUSED_LEAGUE, resolve_league
+
+        artifact = _load_prior_student_artifact(student_cfg.get("prior_student_path"))
+        league_spec = student_cfg.get("opponent_league") or FOCUSED_LEAGUE
+        active_league = resolve_league(
+            league_spec, has_prior_student=artifact is not None
+        )
+        if artifact is not None:
+            from games.fighter import FighterArena
+
+            prior_student = _restore_prior_student_policy(
+                artifact, FighterArena, [train_arena], int(seed)
+            )
+
+    decisive = bool(student_cfg.get("decisive_reward", False))
+    if decisive:
+        # The decisive reward needs a tiebreak winner for the +0.1 "won-but-not-decisive"
+        # tier; without ``decisive_timeout`` a timeout is always a None-winner -0.5 draw.
+        train_arena = dataclasses.replace(train_arena, decisive_timeout=True)
+
+    trainer_kwargs = {
+        "ent_coef": float(student_cfg.get("ent_coef", 0.03)),
+        "opponent_league": active_league,
+        "prior_student": prior_student,
+        "decisive_reward": decisive,
+        "net_arch": net_arch,
+    }
+    return net_arch, trainer_kwargs, train_arena
+
+
 def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
     """Train ONE real PPO Player on the Teacher arena, measure HELD-OUT TRANSFER.
 
@@ -276,6 +340,14 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
       * held_out_improvement = AFTER - BEFORE  (the transfer learning signal).
 
     All scoring goes through ``FighterGameAdapter.evaluate`` (the reference path).
+
+    INNER-STUDENT POPULATION (``payload["student_cfg"]``, default OFF). When the
+    teammate's Teacher trainer threads a ``student_cfg`` dict (see
+    ``output.nested_reward._arena_payload``) the inner Student trains as a FIGHTING
+    population: a wider MLP (``arch``), a 70%-aggressive / 30%-prior_student focused
+    league, the gated decisive ring-out reward, and a higher ``ent_coef``. When the
+    key is ABSENT the inner Student trains exactly as before (vanilla [64,64] PPO vs
+    the single parametric opponent) — the old-Teacher / demo path is unchanged.
     """
     import warnings
 
@@ -295,6 +367,14 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
     train_arena = _arena_from_payload(payload)
     held_out_arenas = _held_out_reference_arenas(payload)
 
+    # Resolve the inner-Student population (focused vs vanilla). The returned
+    # ``train_arena`` may carry ``decisive_timeout=True``; ``net_arch`` feeds BOTH
+    # the BEFORE untrained net and the AFTER trainer so the delta is fair.
+    student_cfg = payload.get("student_cfg")
+    net_arch, trainer_kwargs, train_arena = _resolve_inner_student(
+        student_cfg, train_arena, int(seed)
+    )
+
     adapter = FighterGameAdapter(eval_seeds=eval_seeds)
     cid = payload.get("curriculum_id", "modal")
     held = adapter.arenas_from_configs(held_out_arenas, curriculum_id=f"{cid}-heldout")
@@ -308,7 +388,9 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
         (entry,) = bundle.values()
         return [float(s) for s in entry["per_arena"]]
 
-    # BEFORE: untrained net on the FIXED held-out reference set.
+    # BEFORE: untrained net on the FIXED held-out reference set. SAME arch as the
+    # trained Student (so a wider focused Student is compared against a wider
+    # untrained net, not a [64,64] one).
     from stable_baselines3 import PPO
 
     before_env = _MultiArenaFighterEnv([train_arena], seed=seed)
@@ -317,7 +399,7 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
         before_env,
         seed=seed,
         verbose=0,
-        policy_kwargs={"net_arch": [64, 64]},
+        policy_kwargs={"net_arch": list(net_arch)},
         device="cpu",
     )
     before_policy = _make_policy_from_model(before_model)
@@ -325,8 +407,10 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
     before_winrate = _label_score(before_bundle)
     before_per_arena = _per_arena(before_bundle)
 
-    # AFTER: train on the Teacher arena, then score on the SAME held-out set.
-    trainer = PPOPlayerTrainer(eval_seeds=eval_seeds)
+    # AFTER: train on the Teacher arena, then score on the SAME held-out set. The
+    # ``trainer_kwargs`` are empty for the vanilla path (so PPOPlayerTrainer keeps
+    # its original defaults) and carry the focused-population knobs when opted in.
+    trainer = PPOPlayerTrainer(eval_seeds=eval_seeds, **trainer_kwargs)
     config = PlayerConfig(
         architecture=str(payload.get("architecture", "mlp")),
         num_seeds=1,
@@ -365,6 +449,12 @@ def _real_ppo_transfer_result(payload: dict, seed: int) -> dict:
         "train_arena_winrate": float(train_result.mean_score),
         "difficulty": float(train_arena.difficulty),
         "status": "ppo_transfer",
+        # Audit which inner-Student population trained this row (empty/[64,64] for
+        # the vanilla default path; focused-league counts when opted in).
+        "inner_net_arch": [int(h) for h in net_arch],
+        "inner_opponent_league_enabled": trainer_kwargs.get("opponent_league") is not None,
+        "inner_decisive_reward": bool(trainer_kwargs.get("decisive_reward", False)),
+        "inner_opponent_episode_counts": dict(getattr(job, "opp_counts", {}) or {}),
     }
 
     # Optional replay capture: roll out ONE held-out match of the trained Player
@@ -515,6 +605,30 @@ def _load_prior_student_artifact(prior_student_path) -> dict | None:
         return json.load(fh)
 
 
+def _net_arch_of_artifact(artifact: dict | None, default) -> list[int]:
+    """Recover the MLP architecture a serialized Student was trained with.
+
+    Prefers ``extra.net_arch`` (recorded by ``_train_student_policy``); falls back to
+    parsing the ``arch`` fingerprint (``"mlp:128-128"``). Returns ``default`` (a list)
+    when the artifact predates net_arch tagging, so legacy [64,64] artifacts restore
+    correctly and the original path is unchanged.
+    """
+    default = [int(h) for h in default]
+    if not artifact:
+        return default
+    extra = artifact.get("extra") or {}
+    na = extra.get("net_arch")
+    if na:
+        return [int(h) for h in na]
+    arch = str(artifact.get("arch", ""))
+    if arch.startswith("mlp:"):
+        try:
+            return [int(h) for h in arch[len("mlp:"):].split("-") if h]
+        except ValueError:
+            return default
+    return default
+
+
 def _restore_prior_student_policy(artifact: dict | None, arena_cls, arenas, seed: int):
     """Restore a prior-Student artifact into an ``obs -> action`` ``Policy`` callable.
 
@@ -531,8 +645,9 @@ def _restore_prior_student_policy(artifact: dict | None, arena_cls, arenas, seed
     from output.stage6.policy import DEFAULT_NET_ARCH, restore_policy
 
     restore_env = _MultiArenaFighterEnv(arenas, seed=int(seed))
+    prior_arch = _net_arch_of_artifact(artifact, DEFAULT_NET_ARCH)
     return restore_policy(
-        artifact, restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed)
+        artifact, restore_env, net_arch=prior_arch, seed=int(seed)
     )
 
 
@@ -557,6 +672,12 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
     game = str(payload.get("game", "fighter"))
     # The trainer builds its own env; we need the arena class + obs_dim only.
     arena_cls, _play, obs_dim, _env_cls = _game_modules(game)
+
+    # Student MLP architecture (focused-league capacity A/B). Default [64, 64] keeps
+    # the original small Student; the payload overrides with [128,128] / [256,256].
+    # Threaded into the trainer AND the serializer so a bigger Student is tagged and
+    # later restored at its true size (the head-to-head restore reads the artifact arch).
+    net_arch = [int(h) for h in (payload.get("student_net_arch") or DEFAULT_NET_ARCH)]
 
     episodes = int(payload.get("ppo_episodes", 1000))
     eval_seeds = int(payload.get("eval_seeds", 50))
@@ -613,7 +734,9 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         adapter = FighterGameAdapter(eval_seeds=eval_seeds)
         # Restore the frozen prior Student into a runnable Policy (only when the
         # league is active AND a prior-student artifact was supplied). ``make_opponent``
-        # expects a callable, not an artifact dict — so restore it here.
+        # expects a callable, not an artifact dict — so restore it here. The prior
+        # Student is restored at ITS OWN recorded architecture (from the artifact),
+        # which may differ from this run's net_arch.
         if active_league is not None:
             prior_student = _restore_prior_student_policy(
                 prior_student_artifact, arena_cls, arenas, int(seed)
@@ -621,7 +744,8 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         # Explicit Stage-6-only anti-camping settings. The nested Teacher reward
         # workers instantiate PPOPlayerTrainer with its original defaults.
         # ``opponent_league`` defaults to None => the ORIGINAL single-parametric
-        # opponent training env, unchanged.
+        # opponent training env, unchanged. ``decisive_reward`` / ``net_arch`` are
+        # default-off / [64,64] unless the payload opts in.
         trainer = PPOPlayerTrainer(
             eval_seeds=eval_seeds,
             ent_coef=float(payload.get("student_ent_coef", 0.03)),
@@ -629,6 +753,8 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
             anti_camping_reward=bool(payload.get("student_anti_camping", True)),
             opponent_league=active_league,
             prior_student=prior_student,
+            decisive_reward=bool(payload.get("student_decisive_reward", False)),
+            net_arch=net_arch,
         )
 
     train_arenas = adapter.arenas_from_configs(arenas, curriculum_id=curriculum_id)
@@ -639,6 +765,10 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
     # the league is OFF — the original single-parametric path records nothing).
     opp_counts = dict(getattr(job, "opp_counts", {}) or {})
 
+    # Serialize at the ACTUAL trained architecture (KOTH/TK trainers expose
+    # ``job.net_arch``; the fighter trainer always does). Record net_arch in ``extra``
+    # so the head-to-head restore rebuilds the SAME-sized net.
+    trained_net_arch = [int(h) for h in getattr(job, "net_arch", None) or net_arch]
     artifact = serialize_policy(
         job.model,  # both trainers attach the SB3 model to the finished job
         teacher=teacher,
@@ -646,10 +776,12 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         seed=int(seed),
         game=game,
         obs_dim=int(obs_dim),
-        net_arch=DEFAULT_NET_ARCH,
+        net_arch=trained_net_arch,
         extra={"train_arena_winrate": float(train_result.mean_score),
                "n_curriculum_arenas": len(arenas),
+               "net_arch": trained_net_arch,
                "opponent_league_enabled": active_league is not None,
+               "decisive_reward": bool(payload.get("student_decisive_reward", False)),
                "opponent_ids": sorted(opp_counts),
                "opponent_episode_counts": opp_counts},
     )
@@ -700,14 +832,18 @@ def _head_to_head_match(payload: dict, seed: int) -> dict:
     match_seeds = [int(s) for s in payload.get("match_seeds", [seed])]
 
     # A throwaway env only supplies obs/action spaces to restore the frozen nets.
+    # Each Student is restored at ITS OWN recorded architecture (focused-league
+    # capacity A/B) — never restore a [128,128] policy into a [64,64] net.
     restore_env = env_cls([arena], seed=int(seed))
+    trained_arch = _net_arch_of_artifact(payload["trained_policy"], DEFAULT_NET_ARCH)
+    base_arch = _net_arch_of_artifact(payload["base_policy"], DEFAULT_NET_ARCH)
     trained = restore_policy(
         PolicyArtifact.from_dict(payload["trained_policy"]),
-        restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed),
+        restore_env, net_arch=trained_arch, seed=int(seed),
     )
     base = restore_policy(
         PolicyArtifact.from_dict(payload["base_policy"]),
-        restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed) + 1,
+        restore_env, net_arch=base_arch, seed=int(seed) + 1,
     )
 
     def _outcome_for_trained(winner, trained_is_p0: bool) -> str:
@@ -716,12 +852,48 @@ def _head_to_head_match(payload: dict, seed: int) -> dict:
         trained_won = (winner == 0) == trained_is_p0
         return "win" if trained_won else "loss"
 
+    # BEHAVIOUR AUDIT (focused-league experiment only, fighter-only, default OFF).
+    # When ``audit_behavior`` is set we capture the TRAINED Student's action trace on
+    # each match (movement fraction, action histogram, real-ring-out vs timeout). The
+    # sim/seed are identical to the score-only path, so the win/loss/draw outcomes are
+    # byte-identical; the audit only READS the trajectory.
+    do_audit = bool(payload.get("audit_behavior")) and game in (
+        "fighter", "ring-out-duel", "ring_out_duel"
+    )
+    audit = {"steps": 0, "move_steps": 0, "matches": 0,
+             "ringout_decisive_wins": 0, "timeout_wins": 0, "ringout_losses": 0,
+             "draws": 0, "action_counts": [0, 0, 0, 0, 0]} if do_audit else None
+
+    def _audit_trace(p0, p1, ms, trained_ego):
+        from games.fighter import play_match_trace
+        tr = play_match_trace(arena, p0, p1, seed=ms, ego=trained_ego)
+        audit["matches"] += 1
+        audit["steps"] += tr["steps"]
+        audit["move_steps"] += tr["move_steps"]
+        for i, c in enumerate(tr["action_counts"]):
+            audit["action_counts"][i] += c
+        w = tr["winner"]
+        trained_won = (w == trained_ego)
+        if w is None:
+            audit["draws"] += 1
+        elif trained_won and tr["ended_by"] == "ringout":
+            audit["ringout_decisive_wins"] += 1
+        elif trained_won:
+            audit["timeout_wins"] += 1
+        elif tr["ended_by"] == "ringout":
+            audit["ringout_losses"] += 1
+        return w
+
     per_seed = []
     for ms in match_seeds:
         # SIDE A: trained as P0, base as P1 — matched seed.
-        w_a = play_match(arena, trained, base, seed=ms)
         # SIDE B: base as P0, trained as P1 — SAME seed, identical stochastic conds.
-        w_b = play_match(arena, base, trained, seed=ms)
+        if do_audit:
+            w_a = _audit_trace(trained, base, ms, trained_ego=0)
+            w_b = _audit_trace(base, trained, ms, trained_ego=1)
+        else:
+            w_a = play_match(arena, trained, base, seed=ms)
+            w_b = play_match(arena, base, trained, seed=ms)
         per_seed.append({
             "match_seed": ms,
             "trained_p0": _outcome_for_trained(w_a, trained_is_p0=True),
@@ -739,6 +911,8 @@ def _head_to_head_match(payload: dict, seed: int) -> dict:
         "base_checksum": payload["base_policy"].get("checksum"),
         "per_seed": per_seed,
     }
+    if audit is not None:
+        out["behavior_audit"] = audit
 
     # Optional replay capture: roll out ONE representative match per requested
     # outcome category (trained win as P0, base win, draw, side-swapped) so the
@@ -862,6 +1036,11 @@ if modal is not None:  # pragma: no branch
         .add_local_python_source(
             "games", "harness", "contracts", "replay", "output", "record_replay"
         )
+        # Ship the frozen self-play prior-Student artifact into the container so the
+        # focused-league inner reward can load it (30% self-play opponent). Without this
+        # the worker can't find replays/prior_student.json and the league silently
+        # renormalizes to 100% aggressive — losing the diversity that's the whole point.
+        .add_local_file("replays/prior_student.json", "/root/prior_student.json")
     )
 
     @app.function(image=image, timeout=1800)

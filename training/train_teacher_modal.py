@@ -368,7 +368,13 @@ class TeacherTrainer:
         trainable = [p for p in self.model.parameters() if p.requires_grad]
         n_train = sum(p.numel() for p in trainable)
         n_total = sum(p.numel() for p in self.model.parameters())
-        self.optimizer = torch.optim.Adam(trainable, lr=float(self.lr_str))
+        # Remember the BASE lr so update_multi can scale it per step for an optional
+        # linear-decay schedule (host passes a per-update lr_scale in [0,1]; default
+        # 1.0 => constant lr, the legacy behavior). The schedule is applied on the
+        # optimizer param-groups right before step(), so it never touches Adam's
+        # moment state — only the effective step size shrinks toward ~0.
+        self._base_lr = float(self.lr_str)
+        self.optimizer = torch.optim.Adam(trainable, lr=self._base_lr)
 
         # Build BOTH games' prompts once: chat template, thinking suppressed (Qwen3
         # supports enable_thinking=False so completions are JSON-first, not a <think>
@@ -465,7 +471,7 @@ class TeacherTrainer:
         return completions
 
     @modal.method()
-    def update_multi(self, advantages_by_game: dict) -> dict:
+    def update_multi(self, advantages_by_game: dict, lr_scale: float = 1.0) -> dict:
         """ONE GRPO step over BOTH games' last sampled groups, given PER-GAME advantages.
 
         The host has already computed each game's group-relative advantages
@@ -483,8 +489,19 @@ class TeacherTrainer:
         ``advantages_by_game`` maps game -> list[float]; only games with a cached
         sample group are used (so a single-game run passes one key and this reduces to
         the original single-game GRPO step exactly).
+
+        ``lr_scale`` (default 1.0) multiplies the base lr for THIS step only — the host
+        passes a value in [0,1] to drive an optional LINEAR-DECAY schedule (1.0 on the
+        first update, decaying toward ~0 on the last). At the default 1.0 the effective
+        lr is exactly ``self._base_lr`` every step (constant lr = legacy behavior).
         """
         torch = self.torch
+        # Apply the (optional) per-step lr schedule to every param group BEFORE step().
+        # Default lr_scale=1.0 => effective_lr == base_lr (constant; byte-identical to
+        # the legacy path). A linear-decay run passes a shrinking scale each update.
+        effective_lr = self._base_lr * float(lr_scale)
+        for pg in self.optimizer.param_groups:
+            pg["lr"] = effective_lr
         per_game_logp_mean: dict = {}
         used_games = []
         # GRADIENT ACCUMULATION over games (memory fix for G>=12 on a 40GB GPU). We
@@ -532,6 +549,8 @@ class TeacherTrainer:
             "grad_norm": float(grad_norm),
             "games": used_games,
             "n_completions": n_completions,
+            "lr_scale": round(float(lr_scale), 6),
+            "effective_lr": effective_lr,
             "mean_completion_logprob_by_game": {
                 g: round(v, 4) for g, v in per_game_logp_mean.items()
             },
@@ -587,11 +606,18 @@ class TeacherTrainer:
 
 
 def _score_ring_out(answer: str, *, seeds, episodes, eval_seeds,
-                    held_out) -> tuple[float, dict | None, str]:
+                    held_out, student_cfg: dict | None = None) -> tuple[float, dict | None, str]:
     """Score ONE Ring-Out completion via the EXISTING fighter nested reward.
 
     parse (strip <think> + strict JSON + clamp to RING_OUT_BOUNDS + FIGHTER-schema
     map) -> ``teacher_reward`` (3 PPO seeds on crucible-player). Invalid -> reward 0.
+
+    ``student_cfg`` (default None): an optional inner-Student population config (arch,
+    opponent league, entropy coef, ...) threaded down into ``teacher_reward`` so the
+    nested Players train with the new population. It is only forwarded when NON-None —
+    the default path passes NO ``student_cfg`` kwarg at all, so behavior is byte-
+    identical and stays compatible with a ``teacher_reward`` that doesn't yet accept it
+    (the reward-path teammate consumes it).
     """
     from output.nested_reward import teacher_reward
     from training.hud_teacher_env import (
@@ -606,8 +632,7 @@ def _score_ring_out(answer: str, *, seeds, episodes, eval_seeds,
         return 0.0, None, f"invalid:{type(exc).__name__}"
 
     spec = params_to_curriculum(params, curriculum_id="contingency-rft")
-    reward = teacher_reward(
-        spec,
+    reward_kwargs = dict(
         backend="modal",
         seeds=seeds,
         episodes=episodes,
@@ -615,6 +640,11 @@ def _score_ring_out(answer: str, *, seeds, episodes, eval_seeds,
         held_out_arenas=held_out,
         geometry_override=fighter_geometry_override(params),
     )
+    # Forward student_cfg ONLY when set — keeps the default call identical to the
+    # legacy signature (so no break before the reward teammate adds the parameter).
+    if student_cfg is not None:
+        reward_kwargs["student_cfg"] = student_cfg
+    reward = teacher_reward(spec, **reward_kwargs)
     return float(max(0.0, min(1.0, reward))), params, "ok"
 
 
@@ -674,6 +704,7 @@ def _score_all_games(
     ring_seeds, ring_episodes, ring_eval_seeds, ring_held_out,
     tk_seeds, tk_episodes, tk_eval_seeds,
     max_workers: int,
+    ring_student_cfg: dict | None = None,
 ) -> dict:
     """Score ALL games' completions, fanning every (slow ~2min) reward out in parallel.
 
@@ -703,6 +734,7 @@ def _score_all_games(
             scored = _score_ring_out(
                 answer, seeds=ring_seeds, episodes=ring_episodes,
                 eval_seeds=ring_eval_seeds, held_out=ring_held_out,
+                student_cfg=ring_student_cfg,
             )
         else:
             scored = _score_tk(
@@ -836,6 +868,76 @@ def _arena_diversity(params_list: list) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Optional inner-Student population config (gated; default off)
+# ---------------------------------------------------------------------------
+#
+# Some focused runs want the nested Ring-Out Players trained with a NEW population
+# (a small MLP arch, an opponent league, decisive-reward + entropy bonus) instead of
+# the reward path's built-in default. ``--student-cfg-preset`` builds one of these dicts
+# and the host threads it into ``_score_ring_out`` -> ``teacher_reward(student_cfg=...)``
+# (the reward teammate consumes it). With NO preset the dict is None and nothing changes.
+STUDENT_CFG_PRESETS: dict[str, dict] = {
+    # focused128: the leagueB1 population — 2x128 MLP, an opponent league
+    # (aggressive 0.7 / prior_student 0.3), decisive reward, entropy coef 0.03.
+    "focused128": {
+        "arch": [128, 128],
+        "opponent_league_enabled": True,
+        "opponent_league": [
+            {"id": "aggressive", "weight": 0.7},
+            {"id": "prior_student", "weight": 0.3},
+        ],
+        "decisive_reward": True,
+        "ent_coef": 0.03,
+        "prior_student_path": "/root/prior_student.json",
+    },
+    # focused256: IDENTICAL focused league/reward to focused128, only a wider 2x256 MLP
+    # (~135k params vs ~37k). The capacity-comparison arm — run leagueB256 in parallel
+    # with leagueB128 to test whether bigger Students make the Sensei teach better fighting.
+    "focused256": {
+        "arch": [256, 256],
+        "opponent_league_enabled": True,
+        "opponent_league": [
+            {"id": "aggressive", "weight": 0.7},
+            {"id": "prior_student", "weight": 0.3},
+        ],
+        "decisive_reward": True,
+        "ent_coef": 0.03,
+        "prior_student_path": "/root/prior_student.json",
+    },
+}
+
+
+def _build_student_cfg(preset: str | None) -> dict | None:
+    """Resolve ``--student-cfg-preset`` to a Student population dict (or None).
+
+    None (no flag) => unchanged behavior (no ``student_cfg`` reaches the reward path).
+    A fresh ``dict(...)`` copy is returned so callers can't mutate the module constant.
+    """
+    if not preset:
+        return None
+    if preset not in STUDENT_CFG_PRESETS:
+        raise SystemExit(
+            f"unknown --student-cfg-preset {preset!r}; choices: {sorted(STUDENT_CFG_PRESETS)}"
+        )
+    return json.loads(json.dumps(STUDENT_CFG_PRESETS[preset]))
+
+
+def _lr_scale_for(update_index: int, updates: int, decay: bool) -> float:
+    """The per-update lr multiplier in [0,1] for a LINEAR-DECAY schedule.
+
+    ``update_index`` is 1-based (update1..updateN). With ``decay`` off this is always
+    1.0 (constant lr = legacy behavior). With decay on, the scale runs from 1.0 on the
+    first update DOWN toward ~0 on the last, linearly:
+        scale = 1 - (update_index - 1) / updates
+    so for updates=5 the scales are 1.0, 0.8, 0.6, 0.4, 0.2 (never exactly 0, but the
+    last step's effective lr is base_lr/updates — a small, near-zero final step).
+    """
+    if not decay or updates <= 1:
+        return 1.0
+    return max(0.0, 1.0 - (update_index - 1) / float(updates))
+
+
+# ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
 
@@ -871,6 +973,11 @@ def run_train(args) -> int:
         _assert_seed_pools_disjoint(game, train_union, val_seeds[game])
 
     ring_held_out = _build_held_out() if "ring_out" in games else []
+    # Optional inner-Student population config (gated). None unless --student-cfg-preset
+    # is passed; only ever applied to the Ring-Out reward (TK does not consume it).
+    ring_student_cfg = _build_student_cfg(getattr(args, "student_cfg_preset", None))
+    # Optional LINEAR LR DECAY across the updates (gated; default off => constant lr).
+    lr_decay = bool(getattr(args, "lr_decay", False))
     # Output dir is per-run: ``output/contingency_<run_id>/`` when isolated, else the
     # legacy ``output/contingency_rft_multigame/``. Four concurrent runs each own their
     # summary.json / history.json.
@@ -887,6 +994,20 @@ def run_train(args) -> int:
           f"temperature={args.temperature}  lr={args.lr}", flush=True)
     print(f"    seed_rotation={args.seed_rotation}  seed_base={args.seed_base}  "
           f"(training seeds VARY per update; validation seeds are reserved + disjoint)", flush=True)
+    if lr_decay:
+        _lr_scales = [_lr_scale_for(u, args.updates, True) for u in range(1, args.updates + 1)]
+        print(f"    lr_schedule=LINEAR DECAY  base_lr={args.lr}  per-update lr_scale="
+              f"{[round(s, 3) for s in _lr_scales]}  "
+              f"(effective_lr decays {args.lr} -> ~{args.lr * (_lr_scales[-1] if _lr_scales else 1.0):.2e})",
+              flush=True)
+    else:
+        print(f"    lr_schedule=CONSTANT (legacy)  lr={args.lr}  "
+              f"(pass --lr-decay for a linear decay over the updates)", flush=True)
+    if ring_student_cfg is not None:
+        print(f"    student_cfg_preset={args.student_cfg_preset} -> ring_out reward "
+              f"trains inner Students with: {json.dumps(ring_student_cfg)}", flush=True)
+    else:
+        print("    student_cfg=(none / default Student population)", flush=True)
     if "ring_out" in games:
         ro_blocks = [_train_seeds_for("ring_out", u, n_seeds["ring_out"], args.seed_base)
                      for u in range(1, args.updates + 1)] if args.seed_rotation else \
@@ -955,6 +1076,7 @@ def run_train(args) -> int:
                 tk_seeds=step_tk_seeds, tk_episodes=args.tk_episodes,
                 tk_eval_seeds=args.tk_eval_seeds,
                 max_workers=args.group_size * len(games),
+                ring_student_cfg=ring_student_cfg,
             )
             score_wall = time.time() - t_score
 
@@ -999,13 +1121,18 @@ def run_train(args) -> int:
                 print(f"[{tag}] (no update — this is the before-training baseline)\n", flush=True)
             else:
                 # --- 5) ONE combined GRPO step over both games' cached sequences ---
-                stats = trainer.update_multi.remote(advantages_by_game)
+                # Per-update lr scale for the optional linear-decay schedule (1.0 when
+                # --lr-decay is off => constant lr). step is 1-based over updates here.
+                lr_scale = _lr_scale_for(step, args.updates, lr_decay)
+                stats = trainer.update_multi.remote(advantages_by_game, lr_scale=lr_scale)
                 rec["update_stats"] = stats
                 adapter_path = trainer.save_adapter.remote(tag)
                 rec["adapter_path"] = adapter_path
                 print(f"[{tag}] COMBINED GRPO step over {stats['n_completions']} completions "
                       f"({'+'.join(stats['games'])}): loss={stats['loss']:.4f} "
-                      f"grad_norm={stats['grad_norm']:.3f} -> saved {adapter_path}\n", flush=True)
+                      f"grad_norm={stats['grad_norm']:.3f}  "
+                      f"lr_scale={stats.get('lr_scale')} effective_lr={stats.get('effective_lr'):.2e} "
+                      f"-> saved {adapter_path}\n", flush=True)
 
             history.append(rec)
             (out_dir / "history.json").write_text(json.dumps(history, indent=2))
@@ -1047,6 +1174,7 @@ def run_train(args) -> int:
                 tk_seeds=tuple(val_seeds["target_knockback"]), tk_episodes=args.tk_episodes,
                 tk_eval_seeds=args.tk_eval_seeds,
                 max_workers=args.group_size * len(games),
+                ring_student_cfg=ring_student_cfg,
             )
             val_wall = time.time() - t_val
 
@@ -1147,6 +1275,18 @@ def run_train(args) -> int:
         "temperature": args.temperature,
         "lora_r": args.lora_r,
         "lora_alpha": args.lora_alpha,
+        "lr": args.lr,
+        "lr_schedule": {
+            "type": "linear_decay" if lr_decay else "constant",
+            "base_lr": args.lr,
+            "per_update_lr_scale": (
+                [round(_lr_scale_for(u, args.updates, lr_decay), 6)
+                 for u in range(1, args.updates + 1)]
+                if args.updates >= 1 else []
+            ),
+        },
+        "student_cfg_preset": getattr(args, "student_cfg_preset", None),
+        "student_cfg": ring_student_cfg,
         "seed_scheme": {
             "seed_rotation": args.seed_rotation,
             "seed_base": args.seed_base,
@@ -1223,6 +1363,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--group-size", dest="group_size", type=int, default=5,
                    help="G completions sampled PER GAME per update (4-6 keeps cost ~like single-game G=8)")
     p.add_argument("--lr", type=float, default=1e-4)
+    # LINEAR LR DECAY (gated; default OFF => constant lr, legacy behavior). When set, the
+    # effective lr decays linearly from --lr on update1 toward ~0 on the last update
+    # (scale = 1 - (i-1)/updates), applied on the optimizer param-groups each step.
+    p.add_argument("--lr-decay", dest="lr_decay", action="store_true", default=False,
+                   help="linearly decay the lr from --lr (update1) toward ~0 (last update); "
+                        "default OFF = constant lr")
     # Default LoRA rank 32 / alpha 64 (Nathan's choice for the rerun: more adapter
     # capacity than the original r=16/alpha=32). alpha=2*r keeps the LoRA scaling
     # (alpha/r) at 2.0, matching the original ratio, so the effective update magnitude
@@ -1232,6 +1378,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--temperature", type=float, default=1.1,
                    help="sampling temperature (1.1 was the variance-fixed single-game setting)")
     p.add_argument("--max-new-tokens", dest="max_new_tokens", type=int, default=512)
+    # Optional inner-Student population config (gated; default None => unchanged). A
+    # preset builds a student_cfg dict threaded into the Ring-Out reward so the nested
+    # Players train with the new population (the reward-path teammate consumes it).
+    p.add_argument("--student-cfg-preset", dest="student_cfg_preset", default=None,
+                   choices=sorted(STUDENT_CFG_PRESETS),
+                   help="inner-Student population preset for the Ring-Out reward "
+                        "(e.g. focused128: 2x128 MLP + opponent league + decisive reward + "
+                        "ent_coef 0.03). Default: none = unchanged Student population.")
     # Ring-Out reward config — defaults mirror the dry-loop / bridge nested reward.
     # NOTE: --seeds / --tk-seeds are now the COUNT of PPO seeds per reward (an int N),
     # NOT a literal seed list, because the training seeds ROTATE per update (see the

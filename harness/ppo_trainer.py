@@ -98,13 +98,18 @@ class _MultiArenaFighterEnv(gym.Env):
     def __init__(self, arenas: list[FighterArena], seed: int,
                  anti_camping_reward: bool = False,
                  opponent_league: Optional[list] = None,
-                 prior_student=None):
+                 prior_student=None,
+                 decisive_reward: bool = False):
         super().__init__()
         assert arenas, "need at least one arena to train on"
         self._arenas = arenas
         self._rng = np.random.default_rng(seed)
         self._seed = seed
         self._anti_camping_reward = anti_camping_reward
+        # DECISIVE REWARD is OPT-IN (default OFF). When False the FighterEnv terminal
+        # reward is byte-identical to the original; when True only a real ring-out
+        # earns full credit (the focused-league experiment).
+        self._decisive_reward = decisive_reward
         # League is OPT-IN. ``None`` => single parametric opponent (original path).
         self._opponent_league = opponent_league
         self._prior_student = prior_student
@@ -115,6 +120,7 @@ class _MultiArenaFighterEnv(gym.Env):
             opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=seed),
             seed=seed,
             anti_camping_reward=anti_camping_reward,
+            decisive_reward=decisive_reward,
         )
         self.action_space = self._inner.action_space
         self.observation_space = self._inner.observation_space
@@ -147,6 +153,7 @@ class _MultiArenaFighterEnv(gym.Env):
             opponent_factory=opponent_factory,
             seed=ep_seed,
             anti_camping_reward=self._anti_camping_reward,
+            decisive_reward=self._decisive_reward,
         )
         return self._inner.reset(seed=seed, options=options)
 
@@ -175,7 +182,8 @@ class _PPOTrainingJob(TrainingJob):
     """
 
     def __init__(self, result: MatchResult, policy: Callable[[np.ndarray], int],
-                 model=None, opp_counts: Optional[dict] = None):
+                 model=None, opp_counts: Optional[dict] = None,
+                 net_arch: Optional[list] = None):
         self._result = result
         self.policy = policy
         # The trained SB3 model is exposed so callers that need the raw weights
@@ -186,6 +194,10 @@ class _PPOTrainingJob(TrainingJob):
         # (Stage-6 Student path); empty dict for the original single-opponent path.
         # Lets the Student artifact audit which opponent styles were actually trained on.
         self.opp_counts = dict(opp_counts) if opp_counts else {}
+        # The MLP architecture this Student was trained with, so the serializer tags
+        # the artifact with the RIGHT fingerprint and the restore path rebuilds the
+        # SAME-sized net (never restore a [128,128] policy into a [64,64] net).
+        self.net_arch = list(net_arch) if net_arch is not None else [64, 64]
 
     def is_done(self) -> bool:
         return True
@@ -201,7 +213,9 @@ class PPOPlayerTrainer(PlayerTrainer):
                  ent_coef: float = 0.0, min_timesteps: int = _MIN_TIMESTEPS,
                  anti_camping_reward: bool = False,
                  opponent_league: Optional[list] = None,
-                 prior_student=None):
+                 prior_student=None,
+                 decisive_reward: bool = False,
+                 net_arch: Optional[list] = None):
         self._eval_seeds = eval_seeds
         self._verbose = verbose
         self._ent_coef = ent_coef
@@ -212,6 +226,12 @@ class PPOPlayerTrainer(PlayerTrainer):
         # workers construct this trainer without the flag, so they keep the old path.
         self._opponent_league = opponent_league
         self._prior_student = prior_student
+        # DECISIVE REWARD (default OFF) — see ``_MultiArenaFighterEnv``.
+        self._decisive_reward = decisive_reward
+        # Policy/value MLP hidden layers. ``None`` => the original [64, 64] (the small
+        # Student baseline). The focused-league capacity A/B passes [128,128] / [256,256].
+        # Threaded all the way to serialize/restore so a bigger net is fought as itself.
+        self._net_arch = list(net_arch) if net_arch is not None else [64, 64]
 
     def submit(self, config: PlayerConfig, arenas: list[Arena]) -> TrainingJob:
         if config.modal_parallel:
@@ -240,14 +260,16 @@ class PPOPlayerTrainer(PlayerTrainer):
             anti_camping_reward=self._anti_camping_reward,
             opponent_league=self._opponent_league,
             prior_student=self._prior_student,
+            decisive_reward=self._decisive_reward,
         )
         model = PPO(
             "MlpPolicy",
             env,
             seed=config.seed,
             verbose=self._verbose,
-            # SMALL MLP — two 64-unit hidden layers is plenty for an 11-dim obs.
-            policy_kwargs={"net_arch": [64, 64]},
+            # MLP hidden layers. Default [64, 64] (the small Student baseline); the
+            # focused-league capacity A/B overrides with [128,128] / [256,256].
+            policy_kwargs={"net_arch": list(self._net_arch)},
             n_steps=512,
             batch_size=128,
             n_epochs=4,
@@ -277,7 +299,8 @@ class PPOPlayerTrainer(PlayerTrainer):
             mean_score=mean_score,
         )
         return _PPOTrainingJob(
-            result, policy, model=model, opp_counts=getattr(env, "_opp_counts", None)
+            result, policy, model=model, opp_counts=getattr(env, "_opp_counts", None),
+            net_arch=self._net_arch,
         )
 
     def _winrate(self, arena: FighterArena, policy: Callable[[np.ndarray], int]) -> float:

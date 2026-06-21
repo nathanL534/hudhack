@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dojo FX — effects.js showcase</title>
+<style>
+  :root{
+    --bg:#0c0a09; --bg2:#070605; --panel:#14110d; --line:#2a231b; --line2:#3a3025;
+    --ink:#efe6d6; --muted:#a8967a; --paper:#ece1c8; --lacquer:#8a2a20;
+    --gold:#c8972e; --orange:#e0863a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Hiragino Sans",sans-serif;
+    background:
+      radial-gradient(1200px 680px at 50% -14%, #19140e 0%, var(--bg) 52%, var(--bg2) 100%);
+    display:flex; flex-direction:column; align-items:center; gap:14px; padding:22px;
+  }
+  header{display:flex; align-items:baseline; gap:14px; width:min(900px,100%)}
+  header h1{font-size:18px; margin:0; letter-spacing:.3px}
+  header .k{color:var(--orange); font-weight:800}
+  header .sub{color:var(--muted); font-size:12px; margin-left:auto}
+  .stage{
+    position:relative; width:min(900px,100%); aspect-ratio:16/9;
+    border:1px solid #120e09; border-radius:14px; overflow:hidden;
+    box-shadow:0 14px 38px rgba(0,0,0,.5), inset 0 0 0 1px rgba(140,96,50,.12);
+    background:#100b06;
+  }
+  canvas{display:block; width:100%; height:100%}
+  .nowplaying{
+    position:absolute; left:14px; top:12px; z-index:3;
+    display:flex; align-items:center; gap:8px; pointer-events:none;
+  }
+  .nowplaying .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);
+    box-shadow:0 0 10px var(--orange)}
+  .nowplaying .label{font-weight:700; letter-spacing:.4px; text-shadow:0 1px 3px #000}
+  .nowplaying .desc{color:var(--muted); font-size:12px; text-shadow:0 1px 3px #000}
+  .controls{
+    width:min(900px,100%); display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  }
+  button{
+    font:inherit; color:var(--ink); background:#181410;
+    border:1px solid var(--line); border-radius:9px; padding:8px 13px; cursor:pointer;
+  }
+  button:hover{background:#211b15; border-color:var(--line2)}
+  button.on{border-color:#b9882a; color:#1c1408;
+    background:linear-gradient(180deg,#e7b54a,var(--gold)); font-weight:700}
+  .controls .spacer{flex:1}
+  .controls .hint{color:var(--muted); font-size:12px}
+  .legend{
+    width:min(900px,100%); display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:8px; color:var(--muted); font-size:12px;
+  }
+  .legend div{background:rgba(20,17,13,.6); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px}
+  .legend b{color:var(--ink); display:block; font-size:12px; margin-bottom:2px}
+  .legend code{color:var(--orange)}
+</style>
+</head>
+<body>
+  <header>
+    <h1><span class="k">道場</span> Dojo FX — <code>effects.js</code> showcase</h1>
+    <span class="sub">composable canvas-2D juice, driven by time <code>t</code></span>
+  </header>
+
+  <div class="stage">
+    <div class="nowplaying">
+      <span class="dot"></span>
+      <span class="label" id="np">—</span>
+      <span class="desc" id="npd"></span>
+    </div>
+    <canvas id="c"></canvas>
+  </div>
+
+  <div class="controls">
+    <button id="autoBtn" class="on">Auto-cycle: ON</button>
+    <button data-fx="impact">Punch impact</button>
+    <button data-fx="knockback">Knockback</button>
+    <button data-fx="dust">Landing puff</button>
+    <button data-fx="ringout">Ring-out</button>
+    <span class="spacer"></span>
+    <span class="hint">click the stage to trigger an impact where you click</span>
+  </div>
+
+  <div class="legend">
+    <div><b>spawnImpact</b>flash + impact star + shock ring + sparks</div>
+    <div><b>knockback</b>screen-shake + motion streaks</div>
+    <div><b>spawnDust</b>landing / dash ground puffs</div>
+    <div><b>ringOut</b>flash + K.O. stinger + tumble</div>
+    <div><b>ambient</b>parallax, swaying lanterns, dust, vignette</div>
+  </div>
+
+<script src="./effects.js"></script>
+<script>
+(function () {
+  "use strict";
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const fx = window.DojoFX.create();
+  const PAL = window.DojoFX.PALETTE;
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+  // ---- hi-dpi sizing -------------------------------------------------
+  let W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    const r = canvas.getBoundingClientRect();
+    W = Math.max(320, r.width); H = Math.max(180, r.height);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+  }
+  window.addEventListener("resize", resize);
+
+  // ---- minimal dojo scene (stand-in for the real viewer) -------------
+  // platform in screen px; fighters live on it
+  function platform() {
+    const padX = W * 0.12, groundY = H * 0.80;
+    return { left: padX, right: W - padX, groundY, top: H * 0.10 };
+  }
+
+  // two simple silhouette fighters so impacts have something to hit
+  function drawFighter(x, groundY, color, facing, pose) {
+    pose = pose || {};
+    const lean = pose.lean || 0;          // -1..1 horizontal lean for punch
+    const yoff = pose.yoff || 0;          // jump/tumble vertical offset
+    const rot = pose.rot || 0;            // tumble rotation
+    ctx.save();
+    ctx.translate(x, groundY + yoff);
+    ctx.rotate(rot);
+    // soft contact shadow
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.beginPath();
+    ctx.ellipse(0, -2, 22 - Math.min(20, Math.abs(yoff) * 0.4), 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const h = 92;
+    const body = ctx.createLinearGradient(0, -h, 0, 0);
+    body.addColorStop(0, rgba(color, 0.95));
+    body.addColorStop(1, rgba(color, 0.55));
+    ctx.fillStyle = body;
+    ctx.strokeStyle = "rgba(12,9,6,0.6)"; ctx.lineWidth = 2;
+    // torso (a rounded gi block)
+    rrect(-14, -h, 28, h - 18, 9); ctx.fill(); ctx.stroke();
+    // head
+    ctx.beginPath(); ctx.arc(0, -h - 9, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // headband tails (dojo flavor)
+    ctx.strokeStyle = rgba(PAL.lacquer, 0.95); ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-facing * 8, -h - 11);
+    ctx.lineTo(-facing * 22, -h - 4 + Math.sin(performance.now() / 200) * 3); ctx.stroke();
+    // punching arm
+    ctx.strokeStyle = rgba(color, 0.95); ctx.lineWidth = 7; ctx.lineCap = "round";
+    const ax = facing * (16 + lean * 26), ay = -h + 34;
+    ctx.beginPath(); ctx.moveTo(facing * 6, -h + 30); ctx.lineTo(ax, ay); ctx.stroke();
+    // legs
+    ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.moveTo(-7, -18); ctx.lineTo(-10, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(7, -18); ctx.lineTo(10, 0); ctx.stroke();
+    ctx.restore();
+    return { fistX: x + ax, fistY: groundY + yoff + ay };
+  }
+
+  function rrect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // back wall + shoji panel + wooden platform (cheap parallax on bg)
+  function drawScene(t, shakeOff) {
+    const P = platform();
+    const par = shakeOff || { x: 0, y: 0 };
+    // back wall gradient
+    const wall = ctx.createLinearGradient(0, 0, 0, P.groundY);
+    wall.addColorStop(0, "#3a2a18"); wall.addColorStop(0.55, "#2c1f12"); wall.addColorStop(1, "#24190e");
+    ctx.fillStyle = wall; ctx.fillRect(-20, -20, W + 40, P.groundY + 20);
+
+    // shoji panel — parallax-shifted a hair against shake for depth
+    const sl = 44 - par.x * 0.15, st = 14 - par.y * 0.15, sr = W - 44 - par.x * 0.15, sb = P.groundY - 10;
+    const paper = ctx.createLinearGradient(0, st, 0, sb);
+    paper.addColorStop(0, "#d9c9a4"); paper.addColorStop(1, "#b59c6f");
+    ctx.fillStyle = paper; rrect(sl, st, sr - sl, sb - st, 5); ctx.fill();
+    // warm light wash on the paper
+    ctx.save(); rrect(sl, st, sr - sl, sb - st, 5); ctx.clip();
+    const lite = ctx.createRadialGradient((sl + sr) / 2, st + 40, 30, (sl + sr) / 2, st + 90, (sr - sl) * 0.7);
+    lite.addColorStop(0, "rgba(255,222,150,0.30)"); lite.addColorStop(1, "rgba(255,222,150,0)");
+    ctx.fillStyle = lite; ctx.fillRect(sl, st, sr - sl, sb - st);
+    // lattice
+    ctx.strokeStyle = "rgba(38,24,12,0.8)"; ctx.lineWidth = 3;
+    for (let i = 1; i < 6; i++) { const gx = sl + (sr - sl) * i / 6; ctx.beginPath(); ctx.moveTo(gx, st); ctx.lineTo(gx, sb); ctx.stroke(); }
+    for (let j = 1; j < 4; j++) { const gy = st + (sb - st) * j / 4; ctx.beginPath(); ctx.moveTo(sl, gy); ctx.lineTo(sr, gy); ctx.stroke(); }
+    ctx.restore();
+    ctx.strokeStyle = "#1d1208"; ctx.lineWidth = 6; rrect(sl, st, sr - sl, sb - st, 5); ctx.stroke();
+
+    // banners
+    banner(W * 0.16, st - 4, "道場", PAL.lacquer);
+    banner(W * 0.84, st - 4, "空手", [58, 74, 42]);
+
+    // wooden platform
+    const plY = P.groundY;
+    const wood = ctx.createLinearGradient(0, plY, 0, plY + 30);
+    wood.addColorStop(0, "#5a3d24"); wood.addColorStop(1, "#34221300");
+    ctx.fillStyle = "#3d2817"; ctx.fillRect(P.left - 30, plY, P.right - P.left + 60, 22);
+    ctx.fillStyle = wood; ctx.fillRect(P.left - 30, plY, P.right - P.left + 60, 30);
+    ctx.strokeStyle = "rgba(20,12,7,0.8)"; ctx.lineWidth = 2;
+    ctx.strokeRect(P.left - 30, plY, P.right - P.left + 60, 22);
+    return P;
+  }
+
+  function banner(x, y, kanji, col) {
+    ctx.save();
+    ctx.fillStyle = rgba(col, 0.95);
+    rrect(x - 24, y, 48, 120, 4); ctx.fill();
+    ctx.strokeStyle = "rgba(20,14,9,0.7)"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = rgba(PAL.paper, 0.92);
+    ctx.font = '700 26px "Hiragino Sans", system-ui, sans-serif';
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(kanji[0], x, y + 36); ctx.fillText(kanji[1], x, y + 78);
+    ctx.restore();
+  }
+
+  // ---- scripted choreography -----------------------------------------
+  // a repeating cycle that demonstrates every effect in turn.
+  const STEPS = [
+    { name: "Ambient dojo life",  desc: "parallax + swaying lanterns + dust + vignette", dur: 2600 },
+    { name: "Punch impact",       desc: "flash + impact star + shock ring + sparks",     dur: 2200 },
+    { name: "Knockback",          desc: "screen-shake + motion streaks",                 dur: 2600 },
+    { name: "Landing / dash puff",desc: "spawnDust ground kicks",                        dur: 2200 },
+    { name: "Ring-out — K.O.",    desc: "flash + tumble + RING OUT! stinger",            dur: 4200 },
+  ];
+  let auto = true;
+  let stepIdx = 0;
+  let stepStart = 0;
+  let firedInStep = false;        // for one-shot triggers within a step
+  let tumble = 0;                 // ring-out tumble progress
+
+  const np = document.getElementById("np");
+  const npd = document.getElementById("npd");
+
+  function enterStep(i, now) {
+    stepIdx = ((i % STEPS.length) + STEPS.length) % STEPS.length;
+    stepStart = now;
+    firedInStep = false;
+    tumble = 0;
+    np.textContent = STEPS[stepIdx].name;
+    npd.textContent = STEPS[stepIdx].desc;
+  }
+
+  // fighter rest positions (recomputed each frame for responsiveness)
+  function fighters() {
+    const P = platform();
+    const cx = (P.left + P.right) / 2;
+    return {
+      p1: { x: cx - 70, groundY: P.groundY, color: PAL.trained, facing: 1 },
+      p2: { x: cx + 70, groundY: P.groundY, color: PAL.base, facing: -1 },
+      P,
+    };
+  }
+
+  function runStep(now) {
+    const step = STEPS[stepIdx];
+    const tIn = now - stepStart;
+    const F = fighters();
+    let pose1 = {}, pose2 = {};
+
+    switch (stepIdx) {
+      case 0: /* ambient only */ break;
+
+      case 1: { // punch impact, repeated a couple of times
+        const phase = tIn % 900;
+        // p1 leans into a punch; impact fires at the contact instant
+        if (phase < 220) pose1.lean = phase / 220;
+        else if (phase < 420) pose1.lean = 1 - (phase - 220) / 200;
+        if (phase < 60 && (tIn % 900) < 60 && lastPhaseGate(now, 900)) {
+          const fistX = F.p1.x + F.p1.facing * 42, fistY = F.p1.groundY - 58;
+          fx.spawnImpact(fistX, fistY, { facing: F.p1.facing, color: PAL.orange });
+          pose2.lean = -0.3;
+        }
+        break;
+      }
+
+      case 2: { // knockback launch
+        if (tIn > 300 && !firedInStep) {
+          firedInStep = true;
+          fx.knockback(F.p2.x, F.p2.groundY - 50, { dir: 1, color: PAL.base, groundY: F.p2.groundY });
+        }
+        // p2 slides back + recovers
+        const k = clamp01((tIn - 300) / 1400);
+        pose2.lean = -easeOut(k) * 0.6;
+        pose2.yoff = -Math.sin(k * Math.PI) * 26;
+        pose2.rot = easeOut(k) * 0.15;
+        pose1.lean = 0.4 * (1 - k);
+        break;
+      }
+
+      case 3: { // landing / dash puffs
+        const phase = tIn % 700;
+        if (phase < 50 && lastPhaseGate(now, 700)) {
+          fx.spawnDust(F.p1.x, F.p1.groundY, { dir: 0, power: 1.2 });
+          fx.spawnDust(F.p2.x, F.p2.groundY, { dir: -1, power: 0.9, count: 7 });
+        }
+        // little bob so it reads as landing
+        pose1.yoff = -Math.abs(Math.sin(tIn / 220)) * 14;
+        pose2.yoff = -Math.abs(Math.cos(tIn / 260)) * 10;
+        break;
+      }
+
+      case 4: { // ring-out
+        if (tIn > 250 && !firedInStep) {
+          firedInStep = true;
+          fx.knockback(F.p2.x, F.p2.groundY - 50, { dir: 1, intensity: 18, color: PAL.base });
+          fx.ringOut("Trained Student", { color: PAL.orange });
+        }
+        // loser (p2) tumbles off the right edge
+        tumble = clamp01((tIn - 250) / 1400);
+        pose2.yoff = -easeIn(tumble) * (H * 0.5) + Math.sin(tumble * 8) * 4;
+        pose2.lean = 0;
+        pose2.rot = tumble * 6;
+        pose2.x = F.p2.x + easeOut(tumble) * (W * 0.4);
+        // winner holds a triumphant lean
+        pose1.lean = 0.25 * Math.sin(now / 240);
+        break;
+      }
+    }
+    return { F, pose1, pose2 };
+  }
+
+  // one-shot gate so phase-based triggers fire once per phase window
+  let _lastGate = -1;
+  function lastPhaseGate(now, period) {
+    const idx = Math.floor((now - stepStart) / period);
+    if (idx !== _lastGate) { _lastGate = idx; return true; }
+    return false;
+  }
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function easeOut(p) { return 1 - Math.pow(1 - p, 3); }
+  function easeIn(p) { return p * p; }
+
+  // ---- main loop -----------------------------------------------------
+  let started = false;
+  function loop(now) {
+    fx.tick(now);
+    if (!started) { started = true; enterStep(0, now); }
+
+    // advance the auto-cycle
+    if (auto && now - stepStart > STEPS[stepIdx].dur) enterStep(stepIdx + 1, now);
+
+    // logical-pixel coordinate space (handle DPR once)
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    // shake wraps the *scene + world particles*
+    ctx.save();
+    const off = fx.applyShake(ctx);
+    const P = drawScene(now, off);
+
+    const { F, pose1, pose2 } = runStep(now);
+
+    // draw fighters (loser may be pushed via pose.x in ring-out)
+    drawFighter(pose1.x != null ? pose1.x : F.p1.x, F.p1.groundY, F.p1.color, F.p1.facing, pose1);
+    drawFighter(pose2.x != null ? pose2.x : F.p2.x, F.p2.groundY, F.p2.color, F.p2.facing, pose2);
+
+    // world-space particles (impacts/streaks/puffs) share the shake transform
+    fx.drawWorld(ctx, now);
+    ctx.restore();
+
+    // ambient + hud are screen-space (not shaken)
+    fx.ambient(ctx, now, {
+      groundY: P.groundY, W, H,
+      lanterns: [
+        { x: W * 0.30, top: 14, r: 20 },
+        { x: W * 0.70, top: 14, r: 20 },
+      ],
+    });
+    fx.drawHud(ctx, now);
+
+    requestAnimationFrame(loop);
+  }
+
+  // ---- manual triggers -----------------------------------------------
+  function trigger(kind) {
+    const F = fighters();
+    if (kind === "impact") {
+      fx.spawnImpact(F.p1.x + 42, F.p1.groundY - 58, { facing: 1, color: PAL.orange });
+    } else if (kind === "knockback") {
+      fx.knockback(F.p2.x, F.p2.groundY - 50, { dir: 1, color: PAL.base, groundY: F.p2.groundY });
+    } else if (kind === "dust") {
+      fx.spawnDust(F.p1.x, F.p1.groundY, { dir: 0, power: 1.3 });
+    } else if (kind === "ringout") {
+      fx.knockback(F.p2.x, F.p2.groundY - 50, { dir: 1, intensity: 18, color: PAL.base });
+      fx.ringOut("Trained Student", { color: PAL.orange });
+    }
+  }
+
+  document.querySelectorAll("button[data-fx]").forEach((b) => {
+    b.addEventListener("click", () => {
+      auto = false; setAutoBtn();
+      trigger(b.dataset.fx);
+    });
+  });
+
+  const autoBtn = document.getElementById("autoBtn");
+  function setAutoBtn() {
+    autoBtn.classList.toggle("on", auto);
+    autoBtn.textContent = "Auto-cycle: " + (auto ? "ON" : "OFF");
+    if (!auto) { np.textContent = "Manual"; npd.textContent = "use the buttons / click the stage"; }
+  }
+  autoBtn.addEventListener("click", () => {
+    auto = !auto;
+    if (auto) enterStep(stepIdx, performance.now());
+    setAutoBtn();
+  });
+
+  // click the stage to drop an impact where you click
+  canvas.addEventListener("pointerdown", (e) => {
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) * (W / r.width);
+    const y = (e.clientY - r.top) * (H / r.height);
+    fx.spawnImpact(x, y, { facing: x > W / 2 ? -1 : 1, color: PAL.orange });
+  });
+
+  resize();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

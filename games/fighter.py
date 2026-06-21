@@ -169,6 +169,14 @@ class FighterSim:
     steps: int = field(default=0, init=False)
     winner: Optional[int] = field(default=None, init=False)  # 0, 1, or None (draw/ongoing)
     done: bool = field(default=False, init=False)
+    # HOW the match ended — set in ``_resolve_outcome``. ``"ringout"`` means a
+    # fighter was actually knocked / walked off the platform (a DECISIVE result);
+    # ``"timeout"`` means the step budget ran out (a draw, OR a Stage-6 decisive_
+    # timeout aggression tiebreak win). ``None`` while ongoing. Purely additive
+    # bookkeeping — the original winner/done semantics are unchanged. The Stage-6
+    # decisive reward and the head-to-head behaviour audit read this to separate a
+    # REAL ring-out from a timeout/tiebreak "win".
+    ended_by: Optional[str] = field(default=None, init=False)
     hits: list[int] = field(default_factory=lambda: [0, 0], init=False)
     approach: list[float] = field(default_factory=lambda: [0.0, 0.0], init=False)
 
@@ -233,6 +241,7 @@ class FighterSim:
         self.steps = 0
         self.winner = None
         self.done = False
+        self.ended_by = None
         self.hits = [0, 0]
         self.approach = [0.0, 0.0]
         # Cap for cumulative approach credit: a fighter can productively close at most the
@@ -378,15 +387,22 @@ class FighterSim:
             # Simultaneous double ring-out -> draw.
             self.winner = None
             self.done = True
+            self.ended_by = "ringout"
         elif f1_out:
             self.winner = 0
             self.done = True
+            self.ended_by = "ringout"
         elif f0_out:
             self.winner = 1
             self.done = True
+            self.ended_by = "ringout"
         elif self.steps >= self.arena.max_steps:
             self.winner = self._aggression_tiebreak() if self.arena.decisive_timeout else None
             self.done = True
+            # A win here came from the step-budget tiebreak, NOT a real ring-out;
+            # ``ended_by="timeout"`` keeps the decisive reward / behaviour audit from
+            # crediting it as a decisive knockoff.
+            self.ended_by = "timeout"
 
     def _aggression_tiebreak(self) -> Optional[int]:
         """Resolve Stage-6 timeouts by landed hits, then self-driven approach."""
@@ -689,11 +705,19 @@ class FighterEnv(_GYM_BASE):
         *,
         seed: int = 0,
         anti_camping_reward: bool = False,
+        decisive_reward: bool = False,
     ):
         super().__init__()
         self.arena = arena
         self._opponent_factory = opponent_factory
         self._anti_camping_reward = anti_camping_reward
+        # DECISIVE REWARD (Stage-6 focused-league experiment only, default OFF).
+        # When False the terminal reward is the ORIGINAL +1 / -1 / (0 or -0.25)
+        # scheme — byte-identical. When True, only a REAL ring-out win earns the
+        # full +1.0; a timeout/aggression-tiebreak "win" earns a small +0.1 (it is
+        # NOT decisive fighting), and a draw is penalised -0.5. This teaches the
+        # Student to actually knock the opponent off rather than camp for a tiebreak.
+        self._decisive_reward = decisive_reward
         self._base_seed = seed
         self._episode = 0
 
@@ -745,15 +769,37 @@ class FighterEnv(_GYM_BASE):
         else:
             reward = self._shaping_reward(int(action), prev_dist, new_dist)
         if terminated:
-            if self.sim.winner == 0:
-                reward += 1.0
-            elif self.sim.winner == 1:
-                reward += -1.0
-            elif self._anti_camping_reward:
-                reward += -0.25
+            if self._decisive_reward:
+                reward += self._decisive_terminal_reward()
+            else:
+                if self.sim.winner == 0:
+                    reward += 1.0
+                elif self.sim.winner == 1:
+                    reward += -1.0
+                elif self._anti_camping_reward:
+                    reward += -0.25
 
-        info = {"winner": self.sim.winner, "steps": self.sim.steps}
+        info = {"winner": self.sim.winner, "steps": self.sim.steps,
+                "ended_by": self.sim.ended_by}
         return obs, reward, terminated, truncated, info
+
+    def _decisive_terminal_reward(self) -> float:
+        """Stage-6 decisive terminal reward (only when ``decisive_reward`` is ON).
+
+        Rewards DECISIVE fighting, not tiebreak-camping:
+          * real ring-out win (opponent knocked off)  -> +1.0
+          * real ring-out LOSS (the agent fell off)    -> -1.0
+          * timeout aggression-tiebreak win            -> +0.1 (won, but not decisive)
+          * timeout aggression-tiebreak loss           -> -0.1
+          * draw (double-out OR a pure timeout draw)   -> -0.5 (penalise stalling)
+        """
+        winner = self.sim.winner
+        by_ringout = self.sim.ended_by == "ringout"
+        if winner == 0:
+            return 1.0 if by_ringout else 0.1
+        if winner == 1:
+            return -1.0 if by_ringout else -0.1
+        return -0.5  # draw (winner is None): a double-out or a stalled timeout
 
     def _shaping_reward(self, action: int, prev_dist: float, new_dist: float) -> float:
         """Small dense shaping (kept << terminal reward).
@@ -800,3 +846,54 @@ def play_match(
         a1 = int(policy_b(sim.observe(ego=1)))
         sim.step(a0, a1)
     return sim.winner
+
+
+# Actions that move the fighter's body horizontally/vertically. Used by the
+# behaviour audit to compute the MOVEMENT FRACTION (the share of steps where the
+# Student did something other than stand still / camp-punch in place).
+_MOVE_ACTIONS: frozenset = frozenset({int(Action.LEFT), int(Action.RIGHT), int(Action.JUMP)})
+
+
+def play_match_trace(
+    arena: FighterArena,
+    policy_a: Policy,
+    policy_b: Policy,
+    seed: int = 0,
+    *,
+    ego: int = 0,
+) -> dict:
+    """Run one match and return a BEHAVIOUR TRACE for the ``ego`` fighter.
+
+    Used only by the Stage-6 focused-league behaviour audit (off the default path):
+    fights ``policy_a`` (fighter 0) vs ``policy_b`` (fighter 1) exactly as
+    ``play_match`` does — same sim, same seed, byte-identical dynamics — but also
+    records, for the ``ego`` fighter (default 0):
+
+      * ``winner``        — 0 / 1 / None (same as ``play_match``).
+      * ``ended_by``      — "ringout" or "timeout" (how the match resolved).
+      * ``steps``         — match length.
+      * ``action_counts`` — per-action histogram (length 5: IDLE/LEFT/RIGHT/JUMP/PUNCH).
+      * ``move_steps``    — count of steps where ego chose LEFT/RIGHT/JUMP.
+
+    The caller aggregates these across matches into movement fraction, action
+    histogram, real-ring-out rate and timeout-win rate. This is a read-only probe;
+    it never feeds training.
+    """
+    sim = FighterSim(arena=arena, seed=seed)
+    action_counts = [0, 0, 0, 0, 0]
+    move_steps = 0
+    while not sim.done:
+        a0 = int(policy_a(sim.observe(ego=0)))
+        a1 = int(policy_b(sim.observe(ego=1)))
+        ego_action = a0 if ego == 0 else a1
+        action_counts[ego_action] += 1
+        if ego_action in _MOVE_ACTIONS:
+            move_steps += 1
+        sim.step(a0, a1)
+    return {
+        "winner": sim.winner,
+        "ended_by": sim.ended_by,
+        "steps": sim.steps,
+        "action_counts": action_counts,
+        "move_steps": move_steps,
+    }

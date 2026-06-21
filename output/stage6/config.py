@@ -73,6 +73,28 @@ class EvalConfig:
     # (self-play-lite). Applied identically to both sides; ``None`` => no prior
     # student, the prior-student league entry is dropped by ``resolve_league``.
     prior_student_path: str | None = None
+    # -- DECISIVE REWARD (focused-league experiment) — DEFAULT OFF ------------
+    # When True, the Student's terminal reward credits only a REAL ring-out with the
+    # full +1.0; a timeout/aggression-tiebreak "win" gets +0.1 and a draw is
+    # penalised -0.5 (teaches decisive fighting, not tiebreak-camping). Default False
+    # leaves the original +1/-1/(0|-0.25) terminal reward byte-identical. Applied
+    # IDENTICALLY to both Students (fairness invariant).
+    student_decisive_reward: bool = False
+    # -- STUDENT CAPACITY A/B — DEFAULT [64, 64] -----------------------------
+    # Policy/value MLP hidden layers for BOTH Students. ``None`` => the original
+    # small [64, 64] (~10k params). The capacity A/B passes [128,128] / [256,256].
+    # Part of the fairness invariant: both Students always share the architecture.
+    student_net_arch: tuple[int, ...] | None = None
+    # -- STUDENT ENTROPY COEFFICIENT -----------------------------------------
+    # PPO entropy bonus for the Students. ``None`` => the worker default (0.03). The
+    # focused-league experiment fixes this at 0.03 explicitly. Identical for both.
+    student_ent_coef: float | None = None
+    # -- BEHAVIOUR AUDIT — DEFAULT OFF ---------------------------------------
+    # When True, the head-to-head match worker captures the trained Student's action
+    # trace (movement fraction, action histogram, real-ring-out vs timeout) so the
+    # gates (movement > 15%, real-ring-out > 30%) can be measured. Default False adds
+    # nothing to the match payload — the original score-only path is byte-identical.
+    audit_behavior: bool = False
 
     def fingerprint(self) -> str:
         """A short stable hash of the invariant (recorded to prove fairness)."""
@@ -121,6 +143,14 @@ class EvalConfig:
         default) this adds NOTHING — the payload is returned unchanged, so the
         Student worker takes its original single-parametric-opponent path.
         """
+        # The capacity / ent_coef knobs ride EVERY Student payload, independent of
+        # the league switch, so the A/B can vary architecture without the league.
+        if self.student_net_arch is not None:
+            payload["student_net_arch"] = list(self.student_net_arch)
+        if self.student_ent_coef is not None:
+            payload["student_ent_coef"] = float(self.student_ent_coef)
+        if self.student_decisive_reward:
+            payload["student_decisive_reward"] = True
         if not self.opponent_league_enabled:
             return payload
         payload["opponent_league_enabled"] = True

@@ -71,6 +71,21 @@ DEFAULT_LEAGUE: list[dict] = [
     {"id": PRIOR_STUDENT_ID, "weight": 1},
 ]
 
+# The FOCUSED league (the 80%-draw-backfire fix). The equal-weight DEFAULT_LEAGUE
+# above is a documented NEGATIVE CONTROL: turtle taught survival/passivity and
+# random supplied weak noisy lessons, splitting the fixed PPO budget across
+# incompatible styles -> ~80% draws. The focused league removes BOTH and trains the
+# Student on a decisive distribution instead:
+#   * 70% aggressive    — the scripted_fighter that actually closes and punches.
+#   * 30% prior_student — active self-play vs a frozen earlier Student.
+# When no frozen prior Student is supplied, ``resolve_league`` drops the
+# prior_student entry and renormalises -> 100% aggressive (the documented fallback,
+# never a silent turtle/random substitution).
+FOCUSED_LEAGUE: list[dict] = [
+    {"id": "aggressive", "weight": 0.70},
+    {"id": PRIOR_STUDENT_ID, "weight": 0.30},
+]
+
 
 def resolve_league(league: list[dict], has_prior_student: bool) -> list[dict]:
     """Resolve a declared league into the ACTIVE league for this run.

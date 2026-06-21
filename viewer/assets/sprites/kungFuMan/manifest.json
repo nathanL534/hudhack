@@ -1,0 +1,31 @@
+{
+  "name": "Kung Fu Man Gameboy (scaled)",
+  "source": "https://opengameart.org/content/rpg-asset-character-kung-fu-man-gameboy",
+  "author": "ChasersGaming",
+  "license": "CC0 / Public Domain",
+  "attribution": "RPG Asset Character 'Kung Fu Man' Gameboy by ChasersGaming. CC0 — no attribution required.",
+  "note": "NES version (white gi, better for tinting) at https://chasersgaming.itch.io/rpg-asset-character-kung-fu-man-nes — download for $0, then run scale-up script.",
+  "frameSize": 200,
+  "frameWidth": 200,
+  "frameHeight": 200,
+  "originalFrameSize": { "width": 16, "height": 24 },
+  "scaleApplied": 6,
+  "format": "horizontal_strip_per_animation",
+  "anims": {
+    "Idle":    { "file": "Idle.png",    "frames": 4, "fps": 6, "sourceFile": "GB_Kung_Fu_Man_Idle_EAST_strip4.png" },
+    "Run":     { "file": "Run.png",     "frames": 4, "fps": 8, "sourceFile": "GB_Kung_Fu_Man_Walk_EAST_strip4.png" },
+    "Jump":    { "file": "Jump.png",    "frames": 1, "fps": 4, "sourceFile": "GB_Kung_Fu_Man_Jump_EAST.png" },
+    "Fall":    { "file": "Fall.png",    "frames": 2, "fps": 4, "sourceFile": "GB_Kung_Fu_Man_Jump_EAST.png", "note": "reuses jump frame, no dedicated fall in 4way pack" },
+    "Attack1": { "file": "Attack1.png", "frames": 4, "fps": 8, "sourceFile": "GB_Kung_Fu_Man_AttackFS_EAST_strip4.png", "note": "full swing, each frame is 24px wide not 16px" },
+    "Attack2": { "file": "Attack2.png", "frames": 3, "fps": 8, "sourceFile": "GB_Kung_Fu_Man_AttackKick_EAST.png", "note": "single kick frame repeated 3x" },
+    "TakeHit": { "file": "TakeHit.png", "frames": 1, "fps": 4, "sourceFile": "GB_Kung_Fu_Man_HitHurt_EAST.png" },
+    "Death":   { "file": "Death.png",   "frames": 4, "fps": 4, "sourceFile": "GB_Kung_Fu_Man_HitHurt_EAST.png", "note": "hit frame repeated 4x — no dedicated death animation" }
+  },
+  "colorNote": "Monochrome Gameboy palette (lime-green + dark-green only). Will NOT tint cleanly red/blue via CSS 'color' blend. Use NES version for the demo — identical character, full white+skin color palette.",
+  "viewerCompatibility": {
+    "dropIn": false,
+    "frameFormat": "matches_200x200_horizontal_strip",
+    "colorIssue": "Monochrome green; bakeTinted will produce muddy tints. NES version is strictly better.",
+    "animsCoverage": "all_8_required_anims_present"
+  }
+}
