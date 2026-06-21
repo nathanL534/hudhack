@@ -46,6 +46,12 @@ class EvalConfig:
     n_replicates: int = 4
     # Arenas the Teacher generates per curriculum (the Student trains on the SET).
     curriculum_arenas: int = 4
+    # Base Teacher-GENERATION seed. Each replicate r uses ``curriculum_seed_base + r``
+    # as its generation seed (applied IDENTICALLY to base and trained), so replicates
+    # sample DIFFERENT curricula from the same Teacher — making the curriculum-level CI
+    # capture curriculum-generation randomness, not just Student-training noise. Part of
+    # the fairness invariant (in the fingerprint) since it shapes both halves equally.
+    curriculum_seed_base: int = 0
     # Match seeds played per held-out arena per side (paired across the side swap).
     match_seeds_per_arena: int = 12
     # Held-out grid for the head-to-head (its own disjoint population).
