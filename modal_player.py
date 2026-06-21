@@ -221,11 +221,38 @@ def _held_out_reference_arenas(payload: dict):
 
     These are INDEPENDENT of the training arena in ``payload`` — the same fixed
     set for every Teacher arena under evaluation, so improvement-on-them measures
-    transfer to a yardstick the Teacher cannot move. Default fighter geometry; the
-    difficulties come from ``HELD_OUT_REFERENCE_DIFFICULTIES`` (overridable via the
-    payload for experiments, but the DEFAULT is fixed and that is the point).
+    transfer to a yardstick the Teacher cannot move.
+
+    Two layers, in priority order:
+
+      1. ``held_out_arenas`` — a list of FULL arena-spec dicts (each may carry
+         ``platform_width`` / ``gravity`` / ``knockback`` / ``spawn_gap`` /
+         ``difficulty``; missing knobs fall back to ``FighterArena`` defaults).
+         This is the STRUCTURALLY-DIVERSE eval population: a held-out set that
+         varies PHYSICS as well as opponent strength, used to ask whether a
+         training arena's transfer is BROAD or just gaming the narrow default-
+         geometry turtle references. Layered behind this explicit key so it
+         changes nothing unless a caller opts in.
+      2. ``held_out_difficulties`` (or the module DEFAULT
+         ``HELD_OUT_REFERENCE_DIFFICULTIES``) — difficulty-only arenas at default
+         geometry. This is the ORIGINAL, unchanged behavior; it is what every
+         existing reward call and test produces.
     """
     from games.fighter import FighterArena
+
+    specs = payload.get("held_out_arenas")
+    if specs:
+        defaults = FighterArena()
+        return [
+            FighterArena(
+                platform_width=float(s.get("platform_width", defaults.platform_width)),
+                gravity=float(s.get("gravity", defaults.gravity)),
+                knockback=float(s.get("knockback", defaults.knockback)),
+                spawn_gap=float(s.get("spawn_gap", defaults.spawn_gap)),
+                difficulty=float(s.get("difficulty", defaults.difficulty)),
+            )
+            for s in specs
+        ]
 
     diffs = payload.get("held_out_difficulties", HELD_OUT_REFERENCE_DIFFICULTIES)
     return [FighterArena(difficulty=float(d)) for d in diffs]
