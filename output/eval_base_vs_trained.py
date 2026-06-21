@@ -86,7 +86,6 @@ from output.stage6.evaluator import (  # noqa: E402
     write_result,
 )
 from output.stage6.games import all_games, get_game  # noqa: E402
-from output.stage6.handles import resolve_handle  # noqa: E402
 
 # The default BASE handle is the MODAL base-no-adapter Teacher: Fireworks gives a 404
 # for serverless qwen3-4b inference on this account and the host venv has no
@@ -199,6 +198,10 @@ def _cmd_run(args) -> int:
     else:
         trained_handle = args.trained
 
+    # The KOTH cross-game is now run INSIDE ``run_full_eval`` so its trained-vs-base
+    # delta feeds the train-game-overfit anti-gaming gate (H3) and gates the verdict.
+    # ``--no-koth-cross-game`` opts out (cheap train-game-only run); the legacy
+    # ``--koth-cross-game`` flag is a no-op kept for backward compatibility.
     req = EvalRequest(
         base_handle=base_handle,
         trained_handle=trained_handle,
@@ -209,22 +212,10 @@ def _cmd_run(args) -> int:
         enable_hud_traces=bool(args.hud_traces),
         base_model=args.base_model,
         run_secondary=not args.no_secondary,
+        run_cross_game=not args.no_koth_cross_game,
         verbose=True,
     )
     summary = run_full_eval(req)
-
-    # --- optional KOTH cross-game (the final hidden test) ---
-    if args.koth_cross_game:
-        from output.stage6 import koth_cross_game as koth_mod
-
-        resolve_kw = {"base_model": args.base_model} if args.base_model else {}
-        base_rt = resolve_handle("base", base_handle, **resolve_kw)
-        trained_rt = resolve_handle("trained", trained_handle, **resolve_kw)
-        print("\n--- Cross-game generalization: KOTH (fresh KOTH Students) ---")
-        summary["cross_game_koth"] = koth_mod.run_koth_cross_game(
-            base_rt, trained_rt, config=cfg, backend=args.backend,
-            is_smoke=smoke, verbose=True,
-        )
 
     out = Path(args.out) if args.out else RESULT_PATH
     write_result(summary, out)
@@ -286,7 +277,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-secondary", dest="no_secondary", action="store_true",
                    help="skip the secondary fixed-bot transfer diagnostic (primary only)")
     p.add_argument("--koth-cross-game", dest="koth_cross_game", action="store_true",
-                   help="also run the KOTH cross-game Student-vs-Student test")
+                   help="(no-op; the KOTH cross-game now runs by default inside "
+                        "run_full_eval and feeds the train-game-overfit gate)")
+    p.add_argument("--no-koth-cross-game", dest="no_koth_cross_game", action="store_true",
+                   help="skip the KOTH cross-game (cheap train-game-only run; the "
+                        "train-game-overfit anti-gaming gate then SKIPs, non-gating)")
     p.add_argument("--null-test", dest="null_test", action="store_true",
                    help="base-vs-base NULL test: SAME teacher both sides; must give "
                         "~zero advantage and no side bias (else the evaluator is broken)")
