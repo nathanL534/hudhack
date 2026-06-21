@@ -107,18 +107,22 @@ HELD_OUT_REFERENCE_ZONE_CENTER_FRAC: float = 0.5
 def _tk_arena_from_payload(payload: dict):
     """Build the concrete ``TargetKnockbackArena`` this job trains/evaluates on.
 
-    The payload carries the arena dials directly: ``difficulty`` (the single knob the
-    Teacher turns — sets opponent strength) plus the target-zone geometry
-    (``platform_width`` / ``zone_half`` / ``zone_center_frac``). Missing knobs fall back
-    to the ``TargetKnockbackArena`` defaults, so a payload of just ``{"difficulty": 0.5}``
-    is a valid single-dial arena. Import is INSIDE the function so the module imports
-    cleanly without ``games`` on the path (e.g. at Modal deploy registration).
+    The payload carries ALL SEVEN dials the Teacher emits: ``difficulty`` (opponent
+    strength), the physics knobs (``gravity`` / ``knockback`` / ``spawn_gap``), and the
+    target-zone geometry (``platform_width`` / ``zone_half`` / ``zone_center_frac``).
+    Every knob the Teacher is GRPO-trained to emit MUST flow into the training env, or
+    the reward optimizes knobs that are never applied (the C1 bug). Missing knobs fall
+    back to defaults. Import is INSIDE the function so the module imports cleanly without
+    ``games`` on the path (e.g. at Modal deploy registration).
     """
     from games.target_knockback import TargetKnockbackArena
 
     defaults = TargetKnockbackArena()
     return TargetKnockbackArena(
         platform_width=float(payload.get("platform_width", defaults.platform_width)),
+        gravity=float(payload.get("gravity", defaults.gravity)),
+        knockback=float(payload.get("knockback", defaults.knockback)),
+        spawn_gap=float(payload.get("spawn_gap", defaults.spawn_gap)),
         zone_half=float(payload.get("zone_half", defaults.zone_half)),
         zone_center_frac=float(payload.get("zone_center_frac", defaults.zone_center_frac)),
         difficulty=float(payload.get("difficulty", defaults.difficulty)),
