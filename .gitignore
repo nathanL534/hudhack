@@ -24,3 +24,6 @@ output/dry_loop/
 .claude/
 # Target-Knockback dry-loop sidecar cache (regenerated every run)
 output/tk_dry_loop/
+
+# Root-level agent git worktrees (embedded repos) — never commit
+.worktrees/
