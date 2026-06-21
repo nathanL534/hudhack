@@ -113,7 +113,12 @@ def _clamp(value: float, bounds: tuple[float, float]) -> float:
     return min(max(value, lo), hi)
 
 
-# (replay writer lives in head_to_head; KOTH captures no fighter-style replay)
+# Replay capture: this cross-game test drives the SAME ``head_to_head.run_head_to_head``
+# machinery (game="koth"), so it requests representative match replays the SAME way the
+# fighter does (the ``capture_replays`` flag on the first replicate's first held-out
+# arena). The match worker only records the fighter's viewer replay, so the KOTH match
+# is recorded on the driver by ``head_to_head._capture_koth_replays`` (zone-aware) and
+# written to ``replays/h2h_koth_<outcome>_<side>.json`` via the shared ``_write_replay``.
 
 
 class _MappingTeacher:

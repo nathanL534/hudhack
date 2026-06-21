@@ -81,6 +81,112 @@ def _write_replay(game: str, outcome: str, side: str, data: dict) -> str:
     return str(path)
 
 
+# Which games carry a fighter-style viewer replay the match WORKER captures. KOTH is
+# NOT here: its obs space differs and the canonical worker recorder is fighter-only,
+# so the match worker deliberately returns no KOTH frames. We capture KOTH replays in
+# the orchestration instead (below), reusing the exact same restore + record + write
+# path the worker would — never forcing the worker to fabricate frames it can't.
+_WORKER_REPLAY_GAMES = frozenset({"fighter", "ring-out-duel", "ring_out_duel"})
+
+
+def _capture_koth_replays(
+    game_name: str, arena_spec: dict, trained_policy: dict, base_policy: dict,
+    match_seeds: list[int],
+) -> list[dict]:
+    """Roll out representative KOTH Student-vs-Student replays on the DRIVER.
+
+    The match worker (``modal_player._capture_h2h_replays``) only records the
+    fighter's viewer replay — KOTH has a different obs space and the canonical
+    recorder is fighter-only, so the worker returns no KOTH frames. We restore the
+    two FROZEN Students here (the SAME ``PolicyArtifact`` -> ``restore_policy`` path
+    the worker uses, into a throwaway KOTH env that only supplies the obs/action
+    spaces) and record one representative match per outcome category with
+    ``record_replay.record_match_koth`` — the same recorder home, same replay schema,
+    same ``_write_replay`` sink. This keeps capture byte-identical to the canonical
+    recorder while never touching the match worker.
+
+    Returns capture rows shaped exactly like the worker's (``side`` / ``outcome`` /
+    ``data`` + self-describing source-Teacher metadata) so the existing persist loop
+    writes them unchanged. Best-effort: any failure yields ``[]`` (capture never
+    gates the headline metric).
+    """
+    # Capture is best-effort and runs on the driver (torch/SB3 + KOTH must be
+    # importable, and the policy dicts must carry real weights). Any failure —
+    # missing deps, a stub policy without ``state_dict_b64``, a restore error —
+    # yields ``[]`` so capture NEVER gates the headline metric or breaks a stubbed
+    # orchestration test.
+    try:
+        import dataclasses
+
+        from record_replay import record_match_koth
+        from output.stage6.policy import DEFAULT_NET_ARCH, PolicyArtifact, restore_policy
+        from games.koth import KothArena
+        from harness.koth_trainer import _MultiArenaKothEnv
+
+        field_names = {f.name for f in dataclasses.fields(KothArena)}
+        arena = KothArena(**{k: float(v) for k, v in arena_spec.items() if k in field_names})
+        seed0 = int(match_seeds[0]) if match_seeds else 0
+
+        # A throwaway env only supplies obs/action spaces to restore the frozen nets
+        # — exactly what the worker's ``_head_to_head_match`` does.
+        restore_env = _MultiArenaKothEnv([arena], seed=seed0)
+        trained = restore_policy(
+            PolicyArtifact.from_dict(trained_policy), restore_env,
+            net_arch=DEFAULT_NET_ARCH, seed=seed0,
+        )
+        base = restore_policy(
+            PolicyArtifact.from_dict(base_policy), restore_env,
+            net_arch=DEFAULT_NET_ARCH, seed=seed0 + 1,
+        )
+
+        _winner_of = {"p1": 0, "p2": 1, "draw": None}
+        want = {"trained_win": None, "base_win": None, "draw": None, "side_swap": None}
+        meta_common = {
+            "game": "koth",
+            "source_teacher_trained": trained_policy.get("teacher"),
+            "source_teacher_base": base_policy.get("teacher"),
+            "trained_curriculum_id": trained_policy.get("curriculum_id"),
+            "base_curriculum_id": base_policy.get("curriculum_id"),
+            "trained_policy_seed": trained_policy.get("seed"),
+            "base_policy_seed": base_policy.get("seed"),
+            "arena": arena_spec,
+            "zone": {
+                "center": round(float(arena.zone_center), 4),
+                "half": round(float(arena.zone_half), 4),
+                "center_frac": round(float(arena.zone_center_frac), 4),
+            },
+        }
+
+        def _roll(p0, p1, seed, p0_label, p1_label):
+            data = record_match_koth(arena, p0, p1, config="h2h-koth",
+                                     p1_policy=p0_label, p2_policy=p1_label, seed=seed)
+            return data, _winner_of[data["meta"]["winner"]]
+
+        for ms in match_seeds:
+            # trained as P0 vs base as P1.
+            data_a, w_a = _roll(trained, base, ms, "trained_student", "base_student")
+            common = {**meta_common, "match_seed": ms}
+            if w_a == 0 and want["trained_win"] is None:
+                want["trained_win"] = {**common, "side": "trained_as_P0", "outcome": "trained_win", "data": data_a}
+            elif w_a == 1 and want["base_win"] is None:
+                want["base_win"] = {**common, "side": "trained_as_P0", "outcome": "base_win", "data": data_a}
+            elif w_a is None and want["draw"] is None:
+                want["draw"] = {**common, "side": "trained_as_P0", "outcome": "draw", "data": data_a}
+            # side swap: trained as P1.
+            if want["side_swap"] is None:
+                data_b, w_b = _roll(base, trained, ms, "base_student", "trained_student")
+                want["side_swap"] = {**common, "side": "trained_as_P1",
+                                     "outcome": ("trained_win" if w_b == 1 else
+                                                 "base_win" if w_b == 0 else "draw"),
+                                     "data": data_b}
+            if all(v is not None for v in want.values()):
+                break
+
+        return [v for v in want.values() if v is not None]
+    except Exception:  # pragma: no cover - best-effort capture, never gates
+        return []
+
+
 def _arena_family(spec: dict) -> str:
     """Group key for the per-arena-FAMILY breakdown (physics archetype)."""
     name = spec.get("name", "")
@@ -378,6 +484,26 @@ def _run_one_replicate(
     replays_meta: list[dict] = []
     for hrow in h2h_rows:
         for rep in hrow.get("replays", []) or []:
+            data = rep.pop("data", None)
+            if data is None:
+                continue
+            path = _write_replay(game.name, rep["outcome"], rep["side"], data)
+            replays_meta.append({k: v for k, v in rep.items() if k != "data"} | {"path": path})
+
+    # KOTH cross-game capture: the match worker only records the FIGHTER viewer
+    # replay (different obs space + fighter-only recorder), so for KOTH it returns
+    # no frames and ``replays_meta`` is empty above. Capture the SAME representative
+    # KOTH matches here on the driver — restore the frozen Students and record with
+    # ``record_match_koth`` — when capture was requested for this replicate (the
+    # FIRST replicate's FIRST held-out arena, mirroring the worker's capture point)
+    # and the worker produced nothing. Reuses the exact ``_write_replay`` sink; the
+    # fighter path is untouched (it already captured, so this branch is skipped).
+    if r == 0 and not replays_meta and game.name not in _WORKER_REPLAY_GAMES and h2h_payloads:
+        first = h2h_payloads[0]
+        koth_caps = _capture_koth_replays(
+            game.name, first["arena"], trained_policy, base_policy, match_seeds,
+        )
+        for rep in koth_caps:
             data = rep.pop("data", None)
             if data is None:
                 continue
