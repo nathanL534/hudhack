@@ -177,17 +177,54 @@ class FighterSim:
             self.seed = seed
         rng = np.random.default_rng(self.seed)
 
-        # Spawn symmetrically around the platform centre, separated by spawn_gap.
-        centre = self.arena.platform_width / 2.0
-        half = self.arena.spawn_gap / 2.0
-        # A tiny deterministic jitter (<= 0.05) so identical seeds reproduce and
-        # different seeds differ, without making the match non-deterministic.
-        jitter = (rng.random(2) - 0.5) * 0.1
-        x0 = float(np.clip(centre - half + jitter[0], 0.1, self.arena.platform_width - 0.1))
-        x1 = float(np.clip(centre + half + jitter[1], 0.1, self.arena.platform_width - 0.1))
+        # RANDOMISED spawn (deterministic given the seed). A fixed symmetric spawn
+        # lets a PPO Player memorise a single open-loop motor cycle (we measured
+        # the net replaying the IDENTICAL action sequence in every match, ignoring
+        # the opponent). Drawing fresh positions per reset forces the policy to be
+        # REACTIVE — to read the observation rather than parrot one trajectory.
+        #
+        # We randomise four things, all from the seeded rng so a fixed seed
+        # replays byte-for-byte (training draws fresh seeds each episode -> fresh
+        # positions; eval uses a fixed seed set -> varied but reproducible):
+        #   * which SIDE each fighter starts on (Player left/right is coin-flipped)
+        #   * the GAP between them (>= a min so nobody spawns already in range),
+        #   * the gap's OFFSET around platform centre (the pair isn't always
+        #     centred), and
+        #   * each fighter's initial FACING.
+        w = self.arena.platform_width
+        centre = w / 2.0
+        margin = max(0.5, self.arena.fighter_half_width + 0.1)  # keep clear of edges
 
-        self.f0 = _Body(x=x0, facing=1)
-        self.f1 = _Body(x=x1, facing=-1)
+        # Gap: vary in [min_gap, spawn_gap], min_gap clamped so it never exceeds
+        # what the platform can hold given the edge margins.
+        max_gap = max(0.0, (w - 2.0 * margin))
+        min_gap = min(max(1.0, 0.5 * self.arena.spawn_gap), max_gap)
+        hi_gap = min(self.arena.spawn_gap, max_gap)
+        gap = float(rng.uniform(min_gap, hi_gap)) if hi_gap > min_gap else float(min_gap)
+
+        # Offset the pair's midpoint around centre, staying inside the edges.
+        slack = max(0.0, (max_gap - gap) / 2.0)
+        offset = float(rng.uniform(-slack, slack)) if slack > 0 else 0.0
+        mid = centre + offset
+        left_x = mid - gap / 2.0
+        right_x = mid + gap / 2.0
+        left_x = float(np.clip(left_x, margin, w - margin))
+        right_x = float(np.clip(right_x, margin, w - margin))
+
+        # Coin-flip which fighter takes the left spot, so the Player (f0) isn't
+        # always the left fighter.
+        f0_on_left = bool(rng.integers(2))
+        x0, x1 = (left_x, right_x) if f0_on_left else (right_x, left_x)
+
+        # Random initial facing for each (the per-step facing logic re-points them
+        # at the opponent on the first idle/non-move step, so this only seeds the
+        # very first frame's observation — enough to break a memorised open-loop
+        # start without making the match unfair).
+        facing0 = 1 if rng.integers(2) else -1
+        facing1 = 1 if rng.integers(2) else -1
+
+        self.f0 = _Body(x=x0, facing=facing0)
+        self.f1 = _Body(x=x1, facing=facing1)
         self.steps = 0
         self.winner = None
         self.done = False
