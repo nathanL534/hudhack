@@ -1,0 +1,23 @@
+[
+  "dryrun_dryrun-1782024404_seed1.json",
+  "modal_trained_arena-d0.1-m10_a0.json",
+  "modal_trained_arena-d0.25-m10_a0.json",
+  "modal_trained_arena-d0.5-m10_a0.json",
+  "modal_trained_arena-d0.7-m10_a0.json",
+  "modal_trained_arena-d0.85-m10_a0.json",
+  "modal_trained_val-01-d0.3_a0.json",
+  "random_vs_random_s05.json",
+  "random_vs_random_s23.json",
+  "scripted_vs_random.json",
+  "scripted_vs_scripted.json",
+  "stage_floaty_lowg.json",
+  "stage_heavy_knock.json",
+  "stage_narrow_ledge.json",
+  "stage_wide_arena.json",
+  "sweep_scripted_vs_d020.json",
+  "sweep_scripted_vs_d040.json",
+  "sweep_scripted_vs_d060.json",
+  "sweep_scripted_vs_d080.json",
+  "sweep_scripted_vs_d100.json",
+  "trained_vs_scripted.json"
+]

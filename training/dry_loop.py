@@ -55,6 +55,15 @@ try:
 except Exception:  # pragma: no cover - dotenv should be present in .venv
     pass
 
+# .env ships EMPTY ``MODAL_TOKEN_ID=`` / ``MODAL_TOKEN_SECRET=`` placeholders; once
+# ``load_dotenv`` puts those empty strings in the environment, Modal's
+# ``Client.from_env()`` tries env-var auth with a blank token and raises
+# ``AuthError: Token missing`` instead of falling back to the active ``~/.modal.toml``
+# profile. Drop the blanks so the profile (the real credential here) is used.
+for _k in ("MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET"):
+    if os.environ.get(_k, "").strip() == "":
+        os.environ.pop(_k, None)
+
 # ---------------------------------------------------------------------------
 # Run configuration
 # ---------------------------------------------------------------------------
