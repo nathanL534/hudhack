@@ -66,6 +66,15 @@ class _KothArenaHandle:
     curriculum_id: str = ""
 
 
+# KOTH difficulty->hardness is only MONOTONE inside this band. Outside it the
+# off-centre zone (``zone_center_frac = 0.5 + 0.18*d``) clips the platform edge on
+# small maps and a high-d arena becomes TRIVIALLY easy again. We clamp the mapped
+# difficulty into the band BEFORE it feeds the zone geometry or the opponent, so
+# "higher d => harder" stays true on this game's twin mapping too. Kept in lockstep
+# with ``output.stage6.koth_cross_game.KOTH_DIFFICULTY_RANGE``.
+KOTH_DIFFICULTY_RANGE: tuple[float, float] = (0.15, 0.80)
+
+
 def _arena_from_spec(spec: ArenaSpec) -> KothArena:
     """Deterministically translate a gridworld-shaped ArenaSpec into KotH geometry.
 
@@ -77,14 +86,24 @@ def _arena_from_spec(spec: ArenaSpec) -> KothArena:
         opponent via the difficulty field.
     This lets a Teacher that emits ArenaSpecs drive KotH without touching the
     frozen contract — the whole point of the drop-in.
+
+    ``difficulty`` is clamped into ``KOTH_DIFFICULTY_RANGE`` first (see the note
+    above) so the mapping is monotone in hardness — a high-d spec cannot produce a
+    falsely-easy hill.
     """
+    lo, hi = KOTH_DIFFICULTY_RANGE
+    difficulty = min(max(spec.difficulty, lo), hi)
     width = 6.0 + 0.5 * spec.map_size                 # map_size 3..64 -> width 7.5..38
-    # Zone half shrinks with difficulty: easy arenas have a big, easy-to-hold
-    # hill; hard arenas a small one. Floor keeps it occupiable.
-    zone_half = max(0.6, 0.22 * width * (1.0 - 0.6 * spec.difficulty))
+    # Zone half shrinks with difficulty GENTLY (slope 0.35) with a width-proportional
+    # floor (0.12*width). A steeper shrink (0.6) made a high-d zone so small that on a
+    # small map the scripted policy re-trivialized it (verifier-confirmed: a centered
+    # zone re-trivialized too, so the culprit is zone_half, not zone_center_frac).
+    # Gentler shrink keeps the high-d hill contestable, so the mapping is monotone in
+    # hardness at every width. In lockstep with koth_cross_game.map_fighter_arena_to_koth.
+    zone_half = max(0.12 * width, 0.22 * width * (1.0 - 0.35 * difficulty))
     # Push the zone off-centre as difficulty rises (toward 0.5 +/- up to ~0.18),
     # so a hard hill is asymmetric. Deterministic, no rng.
-    zone_center_frac = 0.5 + 0.18 * spec.difficulty
+    zone_center_frac = 0.5 + 0.18 * difficulty
     return KothArena(
         platform_width=round(width, 3),
         zone_half=round(zone_half, 3),

@@ -47,6 +47,28 @@ def koth_supported() -> tuple[bool, str]:
 # KOTH parameter bounds (for clamping mapped curricula into valid KOTH arenas) come
 # from the registry's single source of truth — ``output.stage6.games.KOTH_BOUNDS``.
 
+# KOTH difficulty is only MONOTONE in hardness on this map family inside this band.
+# A verifier proved the Teacher->curriculum mapping is NON-MONOTONIC outside it:
+# ``zone_center_frac = 0.5 + 0.18*d`` pushes the zone toward the platform edge, so
+# on small maps a HIGH-d arena clips the zone against the wall and becomes TRIVIALLY
+# easy again (scripted win-rate climbs back to ~0.7-1.0 at d>=0.85). Clamping the
+# mapped difficulty into this band keeps "higher d => harder" true, so a high-d
+# Teacher arena can never be falsely rewarded as "hard". This is the ONLY honest
+# difficulty range for the KOTH cross-game signal.
+KOTH_DIFFICULTY_RANGE: tuple[float, float] = (0.15, 0.80)
+
+
+def clamp_koth_difficulty(difficulty: float) -> tuple[float, bool]:
+    """Clamp a Teacher difficulty into the monotone KOTH band [0.15, 0.80].
+
+    Returns ``(clamped_difficulty, was_clamped)``. Identical handling for base and
+    trained Teachers — both go through the same ``_MappingTeacher`` wrapper, so the
+    clamp is symmetric by construction.
+    """
+    lo, hi = KOTH_DIFFICULTY_RANGE
+    clamped = min(max(difficulty, lo), hi)
+    return clamped, (clamped != difficulty)
+
 
 def map_fighter_arena_to_koth(arena: dict) -> dict:
     """Map ONE fighter-schema arena into VALID KOTH params (Teacher-level mapping).
@@ -55,12 +77,26 @@ def map_fighter_arena_to_koth(arena: dict) -> dict:
     and pushes it off-centre (harder hill), platform_width carries through (clamped).
     The result is always a valid KOTH arena — the mapping is total and clamped, so
     no Teacher output can produce an invalid KOTH arena.
+
+    The difficulty is FIRST clamped into the monotone band ``KOTH_DIFFICULTY_RANGE``
+    (see the module note) BEFORE it feeds either the zone geometry OR the parametric
+    opponent strength — so a high-d Teacher arena can never re-trivialize into a
+    falsely-"hard" KOTH hill. The clamped difficulty is the one that propagates.
     """
-    difficulty = float(arena.get("difficulty", 0.5))
+    raw_difficulty = float(arena.get("difficulty", 0.5))
+    difficulty, _was_clamped = clamp_koth_difficulty(raw_difficulty)
     width = float(arena.get("platform_width", 12.0))
     width = min(max(width, KOTH_BOUNDS["platform_width"][0]), KOTH_BOUNDS["platform_width"][1])
-    # Zone shrinks with difficulty (harder to hold); floor keeps it occupiable.
-    zone_half = max(0.6, 0.22 * width * (1.0 - 0.6 * difficulty))
+    # Zone shrinks with difficulty (harder to hold), but GENTLY (slope 0.35) with a
+    # WIDTH-PROPORTIONAL floor (0.12*width). The clamp alone left a residual NON-
+    # monotonicity inside the band on SMALL maps: the old 0.6 slope shrank a high-d
+    # zone so small that on a 9-wide platform the scripted policy could pin the tiny
+    # hill and the contest opponent couldn't dislodge it, so win-rate rose back from
+    # ~0.49 (d=0.6) to ~0.88 (d=0.8). The verifier proved the culprit was zone_half
+    # (NOT zone_center_frac — a centered zone re-trivialized the same way). Gentler
+    # shrink + a proportional floor keeps the high-d hill contestable, restoring
+    # "higher d => harder" at every width across [0.15, 0.80].
+    zone_half = max(0.12 * width, 0.22 * width * (1.0 - 0.35 * difficulty))
     zone_half = _clamp(zone_half, KOTH_BOUNDS["zone_half"])
     # Off-centre as difficulty rises (asymmetric hill).
     zone_center_frac = _clamp(0.5 + 0.18 * difficulty, KOTH_BOUNDS["zone_center_frac"])
@@ -87,27 +123,71 @@ class _MappingTeacher:
     prompts are unchanged); this wrapper maps the result, so the head-to-head's
     ``generate_arenas`` sees valid KOTH arenas. ``param_schema`` is overridden to
     the KOTH schema so generation validates against KOTH bounds.
+
+    Every difficulty CLAMP (Teacher difficulty pushed back into the monotone band
+    ``KOTH_DIFFICULTY_RANGE``) is recorded on ``self.difficulty_clamps`` — count +
+    each ``(raw, clamped)`` pair — so the cross-game artifacts are auditable. The
+    SAME wrapper is applied to base AND trained Teachers, so the clamp is symmetric.
     """
 
     def __init__(self, inner):
         self._inner = inner
+        # Auditable clamp log: one record per arena whose difficulty was clamped.
+        self.difficulty_clamps: list[dict] = []
+        self.n_generated: int = 0
 
     def generate(self, game):  # game is the KOTH teacher_game (KOTH schema)
         # Generate against the FIGHTER schema the Teacher knows, then map.
         fighter_game = get_game("fighter").teacher_game()
         raw = self._inner.generate(fighter_game)
+        raw_difficulty = float(raw.get("difficulty", 0.5))
+        _clamped_d, was_clamped = clamp_koth_difficulty(raw_difficulty)
+        self.n_generated += 1
+        if was_clamped:
+            self.difficulty_clamps.append(
+                {"arena_index": self.n_generated - 1,
+                 "raw_difficulty": round(raw_difficulty, 4),
+                 "clamped_difficulty": round(_clamped_d, 4)}
+            )
         return map_fighter_arena_to_koth(raw)
 
 
-def _wrap_resolved(resolved: ResolvedTeacher) -> ResolvedTeacher:
-    """Return a ResolvedTeacher whose ``build()`` yields a KOTH-mapping Teacher."""
+def _wrap_resolved(resolved: ResolvedTeacher, sink: dict, key: str) -> ResolvedTeacher:
+    """Return a ResolvedTeacher whose ``build()`` yields a KOTH-mapping Teacher.
+
+    Each built ``_MappingTeacher`` is stashed in ``sink[key]`` (a list, since the
+    head-to-head builds one Teacher per replicate) so the run can aggregate every
+    difficulty clamp it applied — for base AND trained identically.
+    """
+
+    def _build():
+        wrapped = _MappingTeacher(resolved.build())
+        sink.setdefault(key, []).append(wrapped)
+        return wrapped
+
     return ResolvedTeacher(
         label=resolved.label,
         handle=resolved.handle,
         resolved_id=resolved.resolved_id + "::koth-mapped",
         kind=resolved.kind,
-        _build=lambda: _MappingTeacher(resolved.build()),
+        _build=_build,
     )
+
+
+def _collect_clamps(wrappers: list) -> dict:
+    """Aggregate the difficulty-clamp audit log across every built Teacher."""
+    records: list[dict] = []
+    total_arenas = 0
+    for i, w in enumerate(wrappers):
+        total_arenas += getattr(w, "n_generated", 0)
+        for rec in getattr(w, "difficulty_clamps", []):
+            records.append({"build": i, **rec})
+    return {
+        "range": list(KOTH_DIFFICULTY_RANGE),
+        "n_arenas_total": total_arenas,
+        "n_clamped": len(records),
+        "clamped": records,
+    }
 
 
 def run_koth_cross_game(
@@ -144,9 +224,14 @@ def run_koth_cross_game(
     # cross-game test we are NOT training a Teacher on KOTH — we train KOTH STUDENTS
     # from mapped curricula — so we drive the head-to-head directly with the KOTH
     # game entry, bypassing the role guard (which only gates Teacher RFT).
+    #
+    # Both Teachers are wrapped by the SAME ``_MappingTeacher`` (identical clamp
+    # handling); ``clamp_sink`` collects every built wrapper so we can aggregate the
+    # difficulty-clamp audit log AFTER the run.
+    clamp_sink: dict = {}
     h2h_req = h2h_mod.HeadToHeadRequest(
-        base=_wrap_resolved(base),
-        trained=_wrap_resolved(trained),
+        base=_wrap_resolved(base, clamp_sink, "base"),
+        trained=_wrap_resolved(trained, clamp_sink, "trained"),
         game=koth_game,
         config=config,
         backend=backend,
@@ -162,4 +247,17 @@ def run_koth_cross_game(
     summary["label"] = "cross_game_generalization"
     summary["supported"] = True
     summary["mapping"] = "fighter-schema -> KOTH zone geometry (koth_adapter mapping)"
+    # Auditable record of the monotonicity CLAMP: how many Teacher arenas had their
+    # difficulty pushed back into [0.15, 0.80], and which (raw -> clamped). Applied
+    # IDENTICALLY to base and trained.
+    summary["difficulty_clamp"] = {
+        "range": list(KOTH_DIFFICULTY_RANGE),
+        "reason": "KOTH difficulty->hardness is only monotone in [0.15, 0.80]: "
+                  "outside it a high-d arena re-trivializes (scripted win-rate climbs "
+                  "back toward 1.0). The clamp caps mapped difficulty into the band; a "
+                  "gentler zone_half shrink (slope 0.35, floor 0.12*width) removes the "
+                  "residual in-band re-easing on small maps. Keeps the 'hard' signal honest.",
+        "base": _collect_clamps(clamp_sink.get("base", [])),
+        "trained": _collect_clamps(clamp_sink.get("trained", [])),
+    }
     return summary

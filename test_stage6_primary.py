@@ -351,6 +351,68 @@ def test_koth_mapping_valid_and_monotone():
         assert lo <= easy[k] <= hi and lo <= hard[k] <= hi
 
 
+def test_koth_difficulty_clamp_caps_out_of_band():
+    """Teacher difficulty is clamped into the monotone band [0.15, 0.80].
+
+    A verifier proved the mapping is non-monotone outside the band: high-d arenas
+    re-trivialize. The clamp caps mapped difficulty so a >0.80 (or <0.15) Teacher
+    arena can never feed a falsely-"hard" KOTH hill.
+    """
+    from output.stage6.koth_cross_game import (
+        KOTH_DIFFICULTY_RANGE,
+        clamp_koth_difficulty,
+        map_fighter_arena_to_koth,
+    )
+
+    lo, hi = KOTH_DIFFICULTY_RANGE
+    assert (lo, hi) == (0.15, 0.80)
+    assert clamp_koth_difficulty(0.05) == (lo, True)
+    assert clamp_koth_difficulty(0.95) == (hi, True)
+    assert clamp_koth_difficulty(0.50) == (0.50, False)
+    # Out-of-band difficulties land at the band edge in the mapped arena.
+    assert map_fighter_arena_to_koth({"difficulty": 0.95, "platform_width": 12.0})["difficulty"] == hi
+    assert map_fighter_arena_to_koth({"difficulty": 0.05, "platform_width": 12.0})["difficulty"] == lo
+    # d>0.80 maps IDENTICALLY to d==0.80 (no re-trivialization beyond the cap).
+    capped = map_fighter_arena_to_koth({"difficulty": 0.99, "platform_width": 9.0})
+    edge = map_fighter_arena_to_koth({"difficulty": 0.80, "platform_width": 9.0})
+    assert capped == edge
+
+
+def test_koth_in_band_monotonicity_no_re_easing():
+    """Scripted win-rate must be NON-increasing (within noise) as d rises in-band.
+
+    Drives the real mapping at a few map sizes across [0.15, 0.80]; the gentler
+    zone_half shrink must keep a high-d hill contestable so higher d never makes the
+    arena systematically EASIER.
+    """
+    from games.koth import KothArena, parametric_koth, play_match, scripted_koth
+    from output.stage6.koth_cross_game import map_fighter_arena_to_koth
+
+    seeds = 40
+    tol = 0.12  # seed-noise tolerance
+
+    def winrate(arena):
+        wins = 0
+        agent = scripted_koth(arena, ego=0)
+        for s in range(seeds):
+            opp = parametric_koth(arena, ego=1, seed=10_000 + s)
+            if play_match(arena, agent, opp, seed=s) == 0:
+                wins += 1
+        return wins / seeds
+
+    band = [0.15, 0.30, 0.50, 0.60, 0.70, 0.80]
+    for w in (9.0, 12.0, 16.0):
+        seq = []
+        for d in band:
+            md = map_fighter_arena_to_koth({"difficulty": d, "platform_width": w})
+            arena = KothArena(platform_width=md["platform_width"], zone_half=md["zone_half"],
+                              zone_center_frac=md["zone_center_frac"], difficulty=md["difficulty"])
+            seq.append(winrate(arena))
+        # No later (harder) point may exceed an earlier (easier) one beyond noise.
+        max_global_rise = max(seq[j] - seq[i] for i in range(len(seq)) for j in range(i + 1, len(seq)))
+        assert max_global_rise <= tol, f"width={w}: re-easing {max_global_rise:.3f} > {tol} (seq={seq})"
+
+
 def test_koth_supported_flag():
     from output.stage6.koth_cross_game import koth_supported
 
