@@ -78,10 +78,19 @@ def configure_fireworks_tracing() -> None:
 def tracing_reporter(rollout_id: str, extras: dict[str, Any]) -> None:
     rollout_logger = logging.getLogger(f"crucible.ep_remote.{rollout_id}")
     rollout_logger.addFilter(RolloutIdFilter(rollout_id))
-    rollout_logger.info(
-        "Teacher rollout completed",
-        extra={"status": Status.rollout_finished(), "extras": extras},
-    )
+    # Promote the EP run/experiment identifiers (already inside ``extras``) onto the
+    # log RECORD so FireworksTracingHttpHandler emits ``run_id:<id>`` /
+    # ``experiment_id:<id>`` TAGS, not just rollout_id. Fireworks never tells the
+    # bridge which training UPDATE a rollout belongs to, so there is no real
+    # per-epoch tag to emit — but run_id is stable for the whole RFT job, which is
+    # exactly the group key the launcher's monitor needs to find + aggregate every
+    # rollout of this job (it cannot enumerate rollout_ids ahead of time).
+    record_extra: dict[str, Any] = {"status": Status.rollout_finished(), "extras": extras}
+    for key in ("run_id", "experiment_id"):
+        val = extras.get(key)
+        if val:
+            record_extra[key] = val
+    rollout_logger.info("Teacher rollout completed", extra=record_extra)
 
 
 async def execute_rollout(
@@ -105,12 +114,25 @@ async def execute_rollout(
     if not isinstance(answer, str) or not answer.strip():
         raise ValueError("Teacher returned an empty response")
 
-    reward, params = score_teacher_answer(answer, bounds=bounds, scorer=scorer)
+    # The scorer fans out the PPO seeds with Modal's SYNCHRONOUS ``fn.map``, which
+    # cannot be iterated from inside this async function ("You can't iter(
+    # Function.map()) from an async function"). Run the sync scorer off the event
+    # loop via run_in_executor — the intended design: the scorer stays synchronous,
+    # the async boundary calls it in a thread.
+    loop = asyncio.get_running_loop()
+    reward, params = await loop.run_in_executor(
+        None, lambda: score_teacher_answer(answer, bounds=bounds, scorer=scorer)
+    )
     messages = _message_dicts(request) + [{"role": "assistant", "content": answer}]
     extras = {
         "messages": messages,
         "hud_reward": reward,
         "teacher_params": params,
+        # Stamp the EP run/experiment ids so the launcher's monitor can (a) discover
+        # this job's run_id from any one finished rollout and (b) group every rollout
+        # of the job together. These come straight off the InitRequest metadata.
+        "run_id": request.metadata.run_id,
+        "experiment_id": request.metadata.experiment_id,
     }
     reporter(request.metadata.rollout_id, extras)
     return RolloutResult(request.metadata.rollout_id, reward, params, answer)
@@ -168,5 +190,30 @@ def create_ep_app(
         task.add_done_callback(app.state.tasks.discard)
         return {"status": "accepted", "rollout_id": request.metadata.rollout_id}
 
-    return app
+    @app.get("/debug/result/{rollout_id}")
+    async def debug_result(rollout_id: str):
+        """Small smoke-test endpoint; Eval Protocol itself polls tracing.
 
+        This intentionally returns only status, reward, and validated parameters.
+        It never returns credentials or the full request payload.
+        """
+        result = app.state.results.get(rollout_id)
+        if result is None:
+            return {"status": "pending", "rollout_id": rollout_id}
+        if isinstance(result, Exception):
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "rollout_id": rollout_id,
+                    "detail": str(result),
+                },
+            )
+        return {
+            "status": "finished",
+            "rollout_id": rollout_id,
+            "reward": result.reward,
+            "params": result.params,
+        }
+
+    return app
