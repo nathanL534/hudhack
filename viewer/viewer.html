@@ -124,16 +124,22 @@
 </main>
 
 <script>
-// ------------------------------------------------------------------ manifest
-// Hardcoded example replay filenames (live in ../replays/). The dropdown fetches
-// these relative to the viewer; trained_vs_scripted may not exist if PPO was
-// skipped, so a failed fetch just disables that entry.
-const EXAMPLES = [
-  "scripted_vs_random.json",
-  "scripted_vs_scripted.json",
-  "trained_vs_scripted.json",
-];
-const REPLAY_BASE = "../replays/";
+// ------------------------------------------------------------------ discovery
+// The Example dropdown is populated DYNAMICALLY — there is NO hardcoded file
+// list — so any replay added to replays/ (e.g. modal_trained_*.json) shows up
+// automatically with nothing to keep in sync. When this page is served from the
+// repo root, `fetch("/replays/")` returns the http.server directory-listing HTML
+// (<a href="foo.json">…); we parse out every *.json href. If that listing is
+// unavailable or empty (some servers disable indexing), we fall back to
+// fetching replays/manifest.json (regenerate via viewer/make_manifest.py).
+// Under file:// neither fetch works — the inline DEFAULT_REPLAY + Load file… /
+// drag-drop fallbacks below cover that case.
+//
+// REPLAY_BASE is an ABSOLUTE path so file URLs resolve from the served root
+// regardless of how deep viewer.html sits. REPLAY_DIR is what we list.
+const REPLAY_DIR = "/replays/";
+const REPLAY_BASE = REPLAY_DIR;
+let EXAMPLES = [];          // filled in by discoverReplays() at boot
 
 // ------------------------------------------------------------------ inline default
 // A full replay embedded as a JS constant so opening this file directly via
@@ -227,11 +233,58 @@ const $ = (id) => document.getElementById(id);
 const sel = $("replaySel"), scrub = $("scrub"), frameLabel = $("frameLabel");
 const playBtn = $("playBtn"), banner = $("banner"), loadErr = $("loadErr");
 
+// ------------------------------------------------------------------ discovery
+// Pull every *.json filename out of an http.server directory-listing page.
+// The listing markup is: <li><a href="name.json">name.json</a></li>. We read
+// the href (not the link text) and keep only .json entries, deduped + sorted.
+function parseDirListing(html) {
+  const out = new Set();
+  const re = /href\s*=\s*["']([^"']+)["']/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    let href = m[1];
+    try { href = decodeURIComponent(href); } catch (_) {}
+    // strip any directory prefix and query/hash; keep the bare filename
+    href = href.split("#")[0].split("?")[0];
+    const name = href.substring(href.lastIndexOf("/") + 1);
+    if (/\.json$/i.test(name)) out.add(name);
+  }
+  return [...out].sort();
+}
+
+// Discover all replay filenames. Prefer the live directory listing (nothing to
+// keep in sync); fall back to replays/manifest.json; return [] if neither works
+// (e.g. file://), in which case the inline default + file-picker still work.
+async function discoverReplays() {
+  // 1) directory listing (served from repo root)
+  try {
+    const res = await fetch(REPLAY_DIR, { cache: "no-store" });
+    if (res.ok) {
+      const files = parseDirListing(await res.text());
+      if (files.length) return files;
+    }
+  } catch (_) { /* file:// or indexing disabled — try manifest next */ }
+  // 2) manifest.json fallback (array of names, or {replays:[...]})
+  try {
+    const res = await fetch(REPLAY_BASE + "manifest.json", { cache: "no-store" });
+    if (res.ok) {
+      const j = await res.json();
+      const arr = Array.isArray(j) ? j : (Array.isArray(j.replays) ? j.replays : []);
+      const files = arr
+        .map((x) => String(x).split("/").pop())
+        .filter((n) => /\.json$/i.test(n) && n !== "manifest.json");
+      if (files.length) return [...new Set(files)].sort();
+    }
+  } catch (_) { /* no manifest either */ }
+  return [];
+}
+
 // ------------------------------------------------------------------ loading
 function populateDropdown() {
   sel.innerHTML = "";
   const ph = document.createElement("option");
-  ph.value = ""; ph.textContent = "— pick an example —";
+  ph.value = "";
+  ph.textContent = EXAMPLES.length ? "— pick an example —" : "— no live replays (use Load file…) —";
   sel.appendChild(ph);
   for (const f of EXAMPLES) {
     const o = document.createElement("option");
@@ -1067,17 +1120,23 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ------------------------------------------------------------------ boot
-populateDropdown();
+populateDropdown();      // empty dropdown until discovery resolves (file:// stays empty)
 startAnimLoop();
 // Show the inlined default replay immediately, so the canvas is never blank —
-// this works even from file:// with no server. Then try to upgrade to the
-// live first example over http; if that fetch fails (file:// / 404) we just
-// keep the inlined fight and clear the scary error text.
+// this works even from file:// with no server. Then discover the live replays
+// in /replays/ and populate the dropdown from THAT (no hardcoded list); if the
+// discovery finds files, upgrade the canvas to the first one. If discovery
+// finds nothing (file:// / indexing off) we keep the inlined fight and clear
+// any scary error text — Load file… / drag-drop still work.
 setReplay(DEFAULT_REPLAY);
 (async () => {
   try {
-    const res = await fetch(REPLAY_BASE + EXAMPLES[0], { cache: "no-store" });
-    if (res.ok) { sel.value = EXAMPLES[0]; setReplay(await res.json()); }
+    EXAMPLES = await discoverReplays();
+    populateDropdown();
+    if (EXAMPLES.length) {
+      const res = await fetch(REPLAY_BASE + EXAMPLES[0], { cache: "no-store" });
+      if (res.ok) { sel.value = EXAMPLES[0]; setReplay(await res.json()); }
+    }
   } catch (_) {
     // file:// — keep the inlined default; not an error worth surfacing.
     loadErr.textContent = "";
