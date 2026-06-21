@@ -215,11 +215,47 @@ def _assert_registry_parity() -> None:
 DEFAULT_MODEL = "Qwen/Qwen3-4B"
 DEFAULT_GPU = "A100-40GB"
 
-# Where the GPU container persists the LoRA adapter across calls + runs.
+# ---------------------------------------------------------------------------
+# PER-RUN ISOLATION (env-driven, read at IMPORT time) — the launch blocker.
+# ---------------------------------------------------------------------------
+#
+# Four variant runs (varA..varD) launch CONCURRENTLY against the SAME deployed
+# crucible-player / crucible-player-tk reward workers. Without isolation they would
+# (1) all create the same Modal App ``crucible-teacher-trainer`` -> share ONE warm GPU
+# container -> corrupt each other's in-memory model/optimizer/cached sequences;
+# (2) all write ``update1``/``update2`` into the SAME volume path -> overwrite each
+# other's checkpoints; and (3) all write the SAME output dir -> clobber summary.json.
+#
+# A SINGLE env var ``CRUCIBLE_RUN_ID`` drives all three. It is read HERE, at import,
+# because the Modal App name must be fixed BEFORE ``modal.App(...)`` is constructed
+# (which is before CLI args are parsed). When set (e.g. ``CRUCIBLE_RUN_ID=varA``):
+#   * App name      -> ``crucible-teacher-trainer-varA``  (own GPU container)
+#   * Adapter path  -> ``/adapters/varA/update1`` ...      (namespaced on the SAME volume)
+#   * Output dir    -> ``output/contingency_varA/``        (own summary.json/history.json)
+# When UNSET, every name falls back to the original default (back-compat).
+RUN_ID = (os.environ.get("CRUCIBLE_RUN_ID") or "").strip()
+
+# Modal App name: ``-<run_id>`` suffix when isolated, so each run gets its OWN warm
+# GPU container (critical — the container holds the model + optimizer + per-game
+# cached sequences in memory across calls; a shared container would corrupt them).
+APP_NAME = f"crucible-teacher-trainer-{RUN_ID}" if RUN_ID else "crucible-teacher-trainer"
+
+# GPU (also import-time: it pins the ``@app.cls(gpu=...)`` decorator, which runs before
+# CLI parse). ``CRUCIBLE_GPU`` lets a launcher set the trainer's GPU without a code edit;
+# the ``--gpu`` flag defaults to this same value (and main() asserts they agree, since the
+# decorator can't be re-pinned post-import). Default A100-40GB (fits LoRA r=32 on Qwen3-4B).
+GPU_SPEC = (os.environ.get("CRUCIBLE_GPU") or "").strip() or DEFAULT_GPU
+
+# Where the GPU container persists the LoRA adapter across calls + runs. The VOLUME is
+# shared (one ``crucible-teacher-lora`` volume), but each run namespaces its checkpoints
+# under a ``<run_id>/`` SUBDIR so concurrent runs never overwrite one another's adapters.
 VOLUME_NAME = "crucible-teacher-lora"
 ADAPTER_DIR = "/adapters"
+# Subdir under ADAPTER_DIR that THIS run writes/reads checkpoints in. Isolated runs get
+# ``/adapters/<run_id>``; the unset (legacy) case keeps writing flat ``/adapters``.
+ADAPTER_RUN_DIR = os.path.join(ADAPTER_DIR, RUN_ID) if RUN_ID else ADAPTER_DIR
 
-app = modal.App("crucible-teacher-trainer")
+app = modal.App(APP_NAME)
 
 # The adapter Volume survives between the warm container's calls AND across runs, so
 # a checkpoint is recoverable even if the container is recycled.
@@ -249,7 +285,7 @@ gpu_image = (
 
 @app.cls(
     image=gpu_image,
-    gpu=DEFAULT_GPU,
+    gpu=GPU_SPEC,
     volumes={ADAPTER_DIR: adapter_volume, "/root/.cache/huggingface": hf_cache_volume},
     timeout=60 * 60,
     # One warm container holds the model + optimizer + LoRA state + BOTH games'
@@ -479,8 +515,15 @@ class TeacherTrainer:
 
     @modal.method()
     def save_adapter(self, tag: str) -> str:
-        """Persist the current LoRA adapter to the Volume; return its path."""
-        path = os.path.join(ADAPTER_DIR, tag)
+        """Persist the current LoRA adapter to the Volume; return its path.
+
+        Writes under ``ADAPTER_RUN_DIR`` (``/adapters/<run_id>`` when ``CRUCIBLE_RUN_ID``
+        is set, else flat ``/adapters``), so four concurrent runs namespace their
+        ``update1``/``update2``/... checkpoints and never overwrite each other. The path
+        is os.makedirs'd because save_pretrained needs the parent run subdir to exist.
+        """
+        path = os.path.join(ADAPTER_RUN_DIR, tag)
+        os.makedirs(path, exist_ok=True)
         self.model.save_pretrained(path)
         self.tokenizer.save_pretrained(path)
         adapter_volume.commit()
@@ -804,11 +847,17 @@ def run_train(args) -> int:
         _assert_seed_pools_disjoint(game, train_union, val_seeds[game])
 
     ring_held_out = _build_held_out() if "ring_out" in games else []
-    out_dir = _REPO_ROOT / "output" / "contingency_rft_multigame"
+    # Output dir is per-run: ``output/contingency_<run_id>/`` when isolated, else the
+    # legacy ``output/contingency_rft_multigame/``. Four concurrent runs each own their
+    # summary.json / history.json.
+    out_subdir = f"contingency_{RUN_ID}" if RUN_ID else "contingency_rft_multigame"
+    out_dir = _REPO_ROOT / "output" / out_subdir
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print("=== CONTINGENCY Teacher-RFT (Modal LoRA GRPO) — MULTI-GAME ===", flush=True)
-    print(f"    model={args.model}  gpu={DEFAULT_GPU}", flush=True)
+    print(f"    run_id={RUN_ID or '(none / legacy default)'}  app={APP_NAME}", flush=True)
+    print(f"    adapter_volume_path={ADAPTER_RUN_DIR}  output_dir={out_dir}", flush=True)
+    print(f"    model={args.model}  gpu={GPU_SPEC}", flush=True)
     print(f"    games={games}  (one COMBINED GRPO update per step over all games)", flush=True)
     print(f"    updates={args.updates}  group_size={args.group_size}/game  "
           f"temperature={args.temperature}  lr={args.lr}", flush=True)
@@ -1035,10 +1084,36 @@ def run_train(args) -> int:
         return [_train_seeds_for(game, max(u, 1), n_seeds[game], args.seed_base)
                 for u in range(1, max(span, 1) + 1)]
 
+    # --- HEADLINE = the TRUE final-adapter score (post-update policy on RESERVED
+    # validation seeds), NOT a per-update PRE-update logged reward. The per-game
+    # ``per_game_summary[*].after_reward_mean`` above is a PRE-update training-seed
+    # number (the policy is sampled+scored BEFORE that step's gradient), so it does NOT
+    # describe the adapter a rerun actually ships. The headline reads final_adapter_eval.
+    headline: dict | None = None
+    if final_adapter_eval is not None:
+        fa_per_game = {
+            game: final_adapter_eval["per_game"][game]["reward_mean"] for game in games
+        }
+        headline = {
+            "source": "final_adapter_eval",
+            "label": "TRUE final-adapter reward (post-update policy on RESERVED "
+                     "validation seeds) — NOT a per-update PRE-update logged reward",
+            "adapter_tag": final_adapter_eval["adapter_tag"],
+            "reward_mean_by_game": fa_per_game,
+            "reward_mean_overall": round(_mean(list(fa_per_game.values())), 4),
+        }
+
     summary = {
         "experiment": "contingency_teacher_rft_modal_lora_grpo_multigame",
+        "run_id": RUN_ID or None,
+        "app_name": APP_NAME,
+        "adapter_volume_path": ADAPTER_RUN_DIR,
+        "output_dir": str(out_dir),
+        # HEADLINE first: the reported top-line reward is the final-adapter validation
+        # score, not the per-update logs in per_game/history below.
+        "headline": headline,
         "model": args.model,
-        "gpu": DEFAULT_GPU,
+        "gpu": GPU_SPEC,
         "games": games,
         "combined_update": multi,
         "advantage_normalization": "per_game (no cross-game reward pooling)",
@@ -1098,10 +1173,16 @@ def run_train(args) -> int:
             print(f"    [{game}] final_adapter_reward={fp['reward_mean']:+.4f}  "
                   f"(std {fp['reward_std']:.4f}, valid {fp['n_valid']}/{args.group_size}, "
                   f"val_seeds={final_adapter_eval['validation_seeds'][game]})", flush=True)
+    if headline is not None:
+        print(f"    >>> HEADLINE (final_adapter_eval, the reported number): "
+              f"overall={headline['reward_mean_overall']:+.4f}  "
+              f"by_game={ {g: round(v, 4) for g, v in headline['reward_mean_by_game'].items()} }",
+              flush=True)
     print(f"    grad_norms: {[round(g,3) for g in summary['grad_norms'] if g is not None]}", flush=True)
     print(f"\n    wrote {out_path}", flush=True)
-    print(f"    adapters on Modal Volume '{VOLUME_NAME}' "
-          f"(update1..update{args.updates}); fetch with: modal volume get {VOLUME_NAME} <tag>", flush=True)
+    print(f"    adapters on Modal Volume '{VOLUME_NAME}' under '{ADAPTER_RUN_DIR}' "
+          f"(update1..update{args.updates}); fetch with: "
+          f"modal volume get {VOLUME_NAME} {(RUN_ID + '/') if RUN_ID else ''}<tag>", flush=True)
     return 0
 
 
@@ -1159,9 +1240,45 @@ def main(argv: list[str] | None = None) -> int:
                    help="Ring-Out FIXED validation seeds (held out of training; final-adapter scoring only)")
     p.add_argument("--tk-val-seeds", dest="tk_val_seeds", type=int, nargs="+", default=[1, 2, 3],
                    help="Target-Knockback FIXED validation seeds (held out of training; final-adapter scoring only)")
+    # --- Per-run isolation + GPU (these PIN import-time globals; the flags exist for
+    # ergonomics + the audit record, but the Modal App name and @app.cls(gpu=) were
+    # ALREADY fixed at import from CRUCIBLE_RUN_ID / CRUCIBLE_GPU, before argparse ran.
+    # So the flags must AGREE with the env — we assert that below rather than silently
+    # let a --run-id that differs from CRUCIBLE_RUN_ID write to the wrong app/volume.) ---
+    p.add_argument("--run-id", dest="run_id", default=RUN_ID or None,
+                   help="per-run isolation id (app name + volume subdir + output dir). "
+                        "Must equal CRUCIBLE_RUN_ID (read at import to name the Modal App "
+                        "BEFORE args parse). Set CRUCIBLE_RUN_ID=<id> when launching.")
+    p.add_argument("--gpu", dest="gpu", default=GPU_SPEC,
+                   help="Modal GPU for the trainer @app.cls (default A100-40GB; fits LoRA "
+                        "r=32 on Qwen3-4B). Must equal CRUCIBLE_GPU if set (the decorator "
+                        "is pinned at import). Set CRUCIBLE_GPU=<gpu> to change it.")
     p.add_argument("--gpu-smoke", dest="gpu_smoke", action="store_true",
                    help="GPU-only check: load+sample(both games)+fake-update+save, NO reward compute")
     args = p.parse_args(argv)
+
+    # The Modal App name + GPU decorator are import-time globals (they MUST be, to name
+    # the App before CLI parse). If the user passes a --run-id / --gpu that disagrees
+    # with what was locked at import, fail LOUDLY — silently honoring the flag here would
+    # write to the wrong app/volume/output and re-introduce the collision this fixes.
+    flag_run_id = (args.run_id or "").strip()
+    if flag_run_id != RUN_ID:
+        print(
+            f"FATAL: --run-id={flag_run_id!r} != CRUCIBLE_RUN_ID={RUN_ID!r}. The Modal App "
+            f"name ({APP_NAME!r}) and adapter volume path ({ADAPTER_RUN_DIR!r}) were FIXED "
+            f"at import from CRUCIBLE_RUN_ID. Launch with: "
+            f"CRUCIBLE_RUN_ID={flag_run_id or '<id>'} ... --run-id {flag_run_id or '<id>'}",
+            file=sys.stderr,
+        )
+        return 2
+    if (args.gpu or "").strip() != GPU_SPEC:
+        print(
+            f"FATAL: --gpu={args.gpu!r} != CRUCIBLE_GPU/effective GPU={GPU_SPEC!r}. The "
+            f"@app.cls(gpu=...) decorator was FIXED at import. Launch with: "
+            f"CRUCIBLE_GPU={args.gpu} ... --gpu {args.gpu}",
+            file=sys.stderr,
+        )
+        return 2
 
     if not (os.getenv("FIREWORKS_API_KEY") or "").strip():
         print("NOTE: FIREWORKS_API_KEY not set — the nested reward path does not need it; "
