@@ -50,6 +50,22 @@ def _arch_fingerprint(net_arch) -> str:
     return "mlp:" + "-".join(str(int(h)) for h in net_arch)
 
 
+def _parse_arch(fingerprint: str) -> tuple[int, ...]:
+    """Inverse of ``_arch_fingerprint``: ``"mlp:256-256"`` -> ``(256, 256)``.
+
+    Lets ``restore_policy`` rebuild a Student at the EXACT width it was trained at,
+    read from the artifact itself — so a [128,128] or [256,256] Student loads into a
+    matching net instead of the hardcoded default (a shape mismatch otherwise).
+    Falls back to ``DEFAULT_NET_ARCH`` for an empty/malformed tag.
+    """
+    try:
+        body = (fingerprint or "").split(":", 1)[1]
+        arch = tuple(int(h) for h in body.split("-") if h != "")
+        return arch or DEFAULT_NET_ARCH
+    except (IndexError, ValueError):
+        return DEFAULT_NET_ARCH
+
+
 def checksum_of(state_dict_b64: str) -> str:
     """Stable 16-hex content hash of a base64 weight blob."""
     return hashlib.sha256(state_dict_b64.encode()).hexdigest()[:16]
@@ -149,7 +165,7 @@ def restore_policy(
     artifact: "PolicyArtifact | dict",
     env,
     *,
-    net_arch=DEFAULT_NET_ARCH,
+    net_arch=None,
     seed: int = 0,
 ) -> Callable[[np.ndarray], int]:
     """Restore an artifact into a deterministic ``obs -> action`` callable.
@@ -159,11 +175,18 @@ def restore_policy(
     returns the same ``obs -> action`` wrapper the trainer uses. The wrapper is
     deterministic, so a restored policy reproduces the trained policy's actions
     exactly (verified in the test suite).
+
+    ``net_arch`` defaults to the architecture RECORDED ON THE ARTIFACT (so a Student
+    trained at [128,128] / [256,256] restores into a matching net, not the [64,64]
+    default which would be a shape mismatch). Pass an explicit ``net_arch`` only to
+    override the artifact's own record.
     """
     import torch
     from stable_baselines3 import PPO
 
     art = artifact if isinstance(artifact, PolicyArtifact) else PolicyArtifact.from_dict(artifact)
+    if net_arch is None:
+        net_arch = _parse_arch(art.arch)
     model = PPO(
         "MlpPolicy",
         env,

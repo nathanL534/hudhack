@@ -1,38 +1,50 @@
 {
   "experiment": "stage6_student_vs_student",
   "game": "fighter",
-  "backend": "local",
-  "is_smoke": true,
-  "base_handle": "offline:{\"difficulty\":0.3,\"platform_width\":10.0,\"gravity\":0.6,\"knockback\":2.0,\"spawn_gap\":3.5}",
-  "base_resolved_id": "offline:base",
-  "base_kind": "offline",
-  "trained_handle": "offline:{\"difficulty\":0.6,\"platform_width\":14.0,\"gravity\":0.7,\"knockback\":3.5,\"spawn_gap\":5.0}",
-  "trained_resolved_id": "offline:base(smoke)",
-  "trained_kind": "offline",
+  "backend": "modal",
+  "is_smoke": false,
+  "base_handle": "modal:base",
+  "base_resolved_id": "modal:Qwen/Qwen3-4B",
+  "base_kind": "modal",
+  "trained_handle": "modal:friend_r32/update11",
+  "trained_resolved_id": "modal:Qwen/Qwen3-4B+friend_r32/update11",
+  "trained_kind": "modal",
   "config": {
     "temperature": 0.8,
-    "ppo_episodes": 150,
-    "eval_seeds": 8,
+    "ppo_episodes": 2000,
+    "eval_seeds": 50,
     "architecture": "mlp",
-    "arenas_per_model": 2,
-    "player_seeds": [
-      1
+    "net_arch": [
+      256,
+      256
     ],
-    "held_out_grid": "diagonal",
-    "n_replicates": 2,
+    "arenas_per_model": 5,
+    "player_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "held_out_grid": "full",
+    "n_replicates": 1,
     "curriculum_arenas": 2,
-    "match_seeds_per_arena": 6,
-    "head_to_head_grid": "diagonal",
-    "fingerprint": "694b5b4f7ffa"
+    "curriculum_seed_base": 0,
+    "match_seeds_per_arena": 8,
+    "head_to_head_grid": "full",
+    "opponent_league_enabled": false,
+    "opponent_league": null,
+    "prior_student_path": null,
+    "fingerprint": "0da5a42a2086"
   },
   "headline_metric": "primary_student_vs_student_head_to_head",
   "primary": {
     "metric": "primary_student_vs_student_head_to_head",
     "game": "fighter",
-    "n_replicates": 2,
+    "n_replicates": 1,
     "curriculum_arenas_per_teacher": 2,
-    "n_held_out_arenas": 5,
-    "match_seeds_per_arena_per_side": 6,
+    "n_held_out_arenas": 15,
+    "match_seeds_per_arena_per_side": 8,
     "held_out_arenas": [
       {
         "platform_width": 7.0,
@@ -42,10 +54,52 @@
         "difficulty": 0.4
       },
       {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 7.0,
+        "gravity": 0.6,
+        "knockback": 2.5,
+        "spawn_gap": 3.0,
+        "difficulty": 0.8
+      },
+      {
         "platform_width": 16.0,
         "gravity": 0.6,
         "knockback": 2.0,
         "spawn_gap": 6.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 16.0,
+        "gravity": 0.6,
+        "knockback": 2.0,
+        "spawn_gap": 6.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
+        "difficulty": 0.4
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.35,
+        "knockback": 2.5,
+        "spawn_gap": 5.0,
         "difficulty": 0.6
       },
       {
@@ -63,44 +117,72 @@
         "difficulty": 0.4
       },
       {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.6
+      },
+      {
+        "platform_width": 12.0,
+        "gravity": 0.6,
+        "knockback": 4.0,
+        "spawn_gap": 5.0,
+        "difficulty": 0.8
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.4
+      },
+      {
         "platform_width": 9.0,
         "gravity": 0.8,
         "knockback": 1.6,
         "spawn_gap": 4.5,
         "difficulty": 0.6
+      },
+      {
+        "platform_width": 9.0,
+        "gravity": 0.8,
+        "knockback": 1.6,
+        "spawn_gap": 4.5,
+        "difficulty": 0.8
       }
     ],
-    "trained_student_win_rate": 0.033333,
-    "base_student_win_rate": 0.041667,
-    "draw_rate": 0.925,
-    "mean_paired_advantage": -0.008334,
+    "trained_student_win_rate": 0.2,
+    "base_student_win_rate": 0.8,
+    "draw_rate": 0.0,
+    "mean_paired_advantage": -0.6,
     "ci_t": {
-      "mean": -0.008334,
-      "low": -0.537748,
-      "high": 0.521081,
-      "half_width": 0.529415,
-      "std": 0.058925,
-      "n": 2,
+      "mean": -0.6,
+      "low": -0.6,
+      "high": -0.6,
+      "half_width": 0.0,
+      "std": 0.0,
+      "n": 1,
       "confidence": 0.95
     },
     "ci_bootstrap": {
-      "mean": -0.008334,
-      "low": -0.05,
-      "high": 0.033333,
-      "half_width": 0.041667,
-      "std": 0.058925,
-      "n": 2,
+      "mean": -0.6,
+      "low": -0.6,
+      "high": -0.6,
+      "half_width": 0.0,
+      "std": 0.0,
+      "n": 1,
       "confidence": 0.95
     },
-    "ci_lower_bound": -0.537748,
-    "effect_size_cohens_d": -0.1414,
-    "trained_win_rate_as_p0": 0.066667,
+    "ci_lower_bound": -0.6,
+    "effect_size_cohens_d": null,
+    "trained_win_rate_as_p0": 0.4,
     "trained_win_rate_as_p1": 0.0,
     "per_arena_family_advantage": {
       "narrow_ledge": 0.0,
-      "wide_arena": 0.0,
-      "floaty_lowg": 0.0,
-      "heavy_knock": -0.041667,
+      "wide_arena": -1.0,
+      "floaty_lowg": -1.0,
+      "heavy_knock": -1.0,
       "high_grav": 0.0
     },
     "held_out_overlap_total": 0,
@@ -112,17 +194,17 @@
           "name": "ci_lower_above_zero",
           "passed": false,
           "severity": "fail",
-          "value": -0.537748,
+          "value": -0.6,
           "threshold": 0.0,
-          "detail": "paired-advantage mean -0.0083, 95% CI lower bound -0.5377 <= 0"
+          "detail": "paired-advantage mean -0.6000, 95% CI lower bound -0.6000 <= 0"
         },
         {
           "name": "no_side_bias",
           "passed": false,
           "severity": "fail",
-          "value": 0.066667,
+          "value": 0.4,
           "threshold": 0.25,
-          "detail": "trained win-rate P0=0.0667 P1=0.0000 (gap 0.0667, limit 0.25) \u2014 side-position dependency detected"
+          "detail": "trained win-rate P0=0.4000 P1=0.0000 (gap 0.4000, limit 0.25) \u2014 side-position dependency detected"
         },
         {
           "name": "multi_arena_benefit",
@@ -135,10 +217,10 @@
         {
           "name": "distinct_students",
           "passed": true,
-          "severity": "skip",
+          "severity": "fail",
           "value": 0.0,
-          "threshold": null,
-          "detail": "smoke mode: identical-checksum Students tolerated (c4dd37c39ce2b12b)"
+          "threshold": 0.0,
+          "detail": "base and trained Students have distinct policy weights: base=74dbf80730d78b25 trained=75faca95d753ad25"
         },
         {
           "name": "disjoint_held_out",
@@ -150,72 +232,73 @@
         },
         {
           "name": "enough_replicates",
-          "passed": true,
-          "severity": "warn",
-          "value": 2.0,
+          "passed": false,
+          "severity": "fail",
+          "value": 1.0,
           "threshold": 2.0,
-          "detail": "2 independent curriculum replicate(s) (smoke: single replicate is a smoke, not a verdict)"
+          "detail": "1 independent curriculum replicate(s) (need >1 for a curriculum-level CI)"
         }
       ],
       "failed": [
         "ci_lower_above_zero",
         "no_side_bias",
-        "multi_arena_benefit"
+        "multi_arena_benefit",
+        "enough_replicates"
       ],
       "warnings": []
     },
     "primary_pass": false,
-    "wall_clock_s": 13.98,
+    "wall_clock_s": 177.35,
     "replicates": [
       {
         "replicate": 0,
         "base_curriculum": [
           {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "gravity": 0.6,
-            "knockback": 2.0,
-            "spawn_gap": 3.5
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
           },
           {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "gravity": 0.6,
-            "knockback": 2.0,
-            "spawn_gap": 3.5
+            "difficulty": 0.7,
+            "platform_width": 18.0,
+            "gravity": 0.8,
+            "knockback": 3.0,
+            "spawn_gap": 5.0
           }
         ],
         "trained_curriculum": [
           {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "gravity": 0.7,
-            "knockback": 3.5,
-            "spawn_gap": 5.0
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
           },
           {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "gravity": 0.7,
-            "knockback": 3.5,
-            "spawn_gap": 5.0
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
           }
         ],
-        "base_student_checksum": "c4dd37c39ce2b12b",
-        "trained_student_checksum": "786466453ba2539d",
-        "base_student_train_winrate": 0.5,
-        "trained_student_train_winrate": 0.0,
+        "base_student_checksum": "74dbf80730d78b25",
+        "trained_student_checksum": "75faca95d753ad25",
+        "base_student_train_winrate": 0.99,
+        "trained_student_train_winrate": 1.0,
         "held_out_overlap": 0,
-        "trained_win_rate": 0.016667,
-        "base_win_rate": 0.066667,
-        "draw_rate": 0.916667,
-        "paired_advantage": -0.05,
-        "n_matches": 60,
+        "trained_win_rate": 0.2,
+        "base_win_rate": 0.8,
+        "draw_rate": 0.0,
+        "paired_advantage": -0.6,
+        "n_matches": 240,
         "per_family_advantage": {
-          "narrow_ledge": -0.166667,
-          "wide_arena": 0.0,
-          "floaty_lowg": 0.0,
-          "heavy_knock": -0.083333,
+          "narrow_ledge": 0.0,
+          "wide_arena": -1.0,
+          "floaty_lowg": -1.0,
+          "heavy_knock": -1.0,
           "high_grav": 0.0
         },
         "replays": [
@@ -233,48 +316,10 @@
               "spawn_gap": 3.0,
               "difficulty": 0.4
             },
-            "match_seed": 3,
-            "side": "trained_as_P0",
-            "outcome": "trained_win",
-            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_trained_win_trained_as_P0.json"
-          },
-          {
-            "source_teacher_trained": "trained",
-            "source_teacher_base": "base",
-            "trained_curriculum_id": "trained-r0",
-            "base_curriculum_id": "base-r0",
-            "trained_policy_seed": 1000,
-            "base_policy_seed": 1000,
-            "arena": {
-              "platform_width": 7.0,
-              "gravity": 0.6,
-              "knockback": 2.5,
-              "spawn_gap": 3.0,
-              "difficulty": 0.4
-            },
-            "match_seed": 1,
-            "side": "trained_as_P0",
-            "outcome": "base_win",
-            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_base_win_trained_as_P0.json"
-          },
-          {
-            "source_teacher_trained": "trained",
-            "source_teacher_base": "base",
-            "trained_curriculum_id": "trained-r0",
-            "base_curriculum_id": "base-r0",
-            "trained_policy_seed": 1000,
-            "base_policy_seed": 1000,
-            "arena": {
-              "platform_width": 7.0,
-              "gravity": 0.6,
-              "knockback": 2.5,
-              "spawn_gap": 3.0,
-              "difficulty": 0.4
-            },
             "match_seed": 0,
             "side": "trained_as_P0",
-            "outcome": "draw",
-            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P0.json"
+            "outcome": "trained_win",
+            "path": "/Users/raghavaggarwal/hudhack/replays/h2h_fighter_trained_win_trained_as_P0.json"
           },
           {
             "source_teacher_trained": "trained",
@@ -292,75 +337,10 @@
             },
             "match_seed": 0,
             "side": "trained_as_P1",
-            "outcome": "draw",
-            "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P1.json"
+            "outcome": "base_win",
+            "path": "/Users/raghavaggarwal/hudhack/replays/h2h_fighter_base_win_trained_as_P1.json"
           }
         ],
-        "clamp": {
-          "base": {
-            "total": 2,
-            "invalid": 0,
-            "clamped": 0
-          },
-          "trained": {
-            "total": 2,
-            "invalid": 0,
-            "clamped": 0
-          }
-        }
-      },
-      {
-        "replicate": 1,
-        "base_curriculum": [
-          {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "gravity": 0.6,
-            "knockback": 2.0,
-            "spawn_gap": 3.5
-          },
-          {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "gravity": 0.6,
-            "knockback": 2.0,
-            "spawn_gap": 3.5
-          }
-        ],
-        "trained_curriculum": [
-          {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "gravity": 0.7,
-            "knockback": 3.5,
-            "spawn_gap": 5.0
-          },
-          {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "gravity": 0.7,
-            "knockback": 3.5,
-            "spawn_gap": 5.0
-          }
-        ],
-        "base_student_checksum": "d320b1c2bac0f91f",
-        "trained_student_checksum": "784ce58ca515038d",
-        "base_student_train_winrate": 0.75,
-        "trained_student_train_winrate": 0.0,
-        "held_out_overlap": 0,
-        "trained_win_rate": 0.05,
-        "base_win_rate": 0.016667,
-        "draw_rate": 0.933333,
-        "paired_advantage": 0.033333,
-        "n_matches": 60,
-        "per_family_advantage": {
-          "narrow_ledge": 0.166667,
-          "wide_arena": 0.0,
-          "floaty_lowg": 0.0,
-          "heavy_knock": 0.0,
-          "high_grav": 0.0
-        },
-        "replays": [],
         "clamp": {
           "base": {
             "total": 2,
@@ -390,48 +370,10 @@
           "spawn_gap": 3.0,
           "difficulty": 0.4
         },
-        "match_seed": 3,
-        "side": "trained_as_P0",
-        "outcome": "trained_win",
-        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_trained_win_trained_as_P0.json"
-      },
-      {
-        "source_teacher_trained": "trained",
-        "source_teacher_base": "base",
-        "trained_curriculum_id": "trained-r0",
-        "base_curriculum_id": "base-r0",
-        "trained_policy_seed": 1000,
-        "base_policy_seed": 1000,
-        "arena": {
-          "platform_width": 7.0,
-          "gravity": 0.6,
-          "knockback": 2.5,
-          "spawn_gap": 3.0,
-          "difficulty": 0.4
-        },
-        "match_seed": 1,
-        "side": "trained_as_P0",
-        "outcome": "base_win",
-        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_base_win_trained_as_P0.json"
-      },
-      {
-        "source_teacher_trained": "trained",
-        "source_teacher_base": "base",
-        "trained_curriculum_id": "trained-r0",
-        "base_curriculum_id": "base-r0",
-        "trained_policy_seed": 1000,
-        "base_policy_seed": 1000,
-        "arena": {
-          "platform_width": 7.0,
-          "gravity": 0.6,
-          "knockback": 2.5,
-          "spawn_gap": 3.0,
-          "difficulty": 0.4
-        },
         "match_seed": 0,
         "side": "trained_as_P0",
-        "outcome": "draw",
-        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P0.json"
+        "outcome": "trained_win",
+        "path": "/Users/raghavaggarwal/hudhack/replays/h2h_fighter_trained_win_trained_as_P0.json"
       },
       {
         "source_teacher_trained": "trained",
@@ -449,56 +391,475 @@
         },
         "match_seed": 0,
         "side": "trained_as_P1",
-        "outcome": "draw",
-        "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P1.json"
+        "outcome": "base_win",
+        "path": "/Users/raghavaggarwal/hudhack/replays/h2h_fighter_base_win_trained_as_P1.json"
       }
     ]
   },
   "overall_pass": false,
+  "cross_game_koth": {
+    "metric": "primary_student_vs_student_head_to_head",
+    "game": "koth",
+    "n_replicates": 1,
+    "curriculum_arenas_per_teacher": 2,
+    "n_held_out_arenas": 8,
+    "match_seeds_per_arena_per_side": 8,
+    "held_out_arenas": [
+      {
+        "platform_width": 9.0,
+        "zone_half": 1.0,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 9.0,
+        "zone_half": 1.0,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.65
+      },
+      {
+        "platform_width": 16.0,
+        "zone_half": 2.2,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 16.0,
+        "zone_half": 2.2,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.65
+      },
+      {
+        "platform_width": 12.0,
+        "zone_half": 1.4,
+        "zone_center_frac": 0.68,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 12.0,
+        "zone_half": 1.4,
+        "zone_center_frac": 0.68,
+        "difficulty": 0.65
+      },
+      {
+        "platform_width": 13.0,
+        "zone_half": 0.8,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.35
+      },
+      {
+        "platform_width": 13.0,
+        "zone_half": 0.8,
+        "zone_center_frac": 0.5,
+        "difficulty": 0.65
+      }
+    ],
+    "trained_student_win_rate": 0.453125,
+    "base_student_win_rate": 0.40625,
+    "draw_rate": 0.140625,
+    "mean_paired_advantage": 0.046875,
+    "ci_t": {
+      "mean": 0.046875,
+      "low": 0.046875,
+      "high": 0.046875,
+      "half_width": 0.0,
+      "std": 0.0,
+      "n": 1,
+      "confidence": 0.95
+    },
+    "ci_bootstrap": {
+      "mean": 0.046875,
+      "low": 0.046875,
+      "high": 0.046875,
+      "half_width": 0.0,
+      "std": 0.0,
+      "n": 1,
+      "confidence": 0.95
+    },
+    "ci_lower_bound": 0.046875,
+    "effect_size_cohens_d": null,
+    "trained_win_rate_as_p0": 0.4375,
+    "trained_win_rate_as_p1": 0.46875,
+    "per_arena_family_advantage": {
+      "koth_tight": 0.4375,
+      "koth_wide": 0.0625,
+      "koth_offcentre": -0.5,
+      "koth_pinhole": 0.1875
+    },
+    "held_out_overlap_total": 0,
+    "anti_circularity": {
+      "passed": false,
+      "any_failed": true,
+      "checks": [
+        {
+          "name": "ci_lower_above_zero",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.046875,
+          "threshold": 0.0,
+          "detail": "paired-advantage mean +0.0469, 95% CI lower bound +0.0469 > 0"
+        },
+        {
+          "name": "no_side_bias",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.03125,
+          "threshold": 0.25,
+          "detail": "trained win-rate P0=0.4375 P1=0.4688 (gap 0.0312, limit 0.25)"
+        },
+        {
+          "name": "multi_arena_benefit",
+          "passed": true,
+          "severity": "fail",
+          "value": 3.0,
+          "threshold": 2.0,
+          "detail": "trained Student ahead on 3/4 arena families (need >1)"
+        },
+        {
+          "name": "distinct_students",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "base and trained Students have distinct policy weights: base=e8b3ede6f262d32e trained=4ca6cc773691b649"
+        },
+        {
+          "name": "disjoint_held_out",
+          "passed": true,
+          "severity": "fail",
+          "value": 0.0,
+          "threshold": 0.0,
+          "detail": "0 held-out arena(s) overlap a Teacher's curriculum (must be 0 \u2014 no training-on-the-test)"
+        },
+        {
+          "name": "enough_replicates",
+          "passed": false,
+          "severity": "fail",
+          "value": 1.0,
+          "threshold": 2.0,
+          "detail": "1 independent curriculum replicate(s) (need >1 for a curriculum-level CI)"
+        }
+      ],
+      "failed": [
+        "enough_replicates"
+      ],
+      "warnings": []
+    },
+    "primary_pass": false,
+    "wall_clock_s": 132.28,
+    "replicates": [
+      {
+        "replicate": 0,
+        "base_curriculum": [
+          {
+            "difficulty": 0.6,
+            "platform_width": 15.0,
+            "zone_half": 2.607,
+            "zone_center_frac": 0.608
+          },
+          {
+            "difficulty": 0.7,
+            "platform_width": 18.0,
+            "zone_half": 2.99,
+            "zone_center_frac": 0.626
+          }
+        ],
+        "trained_curriculum": [
+          {
+            "difficulty": 0.8,
+            "platform_width": 16.0,
+            "zone_half": 2.534,
+            "zone_center_frac": 0.644
+          },
+          {
+            "difficulty": 0.8,
+            "platform_width": 16.0,
+            "zone_half": 2.534,
+            "zone_center_frac": 0.644
+          }
+        ],
+        "base_student_checksum": "e8b3ede6f262d32e",
+        "trained_student_checksum": "4ca6cc773691b649",
+        "base_student_train_winrate": 0.41,
+        "trained_student_train_winrate": 0.38,
+        "held_out_overlap": 0,
+        "trained_win_rate": 0.453125,
+        "base_win_rate": 0.40625,
+        "draw_rate": 0.140625,
+        "paired_advantage": 0.046875,
+        "n_matches": 128,
+        "per_family_advantage": {
+          "koth_tight": 0.4375,
+          "koth_wide": 0.0625,
+          "koth_offcentre": -0.5,
+          "koth_pinhole": 0.1875
+        },
+        "replays": [
+          {
+            "game": "koth",
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 9.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5,
+              "difficulty": 0.35
+            },
+            "zone": {
+              "center": 4.5,
+              "half": 1.0,
+              "center_frac": 0.5
+            },
+            "match_seed": 0,
+            "side": "trained_as_P0",
+            "outcome": "trained_win",
+            "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_trained_win_trained_as_P0.json"
+          },
+          {
+            "game": "koth",
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 9.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5,
+              "difficulty": 0.35
+            },
+            "zone": {
+              "center": 4.5,
+              "half": 1.0,
+              "center_frac": 0.5
+            },
+            "match_seed": 6,
+            "side": "trained_as_P0",
+            "outcome": "base_win",
+            "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_base_win_trained_as_P0.json"
+          },
+          {
+            "game": "koth",
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 9.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5,
+              "difficulty": 0.35
+            },
+            "zone": {
+              "center": 4.5,
+              "half": 1.0,
+              "center_frac": 0.5
+            },
+            "match_seed": 4,
+            "side": "trained_as_P0",
+            "outcome": "draw",
+            "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_draw_trained_as_P0.json"
+          },
+          {
+            "game": "koth",
+            "source_teacher_trained": "trained",
+            "source_teacher_base": "base",
+            "trained_curriculum_id": "trained-r0",
+            "base_curriculum_id": "base-r0",
+            "trained_policy_seed": 1000,
+            "base_policy_seed": 1000,
+            "arena": {
+              "platform_width": 9.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5,
+              "difficulty": 0.35
+            },
+            "zone": {
+              "center": 4.5,
+              "half": 1.0,
+              "center_frac": 0.5
+            },
+            "match_seed": 0,
+            "side": "trained_as_P1",
+            "outcome": "base_win",
+            "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_base_win_trained_as_P1.json"
+          }
+        ],
+        "clamp": {
+          "base": {
+            "total": 2,
+            "invalid": 0,
+            "clamped": 0
+          },
+          "trained": {
+            "total": 2,
+            "invalid": 0,
+            "clamped": 0
+          }
+        }
+      }
+    ],
+    "replays": [
+      {
+        "game": "koth",
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 9.0,
+          "zone_half": 1.0,
+          "zone_center_frac": 0.5,
+          "difficulty": 0.35
+        },
+        "zone": {
+          "center": 4.5,
+          "half": 1.0,
+          "center_frac": 0.5
+        },
+        "match_seed": 0,
+        "side": "trained_as_P0",
+        "outcome": "trained_win",
+        "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_trained_win_trained_as_P0.json"
+      },
+      {
+        "game": "koth",
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 9.0,
+          "zone_half": 1.0,
+          "zone_center_frac": 0.5,
+          "difficulty": 0.35
+        },
+        "zone": {
+          "center": 4.5,
+          "half": 1.0,
+          "center_frac": 0.5
+        },
+        "match_seed": 6,
+        "side": "trained_as_P0",
+        "outcome": "base_win",
+        "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_base_win_trained_as_P0.json"
+      },
+      {
+        "game": "koth",
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 9.0,
+          "zone_half": 1.0,
+          "zone_center_frac": 0.5,
+          "difficulty": 0.35
+        },
+        "zone": {
+          "center": 4.5,
+          "half": 1.0,
+          "center_frac": 0.5
+        },
+        "match_seed": 4,
+        "side": "trained_as_P0",
+        "outcome": "draw",
+        "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_draw_trained_as_P0.json"
+      },
+      {
+        "game": "koth",
+        "source_teacher_trained": "trained",
+        "source_teacher_base": "base",
+        "trained_curriculum_id": "trained-r0",
+        "base_curriculum_id": "base-r0",
+        "trained_policy_seed": 1000,
+        "base_policy_seed": 1000,
+        "arena": {
+          "platform_width": 9.0,
+          "zone_half": 1.0,
+          "zone_center_frac": 0.5,
+          "difficulty": 0.35
+        },
+        "zone": {
+          "center": 4.5,
+          "half": 1.0,
+          "center_frac": 0.5
+        },
+        "match_seed": 0,
+        "side": "trained_as_P1",
+        "outcome": "base_win",
+        "path": "/Users/raghavaggarwal/hudhack/replays/h2h_koth_base_win_trained_as_P1.json"
+      }
+    ],
+    "label": "cross_game_generalization",
+    "supported": true,
+    "mapping": "fighter-schema -> KOTH zone geometry (koth_adapter mapping)",
+    "difficulty_clamp": {
+      "range": [
+        0.15,
+        0.8
+      ],
+      "reason": "KOTH difficulty->hardness is only monotone in [0.15, 0.80]: outside it a high-d arena re-trivializes (scripted win-rate climbs back toward 1.0). The clamp caps mapped difficulty into the band; a gentler zone_half shrink (slope 0.35, floor 0.12*width) removes the residual in-band re-easing on small maps. Keeps the 'hard' signal honest.",
+      "base": {
+        "range": [
+          0.15,
+          0.8
+        ],
+        "n_arenas_total": 2,
+        "n_clamped": 0,
+        "clamped": []
+      },
+      "trained": {
+        "range": [
+          0.15,
+          0.8
+        ],
+        "n_arenas_total": 2,
+        "n_clamped": 2,
+        "clamped": [
+          {
+            "build": 0,
+            "arena_index": 0,
+            "raw_difficulty": 1.0,
+            "clamped_difficulty": 0.8
+          },
+          {
+            "build": 0,
+            "arena_index": 1,
+            "raw_difficulty": 1.0,
+            "clamped_difficulty": 0.8
+          }
+        ]
+      }
+    }
+  },
+  "cross_game_gate": {
+    "name": "train_game_only",
+    "passed": true,
+    "severity": "fail",
+    "value": 1.0,
+    "threshold": 1.0,
+    "detail": "training-game held-out delta -0.6000; probes [koth:+0.0469]"
+  },
   "secondary_transfer_diagnostic": null,
-  "trained_student_win_rate": 0.033333,
-  "base_student_win_rate": 0.041667,
-  "mean_paired_advantage": -0.008334,
-  "ci_lower_bound": -0.537748,
+  "trained_student_win_rate": 0.2,
+  "base_student_win_rate": 0.8,
+  "mean_paired_advantage": -0.6,
+  "ci_lower_bound": -0.6,
   "replays": [
-    {
-      "source_teacher_trained": "trained",
-      "source_teacher_base": "base",
-      "trained_curriculum_id": "trained-r0",
-      "base_curriculum_id": "base-r0",
-      "trained_policy_seed": 1000,
-      "base_policy_seed": 1000,
-      "arena": {
-        "platform_width": 7.0,
-        "gravity": 0.6,
-        "knockback": 2.5,
-        "spawn_gap": 3.0,
-        "difficulty": 0.4
-      },
-      "match_seed": 3,
-      "side": "trained_as_P0",
-      "outcome": "trained_win",
-      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_trained_win_trained_as_P0.json"
-    },
-    {
-      "source_teacher_trained": "trained",
-      "source_teacher_base": "base",
-      "trained_curriculum_id": "trained-r0",
-      "base_curriculum_id": "base-r0",
-      "trained_policy_seed": 1000,
-      "base_policy_seed": 1000,
-      "arena": {
-        "platform_width": 7.0,
-        "gravity": 0.6,
-        "knockback": 2.5,
-        "spawn_gap": 3.0,
-        "difficulty": 0.4
-      },
-      "match_seed": 1,
-      "side": "trained_as_P0",
-      "outcome": "base_win",
-      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_base_win_trained_as_P0.json"
-    },
     {
       "source_teacher_trained": "trained",
       "source_teacher_base": "base",
@@ -515,8 +876,8 @@
       },
       "match_seed": 0,
       "side": "trained_as_P0",
-      "outcome": "draw",
-      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P0.json"
+      "outcome": "trained_win",
+      "path": "/Users/raghavaggarwal/hudhack/replays/h2h_fighter_trained_win_trained_as_P0.json"
     },
     {
       "source_teacher_trained": "trained",
@@ -534,261 +895,8 @@
       },
       "match_seed": 0,
       "side": "trained_as_P1",
-      "outcome": "draw",
-      "path": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.worktrees/stage6-final-verifier/replays/h2h_fighter_draw_trained_as_P1.json"
+      "outcome": "base_win",
+      "path": "/Users/raghavaggarwal/hudhack/replays/h2h_fighter_base_win_trained_as_P1.json"
     }
-  ],
-  "cross_game_koth": {
-    "metric": "primary_student_vs_student_head_to_head",
-    "game": "koth",
-    "n_replicates": 2,
-    "curriculum_arenas_per_teacher": 2,
-    "n_held_out_arenas": 4,
-    "match_seeds_per_arena_per_side": 6,
-    "held_out_arenas": [
-      {
-        "platform_width": 9.0,
-        "zone_half": 1.0,
-        "zone_center_frac": 0.5,
-        "difficulty": 0.35
-      },
-      {
-        "platform_width": 16.0,
-        "zone_half": 2.2,
-        "zone_center_frac": 0.5,
-        "difficulty": 0.65
-      },
-      {
-        "platform_width": 12.0,
-        "zone_half": 1.4,
-        "zone_center_frac": 0.68,
-        "difficulty": 0.35
-      },
-      {
-        "platform_width": 13.0,
-        "zone_half": 0.8,
-        "zone_center_frac": 0.5,
-        "difficulty": 0.65
-      }
-    ],
-    "trained_student_win_rate": 0.416667,
-    "base_student_win_rate": 0.4375,
-    "draw_rate": 0.145833,
-    "mean_paired_advantage": -0.020834,
-    "ci_t": {
-      "mean": -0.020834,
-      "low": -0.285544,
-      "high": 0.243877,
-      "half_width": 0.26471,
-      "std": 0.029463,
-      "n": 2,
-      "confidence": 0.95
-    },
-    "ci_bootstrap": {
-      "mean": -0.020834,
-      "low": -0.041667,
-      "high": 0.0,
-      "half_width": 0.020834,
-      "std": 0.029463,
-      "n": 2,
-      "confidence": 0.95
-    },
-    "ci_lower_bound": -0.285544,
-    "effect_size_cohens_d": -0.7071,
-    "trained_win_rate_as_p0": 0.458333,
-    "trained_win_rate_as_p1": 0.375,
-    "per_arena_family_advantage": {
-      "koth_tight": 0.208334,
-      "koth_wide": -0.25,
-      "koth_offcentre": -0.083333,
-      "koth_pinhole": 0.041667
-    },
-    "held_out_overlap_total": 0,
-    "anti_circularity": {
-      "passed": false,
-      "any_failed": true,
-      "checks": [
-        {
-          "name": "ci_lower_above_zero",
-          "passed": false,
-          "severity": "fail",
-          "value": -0.285544,
-          "threshold": 0.0,
-          "detail": "paired-advantage mean -0.0208, 95% CI lower bound -0.2855 <= 0"
-        },
-        {
-          "name": "no_side_bias",
-          "passed": true,
-          "severity": "fail",
-          "value": 0.083333,
-          "threshold": 0.25,
-          "detail": "trained win-rate P0=0.4583 P1=0.3750 (gap 0.0833, limit 0.25)"
-        },
-        {
-          "name": "multi_arena_benefit",
-          "passed": true,
-          "severity": "fail",
-          "value": 2.0,
-          "threshold": 2.0,
-          "detail": "trained Student ahead on 2/4 arena families (need >1)"
-        },
-        {
-          "name": "distinct_students",
-          "passed": true,
-          "severity": "skip",
-          "value": 0.0,
-          "threshold": null,
-          "detail": "smoke mode: identical-checksum Students tolerated (ba1ff566c34da7d0)"
-        },
-        {
-          "name": "disjoint_held_out",
-          "passed": true,
-          "severity": "fail",
-          "value": 0.0,
-          "threshold": 0.0,
-          "detail": "0 held-out arena(s) overlap a Teacher's curriculum (must be 0 \u2014 no training-on-the-test)"
-        },
-        {
-          "name": "enough_replicates",
-          "passed": true,
-          "severity": "warn",
-          "value": 2.0,
-          "threshold": 2.0,
-          "detail": "2 independent curriculum replicate(s) (smoke: single replicate is a smoke, not a verdict)"
-        }
-      ],
-      "failed": [
-        "ci_lower_above_zero"
-      ],
-      "warnings": []
-    },
-    "primary_pass": false,
-    "wall_clock_s": 11.82,
-    "replicates": [
-      {
-        "replicate": 0,
-        "base_curriculum": [
-          {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "zone_half": 1.804,
-            "zone_center_frac": 0.554
-          },
-          {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "zone_half": 1.804,
-            "zone_center_frac": 0.554
-          }
-        ],
-        "trained_curriculum": [
-          {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "zone_half": 1.971,
-            "zone_center_frac": 0.608
-          },
-          {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "zone_half": 1.971,
-            "zone_center_frac": 0.608
-          }
-        ],
-        "base_student_checksum": "ba1ff566c34da7d0",
-        "trained_student_checksum": "d7e23dfd2aaa2205",
-        "base_student_train_winrate": 0.0,
-        "trained_student_train_winrate": 0.0,
-        "held_out_overlap": 0,
-        "trained_win_rate": 0.416667,
-        "base_win_rate": 0.458333,
-        "draw_rate": 0.125,
-        "paired_advantage": -0.041667,
-        "n_matches": 48,
-        "per_family_advantage": {
-          "koth_tight": 0.166667,
-          "koth_wide": 0.0,
-          "koth_offcentre": -0.333333,
-          "koth_pinhole": 0.0
-        },
-        "replays": [],
-        "clamp": {
-          "base": {
-            "total": 2,
-            "invalid": 0,
-            "clamped": 0
-          },
-          "trained": {
-            "total": 2,
-            "invalid": 0,
-            "clamped": 0
-          }
-        }
-      },
-      {
-        "replicate": 1,
-        "base_curriculum": [
-          {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "zone_half": 1.804,
-            "zone_center_frac": 0.554
-          },
-          {
-            "difficulty": 0.3,
-            "platform_width": 10.0,
-            "zone_half": 1.804,
-            "zone_center_frac": 0.554
-          }
-        ],
-        "trained_curriculum": [
-          {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "zone_half": 1.971,
-            "zone_center_frac": 0.608
-          },
-          {
-            "difficulty": 0.6,
-            "platform_width": 14.0,
-            "zone_half": 1.971,
-            "zone_center_frac": 0.608
-          }
-        ],
-        "base_student_checksum": "b112818862be0abf",
-        "trained_student_checksum": "ad17ea72ebee3114",
-        "base_student_train_winrate": 0.25,
-        "trained_student_train_winrate": 0.0,
-        "held_out_overlap": 0,
-        "trained_win_rate": 0.416667,
-        "base_win_rate": 0.416667,
-        "draw_rate": 0.166667,
-        "paired_advantage": 0.0,
-        "n_matches": 48,
-        "per_family_advantage": {
-          "koth_tight": 0.25,
-          "koth_wide": -0.5,
-          "koth_offcentre": 0.166667,
-          "koth_pinhole": 0.083333
-        },
-        "replays": [],
-        "clamp": {
-          "base": {
-            "total": 2,
-            "invalid": 0,
-            "clamped": 0
-          },
-          "trained": {
-            "total": 2,
-            "invalid": 0,
-            "clamped": 0
-          }
-        }
-      }
-    ],
-    "replays": [],
-    "label": "cross_game_generalization",
-    "supported": true,
-    "mapping": "fighter-schema -> KOTH zone geometry (koth_adapter mapping)"
-  }
+  ]
 }

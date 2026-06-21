@@ -389,11 +389,26 @@ class FighterSim:
             self.done = True
 
     def _aggression_tiebreak(self) -> Optional[int]:
-        """Resolve Stage-6 timeouts by landed hits, then self-driven approach."""
+        """Resolve Stage-6 timeouts by landed hits, then self-driven approach, then
+        platform centrality (edge margin).
+
+        Hits and approach dominate (a fighter who landed more / closed more wins).
+        But two under-trained Students often time out with 0 hits AND 0 approach on
+        both sides -> the old two-tier score tied at 0 and returned None (a draw),
+        the dominant Stage-6 draw source. The third tier is each fighter's distance
+        to the NEAREST ring-out edge (higher = safer in a ring-out game): a
+        continuous float that virtually never ties, so a timeout almost always
+        yields a decision. Its weight is tiny, so it only breaks ties that hits +
+        approach leave exactly equal and never overrides a real aggression edge.
+        """
         hit_weight = 100.0
-        s0 = self.hits[0] * hit_weight + self.approach[0]
-        s1 = self.hits[1] * hit_weight + self.approach[1]
-        if abs(s0 - s1) <= 1e-6:
+        w = self.arena.platform_width
+        margin0 = min(self.f0.x, w - self.f0.x)  # distance to nearest edge (safety)
+        margin1 = min(self.f1.x, w - self.f1.x)
+        edge_weight = 1e-3
+        s0 = self.hits[0] * hit_weight + self.approach[0] + margin0 * edge_weight
+        s1 = self.hits[1] * hit_weight + self.approach[1] + margin1 * edge_weight
+        if abs(s0 - s1) <= 1e-9:
             return None
         return 0 if s0 > s1 else 1
 

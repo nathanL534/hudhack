@@ -121,6 +121,7 @@ def _build_config(args, *, smoke: bool) -> EvalConfig:
         match_seeds_per_arena=args.match_seeds if args.match_seeds is not None else base.match_seeds_per_arena,
         head_to_head_grid=args.h2h_grid if args.h2h_grid is not None else base.head_to_head_grid,
         opponent_league_enabled=bool(getattr(args, "opponent_league", False)) or base.opponent_league_enabled,
+        net_arch=tuple(args.net_arch) if getattr(args, "net_arch", None) else base.net_arch,
     )
 
 
@@ -266,6 +267,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--grid", choices=["full", "diagonal"], default=None,
                    help="secondary held-out population grid (default: full)")
     p.add_argument("--temperature", type=float, default=0.8)
+    p.add_argument("--net-arch", dest="net_arch", type=int, nargs="+", default=None,
+                   help="Student MLP hidden sizes, e.g. --net-arch 256 256 (default 64 64). "
+                        "Bigger nets let Students actually learn decisive play. Applied "
+                        "identically to base and trained.")
     # -- PRIMARY (Student-vs-Student head-to-head) knobs --
     p.add_argument("--replicates", type=int, default=None,
                    help="independent curriculum replicates (CI is over these)")

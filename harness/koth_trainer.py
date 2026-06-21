@@ -128,9 +128,11 @@ class _KothTrainingJob(TrainingJob):
 class KothPlayerTrainer(PlayerTrainer):
     """Real KotH PlayerTrainer: SB3 PPO vs the parametric KotH opponent."""
 
-    def __init__(self, *, eval_seeds: int = 25, verbose: int = 0):
+    def __init__(self, *, eval_seeds: int = 25, verbose: int = 0,
+                 net_arch=(64, 64)):
         self._eval_seeds = eval_seeds
         self._verbose = verbose
+        self._net_arch = list(net_arch)
 
     def submit(self, config: PlayerConfig, arenas: list[Arena]) -> TrainingJob:
         if config.modal_parallel:
@@ -153,7 +155,7 @@ class KothPlayerTrainer(PlayerTrainer):
             env,
             seed=config.seed,
             verbose=self._verbose,
-            policy_kwargs={"net_arch": [64, 64]},
+            policy_kwargs={"net_arch": self._net_arch},
             n_steps=512,
             batch_size=128,
             n_epochs=4,

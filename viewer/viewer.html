@@ -321,12 +321,14 @@
 <main>
   <div class="controls-bar">
     <span class="lbl">Match</span>
-    <select id="replaySel"></select>
-    <label class="file btn-import" title="Load a replay .json">
+    <span class="lbl" id="matchLbl" style="color:var(--gold);font-weight:700">King of the Hill — Trained Student (good Sensei) vs Base Student</span>
+    <!-- Scenario picker + import are hidden: this is a locked single-match demo. -->
+    <select id="replaySel" style="display:none"></select>
+    <label class="file btn-import" title="Load a replay .json" style="display:none">
       <span class="ic"><span class="tray"></span></span> Import Replay
       <input id="fileInput" type="file" accept=".json,application/json" hidden />
     </label>
-    <div id="drop"></div>
+    <div id="drop" style="display:none"></div>
     <div class="transport-cluster" style="margin-left:auto">
       <button id="firstBtn" class="tb" title="First frame"><span class="gl gl-chev gl-prev"></span><span class="gl-bar" style="margin-left:-4px"></span> First</button>
       <button id="stepBack" class="tb" title="Previous frame"><span class="gl gl-chev gl-prev"></span> Prev</button>
@@ -2188,8 +2190,9 @@ loadSprites();
 // Inline default first so the canvas is never blank (works from file://).
 setReplay(DEFAULT_REPLAY, "inline-demo");
 
-// Then upgrade over http: load dashboard + manifest + descriptive dropdown,
-// and auto-open the headline draw match if available.
+// LOCKED SINGLE-MATCH DEMO: no scenario picker. The only match that loads is the
+// trained (good-Sensei) King-of-the-Hill win. The user can only press Play.
+const LOCKED_REPLAY = "h2h_koth_trained_win_trained_as_P0.json";
 (async () => {
   // dashboard (for spec panels) — best effort
   try {
@@ -2197,55 +2200,12 @@ setReplay(DEFAULT_REPLAY, "inline-demo");
     if (res.ok) { dashboard = await res.json(); renderSpecPanels(); }
   } catch (_) { /* file:// — keep panels from meta only */ }
 
-  // manifest -> descriptive dropdown
-  let files = null;
+  // Load the ONE locked match (served over http). Keeps the inline default on the
+  // canvas if the fetch fails. No manifest, no dropdown, no other scenarios.
   try {
-    const res = await fetch(MANIFEST_URL, { cache: "no-store" });
-    if (res.ok) files = await res.json();
-  } catch (_) { /* fall through */ }
-  if (!Array.isArray(files) || !files.length) {
-    // try a directory listing as a secondary source
-    try {
-      const res = await fetch(REPLAY_BASE, { cache: "no-store" });
-      if (res.ok) {
-        const html = await res.text();
-        files = Array.from(html.matchAll(/href="([^"]+\.json)"/g))
-          .map(m => decodeURIComponent(m[1].split("/").pop()))
-          .filter(n => n && n !== "manifest.json");
-        files = Array.from(new Set(files));
-      }
-    } catch (_) { /* ignore */ }
-  }
-
-  // optional URL overrides: ?r=<file> picks a match, &f=<frame> jumps to it.
-  const params = new URLSearchParams(location.search);
-  const wantFile = params.get("r");
-  const wantFrame = params.get("f");
-
-  if (Array.isArray(files) && files.length) {
-    await buildDropdown(files);
-    // explicit ?r= wins; otherwise the headline h2h draw (the centerpiece story).
-    let pick = null;
-    if (wantFile) {
-      pick = manifestEntries.find(e => e.file === wantFile) ||
-             manifestEntries.find(e => e.file.includes(wantFile));
-    }
-    pick = pick ||
-      manifestEntries.find(e => /h2h_fighter_draw_trained_as_P1/.test(e.file)) ||
-      manifestEntries.find(e => /h2h_fighter_draw/.test(e.file)) ||
-      manifestEntries.find(e => e.key === "ringout");
-    if (pick) {
-      sel.value = pick.file;
-      await loadExample(pick.file);
-      if (wantFrame != null && replay) {
-        frame = Math.max(0, Math.min(parseInt(wantFrame, 10) || 0, replay.frames.length - 1));
-        requestRender();
-      }
-    }
+    await loadExample(LOCKED_REPLAY);
     loadErr.textContent = "";
-  } else {
-    fallbackDropdown();
-  }
+  } catch (_) { /* keep inline default */ }
 })();
 </script>
 </body>

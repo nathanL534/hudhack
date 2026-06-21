@@ -201,12 +201,13 @@ class PPOPlayerTrainer(PlayerTrainer):
                  ent_coef: float = 0.0, min_timesteps: int = _MIN_TIMESTEPS,
                  anti_camping_reward: bool = False,
                  opponent_league: Optional[list] = None,
-                 prior_student=None):
+                 prior_student=None, net_arch=(64, 64)):
         self._eval_seeds = eval_seeds
         self._verbose = verbose
         self._ent_coef = ent_coef
         self._min_timesteps = min_timesteps
         self._anti_camping_reward = anti_camping_reward
+        self._net_arch = list(net_arch)
         # Stage-6 Student-only opponent league. ``None`` (default) => the original
         # single-parametric-opponent training env, UNCHANGED. The Teacher inner-reward
         # workers construct this trainer without the flag, so they keep the old path.
@@ -246,8 +247,8 @@ class PPOPlayerTrainer(PlayerTrainer):
             env,
             seed=config.seed,
             verbose=self._verbose,
-            # SMALL MLP — two 64-unit hidden layers is plenty for an 11-dim obs.
-            policy_kwargs={"net_arch": [64, 64]},
+            # Net size is configurable (Stage-6 Students only); default [64,64].
+            policy_kwargs={"net_arch": self._net_arch},
             n_steps=512,
             batch_size=128,
             n_epochs=4,

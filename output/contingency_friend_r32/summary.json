@@ -1,0 +1,4907 @@
+{
+  "experiment": "contingency_teacher_rft_modal_lora_grpo_multigame",
+  "run_id": "friend_r32",
+  "app_name": "crucible-teacher-trainer-friend_r32",
+  "adapter_volume_path": "/adapters/friend_r32",
+  "output_dir": "/Users/raghavaggarwal/hudhack/output/contingency_friend_r32",
+  "headline": {
+    "source": "final_adapter_eval",
+    "label": "TRUE final-adapter reward (post-update policy on RESERVED validation seeds) \u2014 NOT a per-update PRE-update logged reward",
+    "adapter_tag": "update14",
+    "reward_mean_by_game": {
+      "ring_out": 0.287,
+      "target_knockback": -0.0578
+    },
+    "reward_mean_overall": 0.1146
+  },
+  "model": "Qwen/Qwen3-4B",
+  "gpu": "A100-40GB",
+  "games": [
+    "ring_out",
+    "target_knockback"
+  ],
+  "combined_update": true,
+  "advantage_normalization": "per_game (no cross-game reward pooling)",
+  "reward_sign": "signed (TK held-out improvement NOT re-clamped; GRPO norm is shift-invariant)",
+  "updates": 14,
+  "group_size_per_game": 8,
+  "temperature": 1.2,
+  "lora_r": 32,
+  "lora_alpha": 64,
+  "seed_scheme": {
+    "seed_rotation": true,
+    "seed_base": 404,
+    "description": "training PPO reward seeds rotate per update (distinct block each step); validation seeds are a SEPARATE fixed pool, disjoint from every training block, used only by the final-adapter scoring pass.",
+    "train_seed_blocks": {
+      "ring_out": [
+        [
+          404,
+          405,
+          406
+        ],
+        [
+          407,
+          408,
+          409
+        ],
+        [
+          410,
+          411,
+          412
+        ],
+        [
+          413,
+          414,
+          415
+        ],
+        [
+          416,
+          417,
+          418
+        ],
+        [
+          419,
+          420,
+          421
+        ],
+        [
+          422,
+          423,
+          424
+        ],
+        [
+          425,
+          426,
+          427
+        ],
+        [
+          428,
+          429,
+          430
+        ],
+        [
+          431,
+          432,
+          433
+        ],
+        [
+          434,
+          435,
+          436
+        ],
+        [
+          437,
+          438,
+          439
+        ],
+        [
+          440,
+          441,
+          442
+        ],
+        [
+          443,
+          444,
+          445
+        ]
+      ],
+      "target_knockback": [
+        [
+          1000404,
+          1000405,
+          1000406
+        ],
+        [
+          1000407,
+          1000408,
+          1000409
+        ],
+        [
+          1000410,
+          1000411,
+          1000412
+        ],
+        [
+          1000413,
+          1000414,
+          1000415
+        ],
+        [
+          1000416,
+          1000417,
+          1000418
+        ],
+        [
+          1000419,
+          1000420,
+          1000421
+        ],
+        [
+          1000422,
+          1000423,
+          1000424
+        ],
+        [
+          1000425,
+          1000426,
+          1000427
+        ],
+        [
+          1000428,
+          1000429,
+          1000430
+        ],
+        [
+          1000431,
+          1000432,
+          1000433
+        ],
+        [
+          1000434,
+          1000435,
+          1000436
+        ],
+        [
+          1000437,
+          1000438,
+          1000439
+        ],
+        [
+          1000440,
+          1000441,
+          1000442
+        ],
+        [
+          1000443,
+          1000444,
+          1000445
+        ]
+      ]
+    },
+    "validation_seeds": {
+      "ring_out": [
+        1,
+        2,
+        3
+      ],
+      "target_knockback": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  "ring_out": {
+    "n_reward_seeds": 3,
+    "train_seed_blocks": [
+      [
+        404,
+        405,
+        406
+      ],
+      [
+        407,
+        408,
+        409
+      ],
+      [
+        410,
+        411,
+        412
+      ],
+      [
+        413,
+        414,
+        415
+      ],
+      [
+        416,
+        417,
+        418
+      ],
+      [
+        419,
+        420,
+        421
+      ],
+      [
+        422,
+        423,
+        424
+      ],
+      [
+        425,
+        426,
+        427
+      ],
+      [
+        428,
+        429,
+        430
+      ],
+      [
+        431,
+        432,
+        433
+      ],
+      [
+        434,
+        435,
+        436
+      ],
+      [
+        437,
+        438,
+        439
+      ],
+      [
+        440,
+        441,
+        442
+      ],
+      [
+        443,
+        444,
+        445
+      ]
+    ],
+    "validation_seeds": [
+      1,
+      2,
+      3
+    ],
+    "ppo_episodes": 1000,
+    "eval_seeds": 50,
+    "n_held_out_arenas": 15
+  },
+  "target_knockback": {
+    "n_reward_seeds": 3,
+    "train_seed_blocks": [
+      [
+        1000404,
+        1000405,
+        1000406
+      ],
+      [
+        1000407,
+        1000408,
+        1000409
+      ],
+      [
+        1000410,
+        1000411,
+        1000412
+      ],
+      [
+        1000413,
+        1000414,
+        1000415
+      ],
+      [
+        1000416,
+        1000417,
+        1000418
+      ],
+      [
+        1000419,
+        1000420,
+        1000421
+      ],
+      [
+        1000422,
+        1000423,
+        1000424
+      ],
+      [
+        1000425,
+        1000426,
+        1000427
+      ],
+      [
+        1000428,
+        1000429,
+        1000430
+      ],
+      [
+        1000431,
+        1000432,
+        1000433
+      ],
+      [
+        1000434,
+        1000435,
+        1000436
+      ],
+      [
+        1000437,
+        1000438,
+        1000439
+      ],
+      [
+        1000440,
+        1000441,
+        1000442
+      ],
+      [
+        1000443,
+        1000444,
+        1000445
+      ]
+    ],
+    "validation_seeds": [
+      1,
+      2,
+      3
+    ],
+    "ppo_episodes": 2000,
+    "eval_seeds": 50
+  },
+  "per_game": {
+    "ring_out": {
+      "before_reward_mean": 0.1553,
+      "after_reward_mean": 0.1253,
+      "delta_before_after": -0.03,
+      "before_reward_std": 0.0393,
+      "after_reward_std": 0.0,
+      "before_valid": 8,
+      "after_valid": 8,
+      "after_arena_diversity": {
+        "n_valid": 8,
+        "difficulty_mean": 1.0,
+        "difficulty_std": 0.0,
+        "difficulty_unique": 1,
+        "knob_std": {
+          "difficulty": 0.0,
+          "gravity": 0.0,
+          "knockback": 0.0,
+          "platform_width": 0.0,
+          "spawn_gap": 0.0
+        }
+      }
+    },
+    "target_knockback": {
+      "before_reward_mean": -0.0139,
+      "after_reward_mean": -0.0022,
+      "delta_before_after": 0.0117,
+      "before_reward_std": 0.0099,
+      "after_reward_std": 0.0,
+      "before_valid": 8,
+      "after_valid": 8,
+      "after_arena_diversity": {
+        "n_valid": 8,
+        "difficulty_mean": 1.0,
+        "difficulty_std": 0.0,
+        "difficulty_unique": 1,
+        "knob_std": {
+          "difficulty": 0.0,
+          "gravity": 0.0,
+          "knockback": 0.0,
+          "platform_width": 0.0,
+          "spawn_gap": 0.0,
+          "zone_center_frac": 0.0,
+          "zone_half": 0.0
+        }
+      }
+    }
+  },
+  "final_adapter_eval": {
+    "label": "TRUE final-adapter reward (post-update policy on RESERVED validation seeds; distinct from the per-update PRE-update logs)",
+    "adapter_tag": "update14",
+    "validation_seeds": {
+      "ring_out": [
+        1,
+        2,
+        3
+      ],
+      "target_knockback": [
+        1,
+        2,
+        3
+      ]
+    },
+    "per_game": {
+      "ring_out": {
+        "rewards": [
+          0.3107,
+          0.3107,
+          0.3107,
+          0.3107,
+          0.3107,
+          0.2476,
+          0.2476,
+          0.2476
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 8,
+        "reward_mean": 0.287,
+        "reward_std": 0.0306,
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0
+          }
+        ],
+        "completions_preview": [
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+        ],
+        "arena_diversity": {
+          "n_valid": 8,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0
+          }
+        }
+      },
+      "target_knockback": {
+        "rewards": [
+          -0.0578,
+          -0.0578,
+          -0.0578,
+          -0.0578,
+          -0.0578,
+          -0.0578,
+          -0.0578,
+          -0.0578
+        ],
+        "statuses": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "n_valid": 8,
+        "reward_mean": -0.0578,
+        "reward_std": 0.0,
+        "params": [
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          },
+          {
+            "difficulty": 1.0,
+            "platform_width": 16.0,
+            "gravity": 1.0,
+            "knockback": 1.0,
+            "spawn_gap": 4.0,
+            "zone_half": 1.0,
+            "zone_center_frac": 0.5
+          }
+        ],
+        "completions_preview": [
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+          "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+        ],
+        "arena_diversity": {
+          "n_valid": 8,
+          "difficulty_mean": 1.0,
+          "difficulty_std": 0.0,
+          "difficulty_unique": 1,
+          "knob_std": {
+            "difficulty": 0.0,
+            "gravity": 0.0,
+            "knockback": 0.0,
+            "platform_width": 0.0,
+            "spawn_gap": 0.0,
+            "zone_center_frac": 0.0,
+            "zone_half": 0.0
+          }
+        }
+      }
+    },
+    "val_wall_s": 142.9
+  },
+  "grad_norms": [
+    55.636837005615234,
+    76.82205200195312,
+    73.3301773071289,
+    0.008873370476067066,
+    249.0997314453125,
+    4.4047469664743044e-12,
+    0.0,
+    6.049274969832652e-11,
+    75.49869537353516,
+    1.72535902231985e-10,
+    185.90069580078125,
+    6.883773065458065e-12,
+    6.433479617096172e-12,
+    0.0
+  ],
+  "total_wall_s": 2755.6,
+  "adapter_volume": "crucible-teacher-lora",
+  "history": [
+    {
+      "step": 0,
+      "tag": "base",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.2493,
+            0.1476,
+            0.1476,
+            0.1049,
+            0.1476,
+            0.1689,
+            0.1382,
+            0.1382
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1553,
+          "reward_std": 0.0393,
+          "advantages": [
+            2.3956,
+            -0.1967,
+            -0.1967,
+            -1.2834,
+            -0.1967,
+            0.3467,
+            -0.4344,
+            -0.4344
+          ],
+          "params": [
+            {
+              "difficulty": 0.65,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.6438,
+            "difficulty_std": 0.0464,
+            "difficulty_unique": 3,
+            "knob_std": {
+              "difficulty": 0.0464,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 1.299,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0111,
+            -0.02,
+            -0.0067,
+            -0.0111,
+            -0.0111,
+            -0.0067,
+            -0.0378,
+            -0.0067
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0139,
+          "reward_std": 0.0099,
+          "advantages": [
+            0.2822,
+            -0.6148,
+            0.7256,
+            0.2822,
+            0.2822,
+            0.7256,
+            -2.4087,
+            0.7256
+          ],
+          "params": [
+            {
+              "difficulty": 0.6,
+              "platform_width": 14.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 12.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 14.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 14.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.5,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 14.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 12.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 14.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 14.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.6,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.1654,
+              "platform_width": 0.9682,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 161.4,
+      "train_seeds": {
+        "ring_out": [
+          404,
+          405,
+          406
+        ],
+        "target_knockback": [
+          1000404,
+          1000405,
+          1000406
+        ]
+      }
+    },
+    {
+      "step": 1,
+      "tag": "update1",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1476,
+            0.1156,
+            0.1049,
+            0.1476,
+            0.1049,
+            0.1382,
+            0.1382,
+            0.1049
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1252,
+          "reward_std": 0.0183,
+          "advantages": [
+            1.2226,
+            -0.5292,
+            -1.1131,
+            1.2226,
+            -1.1131,
+            0.7116,
+            0.7116,
+            -1.1131
+          ],
+          "params": [
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 6.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 6.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.625,
+            "difficulty_std": 0.0433,
+            "difficulty_unique": 2,
+            "knob_std": {
+              "difficulty": 0.0433,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 1.4524,
+              "spawn_gap": 0.3307
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0378,
+            -0.0067,
+            -0.0378,
+            -0.0067,
+            -0.0067,
+            -0.0378,
+            -0.0067,
+            -0.0067
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0184,
+          "reward_std": 0.0151,
+          "advantages": [
+            -1.2909,
+            0.7745,
+            -1.2909,
+            0.7745,
+            0.7745,
+            -1.2909,
+            0.7745,
+            0.7745
+          ],
+          "params": [
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.5,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.5,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.5,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 15.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 14.0,
+              "gravity": 0.8,
+              "knockback": 3.5,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 14.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.6,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.25,
+              "platform_width": 0.3307,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 148.0,
+      "train_seeds": {
+        "ring_out": [
+          404,
+          405,
+          406
+        ],
+        "target_knockback": [
+          1000404,
+          1000405,
+          1000406
+        ]
+      },
+      "update_stats": {
+        "loss": -0.16754744946956635,
+        "grad_norm": 55.636837005615234,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -1.7685,
+          "target_knockback": -1.3132
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update1"
+    },
+    {
+      "step": 2,
+      "tag": "update2",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1022,
+            0.1022,
+            0.1022,
+            0.1004,
+            0.1289,
+            0.1351,
+            0.1289,
+            0.1022
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1128,
+          "reward_std": 0.0142,
+          "advantages": [
+            -0.7427,
+            -0.7427,
+            -0.7427,
+            -0.8678,
+            1.1336,
+            1.5714,
+            1.1336,
+            -0.7427
+          ],
+          "params": [
+            {
+              "difficulty": 0.7,
+              "platform_width": 22.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 22.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 22.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 24.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 22.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 22.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 22.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 22.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 24.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 22.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.7,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.3307,
+              "platform_width": 1.3229,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.0022,
+            0.0111,
+            -0.1444,
+            0.0489,
+            0.0422,
+            -0.0356,
+            0.0489,
+            0.0422
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.0019,
+          "reward_std": 0.0618,
+          "advantages": [
+            0.0042,
+            0.1482,
+            -2.3676,
+            0.7598,
+            0.6514,
+            -0.6073,
+            0.7598,
+            0.6514
+          ],
+          "params": [
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 2.5,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.65,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 2.5,
+              "spawn_gap": 5.0,
+              "zone_half": 1.5,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 3.0,
+              "spawn_gap": 5.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.5,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 4.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 18.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 5.0,
+              "zone_half": 1.5,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.5,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 4.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.5,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 1.5,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.5,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 5.0,\n  \"zone_half\": 1.5,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.5,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.6062,
+            "difficulty_std": 0.0165,
+            "difficulty_unique": 2,
+            "knob_std": {
+              "difficulty": 0.0165,
+              "gravity": 0.0,
+              "knockback": 0.3536,
+              "platform_width": 1.0,
+              "spawn_gap": 0.5,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.25
+            }
+          }
+        }
+      },
+      "score_wall_s": 137.1,
+      "train_seeds": {
+        "ring_out": [
+          407,
+          408,
+          409
+        ],
+        "target_knockback": [
+          1000407,
+          1000408,
+          1000409
+        ]
+      },
+      "update_stats": {
+        "loss": 0.10323548316955566,
+        "grad_norm": 76.82205200195312,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -1.5617,
+          "target_knockback": -3.029
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update2"
+    },
+    {
+      "step": 3,
+      "tag": "update3",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.0867,
+            0.1253,
+            0.1551,
+            0.1551,
+            0.1796,
+            0.1,
+            0.1551,
+            0.2124
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1462,
+          "reward_std": 0.0385,
+          "advantages": [
+            -1.5457,
+            -0.5412,
+            0.2324,
+            0.2324,
+            0.8674,
+            -1.1993,
+            0.2324,
+            1.7218
+          ],
+          "params": [
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 5.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 2.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 16.0,
+              "gravity": 0.6,
+              "knockback": 1.5,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 20.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 5.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 2.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.6,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 20.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.7,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0661,
+              "knockback": 0.25,
+              "platform_width": 1.7321,
+              "spawn_gap": 0.3307
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.1,
+            -0.14,
+            0.2311,
+            0.2178,
+            0.0578,
+            0.0467,
+            -0.2,
+            -0.14
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0033,
+          "reward_std": 0.1563,
+          "advantages": [
+            -0.6185,
+            -0.8743,
+            1.4997,
+            1.4146,
+            0.391,
+            0.32,
+            -1.2582,
+            -0.8743
+          ],
+          "params": [
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.6,
+              "knockback": 1.5,
+              "spawn_gap": 4.0,
+              "zone_half": 1.2,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 3.0,
+              "zone_half": 1.2,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.6,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.5,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 4.0,
+              "zone_half": 1.2,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 16.0,
+              "gravity": 0.6,
+              "knockback": 1.5,
+              "spawn_gap": 4.0,
+              "zone_half": 1.2,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 3.0,
+              "zone_half": 1.2,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.6,
+              "platform_width": 16.0,
+              "gravity": 0.5,
+              "knockback": 1.5,
+              "spawn_gap": 4.0,
+              "zone_half": 1.5,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.7,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.5,
+              "spawn_gap": 3.0,
+              "zone_half": 1.2,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.6,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.2,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 1.2,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.6,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.5,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.2,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.6,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.2,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 1.2,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.5,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.5,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.5,\n  \"spawn_gap\": 3.0,\n  \"zone_half\": 1.2,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.6125,
+            "difficulty_std": 0.0781,
+            "difficulty_unique": 3,
+            "knob_std": {
+              "difficulty": 0.0781,
+              "gravity": 0.1166,
+              "knockback": 0.1654,
+              "platform_width": 0.0,
+              "spawn_gap": 0.4841,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.1299
+            }
+          }
+        }
+      },
+      "score_wall_s": 141.2,
+      "train_seeds": {
+        "ring_out": [
+          410,
+          411,
+          412
+        ],
+        "target_knockback": [
+          1000410,
+          1000411,
+          1000412
+        ]
+      },
+      "update_stats": {
+        "loss": -0.4905839264392853,
+        "grad_norm": 73.3301773071289,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -2.1241,
+          "target_knockback": -4.2208
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update3"
+    },
+    {
+      "step": 4,
+      "tag": "update4",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1147,
+            0.1147,
+            0.1147,
+            0.1147,
+            0.1147,
+            0.1147,
+            0.1147,
+            0.1147
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1147,
+          "reward_std": 0.0,
+          "advantages": [
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.0044,
+            0.0044,
+            0.0044,
+            0.0022,
+            0.0044,
+            0.0022,
+            0.0044,
+            0.0044
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.0039,
+          "reward_std": 0.001,
+          "advantages": [
+            0.5767,
+            0.5767,
+            0.5767,
+            -1.7302,
+            0.5767,
+            -1.7302,
+            0.5767,
+            0.5767
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 151.2,
+      "train_seeds": {
+        "ring_out": [
+          413,
+          414,
+          415
+        ],
+        "target_knockback": [
+          1000413,
+          1000414,
+          1000415
+        ]
+      },
+      "update_stats": {
+        "loss": 2.3282198434118216e-10,
+        "grad_norm": 0.008873370476067066,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.0012,
+          "target_knockback": -0.016
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update4"
+    },
+    {
+      "step": 5,
+      "tag": "update5",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.096,
+            0.032,
+            0.096,
+            0.096,
+            0.096,
+            0.096,
+            0.0262,
+            0.0302
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.0711,
+          "reward_std": 0.0322,
+          "advantages": [
+            0.7738,
+            -1.2115,
+            0.7738,
+            0.7738,
+            0.7738,
+            0.7738,
+            -1.3907,
+            -1.2666
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.0,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 0.5,
+              "spawn_gap": 2.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.0,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 0.5,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.0,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 2.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.3125,
+            "difficulty_std": 0.2421,
+            "difficulty_unique": 2,
+            "knob_std": {
+              "difficulty": 0.2421,
+              "gravity": 0.0,
+              "knockback": 0.2165,
+              "platform_width": 0.0,
+              "spawn_gap": 0.6614
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0089,
+            -0.0089,
+            -0.0089,
+            -0.0089,
+            -0.0711,
+            -0.0089,
+            -0.0133,
+            -0.0089
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0172,
+          "reward_std": 0.0204,
+          "advantages": [
+            0.4078,
+            0.4078,
+            0.4078,
+            0.4078,
+            -2.639,
+            0.4078,
+            0.1923,
+            0.4078
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.0,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 0.5,
+              "spawn_gap": 2.0,
+              "zone_half": 0.6,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 2.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 0.5,\n  \"spawn_gap\": 2.0,\n  \"zone_half\": 0.6,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 2.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.4375,
+            "difficulty_std": 0.1654,
+            "difficulty_unique": 2,
+            "knob_std": {
+              "difficulty": 0.1654,
+              "gravity": 0.0,
+              "knockback": 0.1654,
+              "platform_width": 0.0,
+              "spawn_gap": 0.866,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.1323
+            }
+          }
+        }
+      },
+      "score_wall_s": 145.1,
+      "train_seeds": {
+        "ring_out": [
+          416,
+          417,
+          418
+        ],
+        "target_knockback": [
+          1000416,
+          1000417,
+          1000418
+        ]
+      },
+      "update_stats": {
+        "loss": -0.7148169577121735,
+        "grad_norm": 249.0997314453125,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -1.2703,
+          "target_knockback": -1.1554
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update5"
+    },
+    {
+      "step": 6,
+      "tag": "update6",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1071,
+            0.1071,
+            0.1071,
+            0.1071,
+            0.1071,
+            0.1071,
+            0.1071,
+            0.1071
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1071,
+          "reward_std": 0.0,
+          "advantages": [
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.2556,
+            0.2556,
+            0.2556,
+            0.2556,
+            0.2556,
+            0.2556,
+            0.2556,
+            0.2556
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.2556,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 145.1,
+      "train_seeds": {
+        "ring_out": [
+          419,
+          420,
+          421
+        ],
+        "target_knockback": [
+          1000419,
+          1000420,
+          1000421
+        ]
+      },
+      "update_stats": {
+        "loss": -1.5715097138099127e-14,
+        "grad_norm": 4.4047469664743044e-12,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.0023,
+          "target_knockback": -0.0016
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update6"
+    },
+    {
+      "step": 7,
+      "tag": "update7",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.2044,
+            0.2044,
+            0.2044,
+            0.2044,
+            0.2044,
+            0.2044,
+            0.2044,
+            0.2044
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.2044,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.1844,
+            0.1844,
+            0.1844,
+            0.1844,
+            0.1844,
+            0.1844,
+            0.1844,
+            0.1844
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1844,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 134.6,
+      "train_seeds": {
+        "ring_out": [
+          422,
+          423,
+          424
+        ],
+        "target_knockback": [
+          1000422,
+          1000423,
+          1000424
+        ]
+      },
+      "update_stats": {
+        "loss": 0.0,
+        "grad_norm": 0.0,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.0013,
+          "target_knockback": -0.0025
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update7"
+    },
+    {
+      "step": 8,
+      "tag": "update8",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.2107,
+            0.2107,
+            0.2107,
+            0.2107,
+            0.2107,
+            0.2107,
+            0.2107,
+            0.2107
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.2107,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.1378,
+            0.1378,
+            0.1378,
+            0.1378,
+            0.1378,
+            0.1378,
+            0.1378,
+            0.1378
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1378,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 148.3,
+      "train_seeds": {
+        "ring_out": [
+          425,
+          426,
+          427
+        ],
+        "target_knockback": [
+          1000425,
+          1000426,
+          1000427
+        ]
+      },
+      "update_stats": {
+        "loss": 1.6207315437638536e-13,
+        "grad_norm": 6.049274969832652e-11,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.0058,
+          "target_knockback": -0.0016
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update8"
+    },
+    {
+      "step": 9,
+      "tag": "update9",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1231,
+            0.1231,
+            0.1231,
+            0.1231,
+            0.1231,
+            0.152,
+            0.1231,
+            0.1231
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1267,
+          "reward_std": 0.0096,
+          "advantages": [
+            -0.3779,
+            -0.3779,
+            -0.3779,
+            -0.3779,
+            -0.3779,
+            2.6455,
+            -0.3779,
+            -0.3779
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0661,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.0378,
+            0.0378,
+            0.0378,
+            0.0378,
+            0.0378,
+            0.0378,
+            0.0378,
+            0.0378
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.0378,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 0.8,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 0.8,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 163.4,
+      "train_seeds": {
+        "ring_out": [
+          428,
+          429,
+          430
+        ],
+        "target_knockback": [
+          1000428,
+          1000429,
+          1000430
+        ]
+      },
+      "update_stats": {
+        "loss": 0.4546906352043152,
+        "grad_norm": 75.49869537353516,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.4067,
+          "target_knockback": -0.0021
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update9"
+    },
+    {
+      "step": 10,
+      "tag": "update10",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1618,
+            0.1618,
+            0.1618,
+            0.1618,
+            0.1618,
+            0.1618,
+            0.1618,
+            0.1618
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1618,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0911,
+            -0.0911,
+            -0.0911,
+            -0.0911,
+            -0.0911,
+            -0.0911,
+            -0.0911,
+            -0.0911
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0911,
+          "reward_std": 0.0,
+          "advantages": [
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 143.7,
+      "train_seeds": {
+        "ring_out": [
+          431,
+          432,
+          433
+        ],
+        "target_knockback": [
+          1000431,
+          1000432,
+          1000433
+        ]
+      },
+      "update_stats": {
+        "loss": -3.546150189898817e-13,
+        "grad_norm": 1.72535902231985e-10,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.001,
+          "target_knockback": -0.0511
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update10"
+    },
+    {
+      "step": 11,
+      "tag": "update11",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1404,
+            0.1404,
+            0.1404,
+            0.116,
+            0.1404,
+            0.1404,
+            0.116,
+            0.116
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1313,
+          "reward_std": 0.0118,
+          "advantages": [
+            0.7745,
+            0.7745,
+            0.7745,
+            -1.2909,
+            0.7745,
+            0.7745,
+            -1.2909,
+            -1.2909
+          ],
+          "params": [
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.8125,
+            "difficulty_std": 0.2421,
+            "difficulty_unique": 2,
+            "knob_std": {
+              "difficulty": 0.2421,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0156,
+            -0.0356,
+            -0.0156,
+            -0.0356,
+            -0.0156,
+            -0.0156,
+            -0.0156,
+            -0.0156
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0206,
+          "reward_std": 0.0087,
+          "advantages": [
+            0.5773,
+            -1.7319,
+            0.5773,
+            -1.7319,
+            0.5773,
+            0.5773,
+            0.5773,
+            0.5773
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 2.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 2.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.433
+            }
+          }
+        }
+      },
+      "score_wall_s": 140.5,
+      "train_seeds": {
+        "ring_out": [
+          434,
+          435,
+          436
+        ],
+        "target_knockback": [
+          1000434,
+          1000435,
+          1000436
+        ]
+      },
+      "update_stats": {
+        "loss": 0.28036507964134216,
+        "grad_norm": 185.90069580078125,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -1.6426,
+          "target_knockback": -0.5817
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update11"
+    },
+    {
+      "step": 12,
+      "tag": "update12",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1751,
+            0.1751,
+            0.1751,
+            0.1751,
+            0.1751,
+            0.1751,
+            0.1751,
+            0.1751
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1751,
+          "reward_std": 0.0,
+          "advantages": [
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          "params": [
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 1.0,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            0.1089,
+            0.1089,
+            0.1089,
+            0.1089,
+            0.1089,
+            0.1089,
+            0.1089,
+            0.1089
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1089,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 0.5,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 0.5,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 0.5,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 143.8,
+      "train_seeds": {
+        "ring_out": [
+          437,
+          438,
+          439
+        ],
+        "target_knockback": [
+          1000437,
+          1000438,
+          1000439
+        ]
+      },
+      "update_stats": {
+        "loss": -2.7519073852360146e-14,
+        "grad_norm": 6.883773065458065e-12,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.002,
+          "target_knockback": -0.0085
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update12"
+    },
+    {
+      "step": 13,
+      "tag": "update13",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1511,
+            0.1511,
+            0.1511,
+            0.1511,
+            0.1511,
+            0.1511,
+            0.1511,
+            0.1511
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1511,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 1.0,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0422,
+            -0.0422,
+            -0.0422,
+            -0.0422,
+            -0.0422,
+            -0.0422,
+            -0.0422,
+            -0.0422
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0422,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 1.0,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 144.0,
+      "train_seeds": {
+        "ring_out": [
+          440,
+          441,
+          442
+        ],
+        "target_knockback": [
+          1000440,
+          1000441,
+          1000442
+        ]
+      },
+      "update_stats": {
+        "loss": 2.4361211358185815e-14,
+        "grad_norm": 6.433479617096172e-12,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.0041,
+          "target_knockback": -0.007
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update13"
+    },
+    {
+      "step": 14,
+      "tag": "update14",
+      "per_game": {
+        "ring_out": {
+          "rewards": [
+            0.1253,
+            0.1253,
+            0.1253,
+            0.1253,
+            0.1253,
+            0.1253,
+            0.1253,
+            0.1253
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": 0.1253,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 1.0,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0
+            }
+          }
+        },
+        "target_knockback": {
+          "rewards": [
+            -0.0022,
+            -0.0022,
+            -0.0022,
+            -0.0022,
+            -0.0022,
+            -0.0022,
+            -0.0022,
+            -0.0022
+          ],
+          "statuses": [
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok",
+            "ok"
+          ],
+          "n_valid": 8,
+          "reward_mean": -0.0022,
+          "reward_std": 0.0,
+          "advantages": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "params": [
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            },
+            {
+              "difficulty": 1.0,
+              "platform_width": 16.0,
+              "gravity": 1.0,
+              "knockback": 1.0,
+              "spawn_gap": 4.0,
+              "zone_half": 1.0,
+              "zone_center_frac": 0.5
+            }
+          ],
+          "completions_preview": [
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}",
+            "{\n  \"difficulty\": 1.0,\n  \"platform_width\": 16.0,\n  \"gravity\": 1.0,\n  \"knockback\": 1.0,\n  \"spawn_gap\": 4.0,\n  \"zone_half\": 1.0,\n  \"zone_center_frac\": 0.5\n}"
+          ],
+          "arena_diversity": {
+            "n_valid": 8,
+            "difficulty_mean": 1.0,
+            "difficulty_std": 0.0,
+            "difficulty_unique": 1,
+            "knob_std": {
+              "difficulty": 0.0,
+              "gravity": 0.0,
+              "knockback": 0.0,
+              "platform_width": 0.0,
+              "spawn_gap": 0.0,
+              "zone_center_frac": 0.0,
+              "zone_half": 0.0
+            }
+          }
+        }
+      },
+      "score_wall_s": 142.8,
+      "train_seeds": {
+        "ring_out": [
+          443,
+          444,
+          445
+        ],
+        "target_knockback": [
+          1000443,
+          1000444,
+          1000445
+        ]
+      },
+      "update_stats": {
+        "loss": 0.0,
+        "grad_norm": 0.0,
+        "games": [
+          "ring_out",
+          "target_knockback"
+        ],
+        "n_completions": 16,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -0.0053,
+          "target_knockback": -0.0088
+        }
+      },
+      "adapter_path": "/adapters/friend_r32/update14"
+    }
+  ]
+}

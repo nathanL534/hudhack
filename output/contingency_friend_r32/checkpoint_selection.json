@@ -1,0 +1,160 @@
+{
+  "run_id": "friend_r32",
+  "game": "ring_out",
+  "metric": "mean held-out transfer on reserved validation seeds",
+  "selection_temperature": 1.2,
+  "val_seeds": [
+    1,
+    2,
+    3
+  ],
+  "candidates": [
+    {
+      "tag": "update1",
+      "adapter_tag": "friend_r32/update1",
+      "game": "ring_out",
+      "rewards": [
+        0.064,
+        0.0427,
+        0.0747,
+        0.0427,
+        0.0427,
+        0.0747
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "n_valid": 6,
+      "val_mean": 0.0569,
+      "wall_s": 156.5
+    },
+    {
+      "tag": "update2",
+      "adapter_tag": "friend_r32/update2",
+      "game": "ring_out",
+      "rewards": [
+        0.1364,
+        0.1116,
+        0.1196,
+        0.1196,
+        0.0747,
+        0.1116
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "n_valid": 6,
+      "val_mean": 0.1122,
+      "wall_s": 170.0
+    },
+    {
+      "tag": "update3",
+      "adapter_tag": "friend_r32/update3",
+      "game": "ring_out",
+      "rewards": [
+        0.096,
+        0.096,
+        0.096,
+        0.096,
+        0.096,
+        0.096
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "n_valid": 6,
+      "val_mean": 0.096,
+      "wall_s": 187.3
+    },
+    {
+      "tag": "update5",
+      "adapter_tag": "friend_r32/update5",
+      "game": "ring_out",
+      "rewards": [
+        0.096,
+        0.096,
+        0.096,
+        0.096,
+        0.096,
+        0.096
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "n_valid": 6,
+      "val_mean": 0.096,
+      "wall_s": 210.0
+    },
+    {
+      "tag": "update9",
+      "adapter_tag": "friend_r32/update9",
+      "game": "ring_out",
+      "rewards": [
+        0.0907,
+        0.0907,
+        0.0907,
+        0.0907,
+        0.0907,
+        0.0907
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "n_valid": 6,
+      "val_mean": 0.0907,
+      "wall_s": 200.4
+    },
+    {
+      "tag": "update11",
+      "adapter_tag": "friend_r32/update11",
+      "game": "ring_out",
+      "rewards": [
+        0.3107,
+        0.3107,
+        0.2476,
+        0.3107,
+        0.2476,
+        0.3107
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "n_valid": 6,
+      "val_mean": 0.2896,
+      "wall_s": 191.7
+    }
+  ],
+  "best_tag": "update11",
+  "best_adapter_handle": "modal:friend_r32/update11",
+  "best_val_mean": 0.2896
+}

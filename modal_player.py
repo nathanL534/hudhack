@@ -532,7 +532,7 @@ def _restore_prior_student_policy(artifact: dict | None, arena_cls, arenas, seed
 
     restore_env = _MultiArenaFighterEnv(arenas, seed=int(seed))
     return restore_policy(
-        artifact, restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed)
+        artifact, restore_env, seed=int(seed)  # net_arch read from artifact
     )
 
 
@@ -562,6 +562,11 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
     eval_seeds = int(payload.get("eval_seeds", 50))
     teacher = str(payload.get("teacher", ""))
     curriculum_id = str(payload.get("curriculum_id", "curriculum"))
+    # Stage-6 Student net size (default [64,64]). Bigger nets let the Student actually
+    # learn decisive play instead of plateauing at "stand still". Applied IDENTICALLY
+    # to base and trained Students (it rides in the fairness-invariant payload), and
+    # recorded on the artifact so head-to-head restores at the matching width.
+    net_arch = tuple(int(h) for h in (payload.get("net_arch") or DEFAULT_NET_ARCH))
 
     specs = payload.get("curriculum_arenas") or [payload]
     arenas = _arenas_from_specs(specs, arena_cls)
@@ -600,7 +605,7 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         from harness.koth_adapter import KothGameAdapter
 
         adapter = KothGameAdapter(eval_seeds=eval_seeds)
-        trainer = KothPlayerTrainer(eval_seeds=eval_seeds)
+        trainer = KothPlayerTrainer(eval_seeds=eval_seeds, net_arch=net_arch)
     elif game in ("target_knockback", "target-knockback", "tk"):
         from harness.target_knockback_trainer import TargetKnockbackPlayerTrainer
         from harness.target_knockback_adapter import TargetKnockbackGameAdapter
@@ -629,6 +634,7 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
             anti_camping_reward=bool(payload.get("student_anti_camping", True)),
             opponent_league=active_league,
             prior_student=prior_student,
+            net_arch=net_arch,
         )
 
     train_arenas = adapter.arenas_from_configs(arenas, curriculum_id=curriculum_id)
@@ -646,7 +652,7 @@ def _train_student_policy(payload: dict, seed: int) -> dict:
         seed=int(seed),
         game=game,
         obs_dim=int(obs_dim),
-        net_arch=DEFAULT_NET_ARCH,
+        net_arch=net_arch,
         extra={"train_arena_winrate": float(train_result.mean_score),
                "n_curriculum_arenas": len(arenas),
                "opponent_league_enabled": active_league is not None,
@@ -703,11 +709,11 @@ def _head_to_head_match(payload: dict, seed: int) -> dict:
     restore_env = env_cls([arena], seed=int(seed))
     trained = restore_policy(
         PolicyArtifact.from_dict(payload["trained_policy"]),
-        restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed),
+        restore_env, seed=int(seed),  # net_arch read from artifact
     )
     base = restore_policy(
         PolicyArtifact.from_dict(payload["base_policy"]),
-        restore_env, net_arch=DEFAULT_NET_ARCH, seed=int(seed) + 1,
+        restore_env, seed=int(seed) + 1,  # net_arch read from artifact
     )
 
     def _outcome_for_trained(winner, trained_is_p0: bool) -> str:

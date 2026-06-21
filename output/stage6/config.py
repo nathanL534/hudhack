@@ -32,9 +32,18 @@ class EvalConfig:
     temperature: float = 0.8
     # -- PPO budget for each fresh Player ------------------------------------
     # Larger budget is scoped to Stage-6 evaluation students only.
-    ppo_episodes: int = 1500
+    # Raised 1500 -> 3000: at 1500 eps Students rarely learned decisive KOs, so
+    # head-to-head matches timed out with 0 hits / 0 approach on both sides and the
+    # aggression tiebreak could not separate them -> ~48% draws that blew the paired
+    # CI past zero (Stage-6 draw-rate analysis). More episodes -> decisive ring-outs.
+    ppo_episodes: int = 3000
     eval_seeds: int = 50
     architecture: str = "mlp"
+    # Student MLP hidden-layer sizes. Default (64,64) ~10k params — too small to learn
+    # decisive play, so Students plateau at "stand still" and matches draw. Larger nets
+    # (e.g. (128,128) ~35k, (256,256) ~135k) let both Students actually play; applied
+    # IDENTICALLY to base and trained (part of the fairness invariant / fingerprint).
+    net_arch: tuple[int, ...] = (64, 64)
     # -- experiment shape -----------------------------------------------------
     arenas_per_model: int = 5
     player_seeds: tuple[int, ...] = (1, 2, 3, 4, 5)

@@ -132,11 +132,11 @@ def _capture_koth_replays(
         restore_env = _MultiArenaKothEnv([arena], seed=seed0)
         trained = restore_policy(
             PolicyArtifact.from_dict(trained_policy), restore_env,
-            net_arch=DEFAULT_NET_ARCH, seed=seed0,
+            seed=seed0,  # net_arch read from artifact
         )
         base = restore_policy(
             PolicyArtifact.from_dict(base_policy), restore_env,
-            net_arch=DEFAULT_NET_ARCH, seed=seed0 + 1,
+            seed=seed0 + 1,  # net_arch read from artifact
         )
 
         _winner_of = {"p1": 0, "p2": 1, "draw": None}
@@ -555,6 +555,7 @@ def _student_payload(teacher: str, curriculum_id: str, arenas: list[dict],
         "ppo_episodes": int(cfg.ppo_episodes),
         "eval_seeds": int(cfg.eval_seeds),
         "architecture": cfg.architecture,
+        "net_arch": list(cfg.net_arch),
         "curriculum_arenas": [dict(a) for a in arenas],
     }
     # Opponent league (default OFF — a no-op when disabled). Applied here, in the
