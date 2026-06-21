@@ -409,44 +409,76 @@ def scripted_fighter(arena: FighterArena, ego: int = 0) -> Policy:
 # Parametric opponent (difficulty -> strength)
 # ---------------------------------------------------------------------------
 
-# --- Primary lever: epsilon-mixing -----------------------------------------
+# --- Low-end lever: epsilon self-edging ------------------------------------
 # ``eps`` is the per-step probability the opponent DROPS its skilled behaviour
 # and plays a *self-defeating* move — it steps toward its OWN nearest edge,
 # drifting toward a ring-out. ``eps`` is HIGH at low difficulty (the opponent
-# keeps walking off the platform, so the Player wins easily) and 0 at high
-# difficulty. A self-edging fail-branch (not uniform-random, not charge-the-
-# Player) is what keeps the curve monotone and draw-free: it resolves the match
-# as a Player win on its own, so the low-difficulty win-rate tracks ``eps``
-# directly instead of falling into the time-out draw trap an idle/erratic
-# opponent creates.
-EPS_MAX = 0.85  # self-edge prob at difficulty = 0.0  (weakest opponent)
-EPS_MIN = 0.0   # self-edge prob at difficulty = 1.0  (no self-sabotage)
+# keeps walking off the platform, so the Player wins easily) and decays to 0 by
+# ``WEAK_ZERO``. A self-edging fail-branch (not uniform-random, not charge-the-
+# Player) is what keeps the curve monotone and draw-free at the bottom of the
+# dial: it resolves the match as a Player win on its own, so the low-difficulty
+# win-rate tracks ``eps`` directly instead of falling into the time-out draw
+# trap an idle/erratic opponent creates.
+EPS_MAX = 0.85   # self-edge prob at difficulty = 0.0  (weakest opponent)
+WEAK_ZERO = 0.6  # difficulty at which epsilon has decayed to 0 (recipe: ~0.6)
 
-# --- Secondary lever: defensive competence ---------------------------------
-# Epsilon alone is not enough because the *base* scripted heuristic is fully
-# exploitable: a trained Player learns to lure it to the edge and punch it off,
-# so even at eps=0 a converged Player wins ~1.0 and the HIGH-difficulty end has
-# no gradient (the cliff just moves). The second lever closes that: as difficulty
-# rises the opponent's competent branch gets a WIDER edge-margin and STOPS
-# over-pursuing (it holds toward centre instead of chasing into the Player's
-# trap). A high-difficulty opponent therefore can't be forced off and out-trades
-# the Player at the edge, dropping the Player's win-rate at the top of the dial.
-# Margins are in platform-width fractions; pursuit-hold turns on past this
-# difficulty.
-DEF_MARGIN_FRAC_LOW = 0.12   # edge-margin fraction at difficulty 0 (= base scripted)
-DEF_MARGIN_FRAC_HIGH = 0.25  # edge-margin fraction at difficulty 1 (fortress)
+# --- High-end lever: the jump_turtle archetype -----------------------------
+# Epsilon alone is not enough: the base scripted heuristic is fully exploitable
+# — a trained Player learns to lure it to the edge and punch it off, so even at
+# eps=0 a converged Player wins ~1.0 and the HIGH end of the dial has no gradient
+# (the curve just pins at 1.0). The jump_turtle closes that. It is a defensive
+# archetype that (a) JUMPS to dodge an incoming punch — airborne it dodges the
+# knockback, because ``_resolve_punch`` requires both fighters at the same height
+# — and (b) backs away from the platform edges and refuses to chase. A reliable
+# jump_turtle therefore can be NEITHER knocked off NOR baited off: the match
+# times out to a DRAW (winner=None), which scores as a Player loss. So as the
+# turtle's dodge reliability rises, the strong/trained Player's win-rate slides
+# from 1.0 down to 0.0 (all draws) at the top of the dial.
+#
+# ``STRONG_START`` is the difficulty at which the turtle begins engaging; its
+# dodge reliability ramps LINEARLY from 0 there to 1.0 at difficulty 1.0. The
+# (STRONG_START, WEAK_ZERO) overlap is the recipe's smoothness knob: epsilon is
+# still fading out while the turtle is fading in, so the Player's win-rate slides
+# instead of snapping, with 2-3 difficulty values landing in the learnable band.
+STRONG_START = 0.45  # difficulty at which the jump_turtle starts engaging (recipe: ~0.45)
+# Per-MATCH dodge spread. The turtle's effective dodge reliability is drawn once
+# per match from a band of width ``DODGE_SPREAD`` around its difficulty-implied
+# value. This converts a single-match dodge THRESHOLD (a near-perfect dodge
+# always draws; a leaky one always loses — a 1.0/0.0 cliff) into a SMOOTH MEAN
+# win-rate across seeds: some matches the turtle is impenetrable (draw), some it
+# leaks and the Player wins. The spread tapers to 0 as the dodge saturates, so
+# the very top of the dial locks to a clean undefeatable turtle (0.0 floor)
+# while the mid-transition keeps the variance that widens the learnable band.
+DODGE_SPREAD = 0.7
 
 
 def epsilon_for_difficulty(difficulty: float) -> float:
     """Map difficulty in [0, 1] -> opponent epsilon, monotonically DECREASING.
 
     HIGH epsilon at LOW difficulty (the opponent self-defeats often, easy to
-    beat) and LOW epsilon (-> 0) at HIGH difficulty. Linear in difficulty so the
-    Player's achievable win-rate is a smooth function of the dial rather than a
-    cliff. Clamped so out-of-range dials are well-defined.
+    beat) decaying LINEARLY to 0 at ``WEAK_ZERO`` (and staying 0 above it). The
+    early zero-crossing (well before difficulty 1.0) is deliberate: it hands the
+    upper half of the dial entirely to the jump_turtle lever, so the two levers
+    each own one half of the win-rate slide. Clamped so out-of-range dials are
+    well-defined.
     """
     d = float(min(1.0, max(0.0, difficulty)))
-    return EPS_MAX + (EPS_MIN - EPS_MAX) * d
+    if d >= WEAK_ZERO:
+        return 0.0
+    return EPS_MAX * (1.0 - d / WEAK_ZERO)
+
+
+def dodge_reliability_for_difficulty(difficulty: float) -> float:
+    """Map difficulty -> the jump_turtle's base dodge reliability in [0, 1].
+
+    0 below ``STRONG_START`` (no turtle, opponent plays base scripted), ramping
+    LINEARLY to 1.0 at difficulty 1.0 (a perfectly impenetrable turtle that
+    forces a draw). This is the high-end mirror of ``epsilon_for_difficulty``.
+    """
+    d = float(min(1.0, max(0.0, difficulty)))
+    if d <= STRONG_START:
+        return 0.0
+    return min(1.0, (d - STRONG_START) / (1.0 - STRONG_START))
 
 
 def parametric_fighter(
@@ -458,76 +490,83 @@ def parametric_fighter(
 ) -> Policy:
     """Difficulty-scaled opponent: two levers turn one dial into smooth strength.
 
-    PRIMARY (epsilon-mixing): each step, with probability ``eps`` the opponent
-    drops its skill and steps toward its OWN nearest edge (a self-inflicted
-    ring-out that hands the Player a win). ``eps`` is HIGH at low difficulty and
-    0 at high, so the LOW end of the dial slides the Player's win-rate up.
+    LOW-END (epsilon self-edging): each step, with probability ``eps`` the
+    opponent drops its skill and steps toward its OWN nearest edge (a
+    self-inflicted ring-out that hands the Player a win). ``eps`` is HIGH at low
+    difficulty and decays to 0 by ``WEAK_ZERO``, so the bottom of the dial slides
+    the Player's win-rate up toward 1.0.
 
-    SECONDARY (defensive competence): on the (1-eps) competent branch, the
-    opponent's edge-margin widens and its pursuit shuts off as difficulty rises
-    — at high difficulty it guards a fat edge zone and refuses to chase past
-    centre, so a trained Player can neither lure it off nor out-position it, and
-    the HIGH end of the dial slides the Player's win-rate down. Without this the
-    base scripted heuristic is fully exploitable and the high end pins at 1.0.
+    HIGH-END (jump_turtle): once past ``STRONG_START`` the competent branch
+    becomes a jump_turtle whose dodge reliability rises with difficulty. It JUMPS
+    to dodge incoming punches (airborne it is immune to knockback) and backs away
+    from edges, so a reliable turtle can be neither knocked off nor baited off —
+    the match times out to a DRAW (a Player loss). The HIGH end of the dial
+    therefore slides the Player's win-rate down toward 0.0. Without this the base
+    scripted heuristic is fully exploitable and the high end pins at 1.0.
 
-    Together the two levers make the Player's win-rate a smooth, monotone
-    function of ``difficulty`` (high -> low) with a real learnable band in the
-    middle, instead of the 1.0/0.0 cliff a fixed-strength opponent produces.
+    The two levers OVERLAP in the ``[STRONG_START, WEAK_ZERO]`` band (epsilon
+    fading out while the turtle fades in), which is what makes the Player's
+    win-rate a smooth, monotone function of ``difficulty`` (1.0 -> 0.0) with 2-3
+    values in the learnable band, instead of the 1.0/0.0 cliff a fixed-strength
+    opponent produces.
 
     ``difficulty`` defaults to ``arena.difficulty`` so wiring is a single field
-    on the arena. The fail-branch is driven by a SEEDED RNG, so a fixed seed
-    replays identically — determinism is preserved.
+    on the arena. Every stochastic choice (eps roll, per-match dodge draw, dodge
+    rolls) is driven by a SEEDED RNG, so a fixed seed replays identically —
+    determinism is preserved.
 
-    At ``difficulty=1.0`` epsilon is 0; the competent branch is a hardened
-    (fortress) scripted defender. ``scripted_fighter`` (the unmodified, fully
+    At ``difficulty=1.0`` epsilon is 0 and the turtle dodges perfectly: an
+    undefeatable draw machine. ``scripted_fighter`` (the unmodified, fully
     aggressive heuristic) remains the strong reference for the gap proxy.
     """
     d = float(min(1.0, max(0.0, arena.difficulty if difficulty is None else difficulty)))
     eps = epsilon_for_difficulty(d)
+    base_dodge = dodge_reliability_for_difficulty(d)
     w = arena.platform_width
+    centre = w / 2.0
     reach = arena.punch_range + arena.fighter_half_width
-    # Defensive competence scales with difficulty.
-    margin_frac = DEF_MARGIN_FRAC_LOW + (DEF_MARGIN_FRAC_HIGH - DEF_MARGIN_FRAC_LOW) * d
-    edge_margin = max(1.0, margin_frac * w)
-    # Pursuit-discipline ramps in smoothly over the upper dial. ``hold_prob`` is
-    # the per-step probability the opponent REFUSES the bait (holds toward centre
-    # instead of chasing the Player to an edge). 0 below d=0.4 (base scripted
-    # "always chase"), ramping to 1 at d=1.0. A *probability* (not a hard switch
-    # at d=0.5) is what removes the mid-dial cliff: the opponent's positional
-    # discipline — and the Player's win-rate against it — slides instead of snaps.
-    hold_prob = max(0.0, (d - 0.4) / 0.6)
+    edge_keepout = max(1.0, 0.2 * w)  # how far from an edge the turtle turns back
     rng = np.random.default_rng(seed)
+
+    # Per-MATCH effective dodge reliability, drawn ONCE here (so it is constant
+    # within a match but varies across seeds). The spread tapers to 0 as the
+    # base dodge saturates -> the top of the dial is a clean, variance-free draw.
+    eff_spread = DODGE_SPREAD * (1.0 - base_dodge)
+    dodge = float(np.clip(base_dodge + (rng.random() - 0.5) * eff_spread, 0.0, 1.0))
+
+    base_scripted = scripted_fighter(arena, ego=ego)
 
     def _step_toward_own_edge(obs: np.ndarray) -> int:
         # Walk toward whichever platform edge is nearer to ME — a self-inflicted
         # ring-out that resolves the match as a Player win regardless of what the
         # Player does. Keeps the low-difficulty curve monotone and draw-free.
         me_x = obs[0] * w
-        return int(Action.LEFT) if me_x <= (w / 2.0) else int(Action.RIGHT)
+        return int(Action.LEFT) if me_x <= centre else int(Action.RIGHT)
 
     def _competent(obs: np.ndarray) -> int:
         me_x = obs[0] * w
-        opp_x = obs[3] * w
         rel = obs[10] * w  # opp.x - me.x
-        # 1. Self-preservation: away from my own nearest edge (margin scales up
-        #    with difficulty -> fortress at the top of the dial).
-        if me_x <= edge_margin:
+        on_ground = obs[6] > 0.5
+        # 1. DODGE: if an incoming punch could connect (opponent within reach)
+        #    and we're grounded, JUMP with probability ``dodge`` to go airborne
+        #    and dodge the knockback (same-height check in _resolve_punch). This
+        #    is the turtle's core: the more reliably it dodges, the less the
+        #    Player can knock it off, the more matches draw.
+        if on_ground and abs(rel) <= reach + 0.6 and rng.random() < dodge:
+            return int(Action.JUMP)
+        # 2. Edge keep-out: never walk off our own edge.
+        if me_x <= edge_keepout:
             return int(Action.RIGHT)
-        if me_x >= w - edge_margin:
+        if me_x >= w - edge_keepout:
             return int(Action.LEFT)
-        # 2. In range and facing -> punch.
-        if abs(rel) <= reach:
-            return int(Action.PUNCH)
-        # 3. Pursuit. With probability ``hold_prob`` (rising with difficulty)
-        #    hold toward centre instead of chasing the Player to the edge
-        #    (refusing the bait); otherwise chase like the base scripted heuristic.
-        if hold_prob > 0.0 and rng.random() < hold_prob:
-            if me_x < (w / 2.0) - 1.0:
-                return int(Action.RIGHT)
-            if me_x > (w / 2.0) + 1.0:
-                return int(Action.LEFT)
-            return int(Action.IDLE)
-        return int(Action.RIGHT) if opp_x > me_x else int(Action.LEFT)
+        # 3. Refuse the bait: with probability ``dodge`` hold toward centre
+        #    (back away from the Player) instead of chasing it to an edge; else
+        #    play the base scripted heuristic (aggressive, exploitable).
+        if rng.random() < dodge:
+            if rel > 0:  # opponent to my right -> step away (left), unless that edges me
+                return int(Action.LEFT) if me_x > centre else int(Action.RIGHT)
+            return int(Action.RIGHT) if me_x < centre else int(Action.LEFT)
+        return int(base_scripted(obs))
 
     def act(obs: np.ndarray) -> int:
         if eps > 0.0 and rng.random() < eps:

@@ -190,8 +190,15 @@ def test_action_enum_is_extensible():
 
 
 def test_adapter_scores_scripted_high_random_low():
+    # The strong-beats-weak gap is a property of the LEARNABLE band, not the full
+    # dial. At difficulty=1.0 on the DEFAULT geometry the parametric opponent is
+    # the impenetrable jump_turtle, which DRAWS everyone (scripted and random
+    # alike -> both 0.0) — that is the intended high end of the smooth win-rate
+    # slide, not a bug. So we assert the gap on a mid-band difficulty where
+    # scripted still wins big (opponent self-edges / is exploitable) and random
+    # still loses. See dodge_reliability_for_difficulty / WEAK_ZERO in fighter.py.
     adapter = FighterGameAdapter(eval_seeds=20)
-    arenas = adapter.arenas_from_configs([FighterArena()], curriculum_id="t")
+    arenas = adapter.arenas_from_configs([FighterArena(difficulty=0.5)], curriculum_id="t")
     strong = adapter.evaluate(adapter.scripted_expert(), arenas)
     weak = adapter.evaluate(adapter.random_policy(), arenas)
     assert "scripted_expert" in strong
@@ -220,22 +227,31 @@ def test_adapter_build_from_curriculum_spec():
 
 
 def test_adapter_evaluate_through_real_scorer():
-    # The ONE frozen scorer must run end-to-end on the real fighter adapter and
-    # produce a positive gap-proxy reward (scripted high, random low, in band).
+    # The ONE frozen scorer must run end-to-end on the real fighter adapter.
+    #
+    # This test is now DIFFICULTY-AWARE. With the graded opponent, a *weak*
+    # (low-difficulty) arena legitimately lets random score high (the opponent
+    # self-edges itself off), so the old blanket `weak <= 0.2` no longer holds at
+    # low difficulty. Rather than delete the assertion, we move it to the
+    # FULL-STRENGTH opponent (difficulty=1.0): there the opponent never
+    # self-sabotages and plays its hardest, so random — which cannot execute a
+    # ring-out on a competent opponent — must STILL score low. Scripted, which
+    # can exploit the spec-geometry's high knockback, still scores high. So the
+    # strong-high / weak-low gap survives at the top of the dial; it is only the
+    # *low* end that the graded opponent opens up.
     from harness.scoring import score_curriculum
 
     spec = CurriculumSpec(
         game_id="fighter",
         curriculum_id="score-test",
-        arenas=[ArenaSpec(map_size=9, doors=0, keys=0, hazard_density=0.0, difficulty=0.3)],
+        arenas=[ArenaSpec(map_size=9, doors=0, keys=0, hazard_density=0.0, difficulty=1.0)],
     )
     adapter = FighterGameAdapter(eval_seeds=20)
     result = score_curriculum(spec, adapter, mode="gap_proxy")
     assert result.strong_score >= 0.8
-    assert result.weak_score <= 0.2
-    # p = weak_score is near 0 here, so p*(1-p) ~ 0 < 0.2 band threshold ->
-    # reward gated to 0.0. The scorer still runs cleanly end-to-end, which is
-    # what this asserts (the band gate is a property of the scorer, not a bug).
+    assert result.weak_score <= 0.2  # full-strength opponent: random still can't win
+    assert result.p == result.weak_score
+    assert 0.0 <= result.reward <= 1.0
     assert result.curriculum_id == "score-test"
     assert result.mode == "gap_proxy"
 
