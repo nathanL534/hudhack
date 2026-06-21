@@ -763,6 +763,20 @@ async function buildDropdown(files) {
   ph.value = ""; ph.textContent = "— pick a match —";
   sel.appendChild(ph);
 
+  // ★ Pinned featured demo clip — locked safe name (`_DEMO_`) the running h2h
+  // batches never overwrite, so the demo always has a guaranteed win clip.
+  const demoOpt = document.createElement("option");
+  demoOpt.value = "h2h_fighter_DEMO_trained_win.json";
+  demoOpt.textContent = "★ DEMO · Trained Student WINS (ring-out)";
+  sel.appendChild(demoOpt);
+
+  // ★ KOTH cross-game shot — held-out game the Teacher never trained on; the
+  //   trained Student held the hill 200–0. This is the generalization money clip.
+  const kothOpt = document.createElement("option");
+  kothOpt.value = "demo_locked/KOTH_trainedwin.json";
+  kothOpt.textContent = "★ KOTH · Trained DOMINATES held-out game (200–0)";
+  sel.appendChild(kothOpt);
+
   const titles = { ringout: "Ring-Out Duel", tk: "Target Knockback", koth: "King of the Hill" };
   for (const k of ["ringout", "tk", "koth"]) {
     const list = groups[k];
@@ -2356,9 +2370,12 @@ setReplay(DEFAULT_REPLAY, "inline-demo");
     let pick = null;
     if (wantFile) {
       pick = manifestEntries.find(e => e.file === wantFile) ||
-             manifestEntries.find(e => e.file.includes(wantFile));
+             manifestEntries.find(e => e.file.includes(wantFile)) ||
+             { file: wantFile };   // allow direct-loading any path (e.g. demo_locked/KOTH_trainedwin.json)
     }
+    // Default to the pinned DEMO win clip (locked safe name) unless ?r= overrides.
     pick = pick ||
+      (!wantFile ? (manifestEntries.find(e => e.file === "h2h_fighter_DEMO_trained_win.json") || { file: "h2h_fighter_DEMO_trained_win.json" }) : null) ||
       manifestEntries.find(e => /h2h_fighter_draw_trained_as_P1/.test(e.file)) ||
       manifestEntries.find(e => /h2h_fighter_draw/.test(e.file)) ||
       manifestEntries.find(e => e.key === "ringout");

@@ -1,0 +1,718 @@
+{
+  "experiment": "behavior_diverse_anti_collapse_ring_out",
+  "run_id": "behavior-diverse-B256-final",
+  "app_name": "crucible-teacher-trainer-behavior-diverse-B256-final",
+  "adapter_volume_path": "/adapters/behavior-diverse-B256-final",
+  "output_dir": "/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/output/contingency_behavior-diverse-B256-final",
+  "model": "Qwen/Qwen3-4B",
+  "gpu": "A100-40GB",
+  "anti_collapse": {
+    "oversample": 16,
+    "target": 8,
+    "min_unique": 4,
+    "max_retries": 2,
+    "novelty_weight": 0.1,
+    "behavior_gate": "movement>=0.10 AND punch<=0.90 AND real_ringout_win_rate>=0.20",
+    "duplicate_reward": 0.0
+  },
+  "updates": 2,
+  "temperature": 1.5,
+  "lr": 3e-05,
+  "lr_schedule": "linear_decay",
+  "kl_coef": 0.01,
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "student_cfg_preset": "focused256_anti",
+  "student_cfg": {
+    "arch": [
+      256,
+      256
+    ],
+    "opponent_league_enabled": true,
+    "opponent_league": [
+      {
+        "id": "aggressive",
+        "weight": 0.7
+      },
+      {
+        "id": "prior_student",
+        "weight": 0.3
+      }
+    ],
+    "decisive_reward": true,
+    "ent_coef": 0.03,
+    "prior_student_path": "/root/prior_student.json",
+    "behavior_probe": true
+  },
+  "seed_scheme": {
+    "seed_rotation": true,
+    "seed_base": 10000,
+    "validation_seeds": [
+      1,
+      2,
+      3
+    ]
+  },
+  "ring_out": {
+    "n_reward_seeds": 3,
+    "ppo_episodes": 1500,
+    "eval_seeds": 50,
+    "n_held_out_arenas": 15
+  },
+  "n_updates_skipped": 0,
+  "last_saved_adapter": "update2",
+  "grad_norms": [
+    38.837554931640625,
+    41.02125930786133
+  ],
+  "total_wall_s": 513.3,
+  "adapter_volume": "crucible-teacher-lora",
+  "history": [
+    {
+      "step": 1,
+      "tag": "update1",
+      "skipped": false,
+      "select_diag": {
+        "skipped": false,
+        "attempts": [
+          {
+            "attempt": 0,
+            "seed": 1010,
+            "n_candidates": 16,
+            "n_valid_parsed": 16,
+            "n_distinct_in_pool": 7,
+            "selected": true,
+            "n_unique_selected": 7
+          }
+        ],
+        "n_selected": 8,
+        "n_unique_selected": 7,
+        "winning_attempt": 0
+      },
+      "n_unique_selected": 7,
+      "signed_improvements": [
+        0.468,
+        0.5982,
+        0.5613,
+        0.5098,
+        0.5982,
+        0.5098,
+        0.5613,
+        0.5578
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "adjusted_rewards": [
+        0.4814,
+        0.6143,
+        0.5733,
+        0.5224,
+        0.6131,
+        0.5197,
+        0.5735,
+        0.0
+      ],
+      "advantages": [
+        -0.0306,
+        0.6717,
+        0.455,
+        0.1858,
+        0.665,
+        0.1715,
+        0.4557,
+        -2.5743
+      ],
+      "reward_std": 0.1893,
+      "reward_diags": [
+        {
+          "raw_improvement": 0.468,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.468,
+          "novelty_mean_distance": 0.1342,
+          "novelty_bonus": 0.0134,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.4814,
+          "behavior_diag": {
+            "movement_fraction": 0.29060858330422296,
+            "punch_fraction": 0.7093914166957771,
+            "real_ringout_win_rate": 0.5111111111111111,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5982,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5982,
+          "novelty_mean_distance": 0.1614,
+          "novelty_bonus": 0.0161,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.6143,
+          "behavior_diag": {
+            "movement_fraction": 0.610453936588808,
+            "punch_fraction": 0.389546063411192,
+            "real_ringout_win_rate": 0.7999999999999999,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5613,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5613,
+          "novelty_mean_distance": 0.1203,
+          "novelty_bonus": 0.012,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5733,
+          "behavior_diag": {
+            "movement_fraction": 0.8339156616332875,
+            "punch_fraction": 0.16608433836671255,
+            "real_ringout_win_rate": 0.5555555555555555,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5098,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5098,
+          "novelty_mean_distance": 0.1256,
+          "novelty_bonus": 0.0126,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5224,
+          "behavior_diag": {
+            "movement_fraction": 0.6020787628516583,
+            "punch_fraction": 0.39792123714834177,
+            "real_ringout_win_rate": 0.6666666666666666,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5982,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5982,
+          "novelty_mean_distance": 0.1487,
+          "novelty_bonus": 0.0149,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.6131,
+          "behavior_diag": {
+            "movement_fraction": 0.610453936588808,
+            "punch_fraction": 0.389546063411192,
+            "real_ringout_win_rate": 0.7999999999999999,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5098,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5098,
+          "novelty_mean_distance": 0.0987,
+          "novelty_bonus": 0.0099,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5197,
+          "behavior_diag": {
+            "movement_fraction": 0.6020787628516583,
+            "punch_fraction": 0.39792123714834177,
+            "real_ringout_win_rate": 0.6666666666666666,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5613,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5613,
+          "novelty_mean_distance": 0.1216,
+          "novelty_bonus": 0.0122,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5735,
+          "behavior_diag": {
+            "movement_fraction": 0.8339156616332875,
+            "punch_fraction": 0.16608433836671255,
+            "real_ringout_win_rate": 0.5555555555555555,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5578,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5578,
+          "novelty_mean_distance": 0.0987,
+          "novelty_bonus": 0.0099,
+          "is_exact_duplicate": true,
+          "adjusted_reward": 0.0,
+          "behavior_diag": {
+            "movement_fraction": 0.48983716358859924,
+            "punch_fraction": 0.5101628364114007,
+            "real_ringout_win_rate": 0.6,
+            "n_seeds_probed": 3
+          }
+        }
+      ],
+      "behavior_summary": {
+        "n_behavior_pass": 8,
+        "n_dups_zeroed": 1,
+        "movement_fraction": [
+          0.2906,
+          0.6105,
+          0.8339,
+          0.6021,
+          0.6105,
+          0.6021,
+          0.8339,
+          0.4898
+        ],
+        "punch_fraction": [
+          0.7094,
+          0.3895,
+          0.1661,
+          0.3979,
+          0.3895,
+          0.3979,
+          0.1661,
+          0.5102
+        ],
+        "real_ringout_win_rate": [
+          0.5111,
+          0.8,
+          0.5556,
+          0.6667,
+          0.8,
+          0.6667,
+          0.5556,
+          0.6
+        ]
+      },
+      "params": [
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 6.0
+        },
+        {
+          "difficulty": 0.7,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.65,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.5,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.7,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.5,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        }
+      ],
+      "arena_diversity": {
+        "n_valid": 8,
+        "difficulty_mean": 0.6312,
+        "difficulty_std": 0.0428,
+        "difficulty_unique": 3,
+        "knob_std": {
+          "difficulty": 0.0428,
+          "gravity": 0.0,
+          "knockback": 0.2165,
+          "platform_width": 1.299,
+          "spawn_gap": 0.3307
+        }
+      },
+      "completions_preview": [
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 6.0\n}",
+        "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.5,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}"
+      ],
+      "update_stats": {
+        "loss": 0.760080099105835,
+        "grad_norm": 38.837554931640625,
+        "games": [
+          "ring_out"
+        ],
+        "n_completions": 8,
+        "lr_scale": 1.0,
+        "effective_lr": 3e-05,
+        "kl_coef": 0.01,
+        "kl_to_base": 0.0,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -2.5408
+        }
+      },
+      "adapter_path": "/adapters/behavior-diverse-B256-final/update1",
+      "train_seeds": [
+        10000,
+        10001,
+        10002
+      ],
+      "score_wall_s": 217.4
+    },
+    {
+      "step": 2,
+      "tag": "update2",
+      "skipped": false,
+      "select_diag": {
+        "skipped": false,
+        "attempts": [
+          {
+            "attempt": 0,
+            "seed": 1020,
+            "n_candidates": 16,
+            "n_valid_parsed": 16,
+            "n_distinct_in_pool": 7,
+            "selected": true,
+            "n_unique_selected": 7
+          }
+        ],
+        "n_selected": 8,
+        "n_unique_selected": 7,
+        "winning_attempt": 0
+      },
+      "n_unique_selected": 7,
+      "signed_improvements": [
+        0.5524,
+        0.5711,
+        0.5458,
+        0.5618,
+        0.5018,
+        0.56,
+        0.4756,
+        0.4849
+      ],
+      "statuses": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "adjusted_rewards": [
+        0.5682,
+        0.583,
+        0.5578,
+        0.5771,
+        0.5124,
+        0.5726,
+        0.4871,
+        0.0
+      ],
+      "advantages": [
+        0.4643,
+        0.5445,
+        0.4083,
+        0.5126,
+        0.1628,
+        0.4879,
+        0.026,
+        -2.6064
+      ],
+      "reward_std": 0.185,
+      "reward_diags": [
+        {
+          "raw_improvement": 0.5524,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5524,
+          "novelty_mean_distance": 0.1579,
+          "novelty_bonus": 0.0158,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5682,
+          "behavior_diag": {
+            "movement_fraction": 0.4376866455477249,
+            "punch_fraction": 0.5623133544522751,
+            "real_ringout_win_rate": 0.7777777777777778,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5711,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5711,
+          "novelty_mean_distance": 0.1192,
+          "novelty_bonus": 0.0119,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.583,
+          "behavior_diag": {
+            "movement_fraction": 0.5456853417167088,
+            "punch_fraction": 0.45431465828329115,
+            "real_ringout_win_rate": 0.7777777777777778,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5458,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5458,
+          "novelty_mean_distance": 0.1202,
+          "novelty_bonus": 0.012,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5578,
+          "behavior_diag": {
+            "movement_fraction": 0.48736058368016005,
+            "punch_fraction": 0.5126394163198399,
+            "real_ringout_win_rate": 0.6666666666666666,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5618,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5618,
+          "novelty_mean_distance": 0.1533,
+          "novelty_bonus": 0.0153,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5771,
+          "behavior_diag": {
+            "movement_fraction": 0.578804641685773,
+            "punch_fraction": 0.4211953583142271,
+            "real_ringout_win_rate": 0.7999999999999999,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.5018,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.5018,
+          "novelty_mean_distance": 0.1059,
+          "novelty_bonus": 0.0106,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5124,
+          "behavior_diag": {
+            "movement_fraction": 0.3151589843135008,
+            "punch_fraction": 0.6848410156864992,
+            "real_ringout_win_rate": 0.6888888888888888,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.56,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.56,
+          "novelty_mean_distance": 0.1256,
+          "novelty_bonus": 0.0126,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.5726,
+          "behavior_diag": {
+            "movement_fraction": 0.5045746491100273,
+            "punch_fraction": 0.4954253508899728,
+            "real_ringout_win_rate": 0.7333333333333334,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.4756,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.4756,
+          "novelty_mean_distance": 0.1148,
+          "novelty_bonus": 0.0115,
+          "is_exact_duplicate": false,
+          "adjusted_reward": 0.4871,
+          "behavior_diag": {
+            "movement_fraction": 0.7812298669808296,
+            "punch_fraction": 0.21877013301917025,
+            "real_ringout_win_rate": 0.6,
+            "n_seeds_probed": 3
+          }
+        },
+        {
+          "raw_improvement": 0.4849,
+          "behavior_pass": true,
+          "behavior_gated_improvement": 0.4849,
+          "novelty_mean_distance": 0.1059,
+          "novelty_bonus": 0.0106,
+          "is_exact_duplicate": true,
+          "adjusted_reward": 0.0,
+          "behavior_diag": {
+            "movement_fraction": 0.3355384184010474,
+            "punch_fraction": 0.6644615815989526,
+            "real_ringout_win_rate": 0.7777777777777778,
+            "n_seeds_probed": 3
+          }
+        }
+      ],
+      "behavior_summary": {
+        "n_behavior_pass": 8,
+        "n_dups_zeroed": 1,
+        "movement_fraction": [
+          0.4377,
+          0.5457,
+          0.4874,
+          0.5788,
+          0.3152,
+          0.5046,
+          0.7812,
+          0.3355
+        ],
+        "punch_fraction": [
+          0.5623,
+          0.4543,
+          0.5126,
+          0.4212,
+          0.6848,
+          0.4954,
+          0.2188,
+          0.6645
+        ],
+        "real_ringout_win_rate": [
+          0.7778,
+          0.7778,
+          0.6667,
+          0.8,
+          0.6889,
+          0.7333,
+          0.6,
+          0.7778
+        ]
+      },
+      "params": [
+        {
+          "difficulty": 0.7,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 6.0
+        },
+        {
+          "difficulty": 0.7,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.7,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 6.0
+        },
+        {
+          "difficulty": 0.65,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.2,
+          "spawn_gap": 6.0
+        },
+        {
+          "difficulty": 0.6,
+          "platform_width": 18.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        }
+      ],
+      "arena_diversity": {
+        "n_valid": 8,
+        "difficulty_mean": 0.6437,
+        "difficulty_std": 0.0464,
+        "difficulty_unique": 3,
+        "knob_std": {
+          "difficulty": 0.0464,
+          "gravity": 0.0,
+          "knockback": 0.0661,
+          "platform_width": 1.299,
+          "spawn_gap": 0.4841
+        }
+      },
+      "completions_preview": [
+        "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 6.0\n}",
+        "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 15.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}",
+        "{\n  \"difficulty\": 0.7,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 6.0\n}",
+        "{\n  \"difficulty\": 0.65,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.2,\n  \"spawn_gap\": 6.0\n}",
+        "{\n  \"difficulty\": 0.6,\n  \"platform_width\": 18.0,\n  \"gravity\": 0.8,\n  \"knockback\": 3.0,\n  \"spawn_gap\": 5.0\n}"
+      ],
+      "update_stats": {
+        "loss": 0.28719562292099,
+        "grad_norm": 41.02125930786133,
+        "games": [
+          "ring_out"
+        ],
+        "n_completions": 8,
+        "lr_scale": 0.5,
+        "effective_lr": 1.5e-05,
+        "kl_coef": 0.01,
+        "kl_to_base": 0.836765,
+        "mean_completion_logprob_by_game": {
+          "ring_out": -2.6685
+        }
+      },
+      "adapter_path": "/adapters/behavior-diverse-B256-final/update2",
+      "train_seeds": [
+        10003,
+        10004,
+        10005
+      ],
+      "score_wall_s": 230.7
+    }
+  ]
+}

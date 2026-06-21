@@ -4,10 +4,10 @@
 
 ## Headline verdict: FAIL
 
-- trained-Student win rate: **0.4740**  vs base-Student **0.3480**  (draw 0.1780)
-- mean paired advantage: **+0.1260**
-- curriculum-level 95% CI: **[-0.1374, +0.3894]** over 5 independent replicates (lower bound must be > 0)
-- effect size (Cohen's d): **0.5938**
+- trained-Student win rate: **0.4480**  vs base-Student **0.4180**  (draw 0.1340)
+- mean paired advantage: **+0.0300**
+- curriculum-level 95% CI: **[-0.3215, +0.3815]** over 5 independent replicates (lower bound must be > 0)
+- effect size (Cohen's d): **0.106**
 - anti-circularity checks passed: **False**
 - OVERALL HEADLINE (advantage>0 AND CI lower>0 AND anti-circularity): **False**
 
@@ -15,24 +15,24 @@
 
 ## Side-bias & per-arena-family
 
-- trained-Student win rate as P0: **0.4600**  as P1: **0.4880** (a real edge is side-symmetric)
+- trained-Student win rate as P0: **0.6280**  as P1: **0.2680** (a real edge is side-symmetric)
 
 | arena family | trained paired advantage |
 |---|---|
-| narrow_ledge | -0.3200 |
-| wide_arena | +0.2900 |
-| floaty_lowg | +0.4100 |
-| heavy_knock | +0.4100 |
-| high_grav | -0.1600 |
+| narrow_ledge | +0.0600 |
+| wide_arena | -0.1900 |
+| floaty_lowg | +0.1500 |
+| heavy_knock | +0.0800 |
+| high_grav | +0.0500 |
 
 ## Anti-circularity checks (primary)
 
 | check | result | detail |
 |---|---|---|
-| ci_lower_above_zero | FAIL | paired-advantage mean +0.1260, 95% CI lower bound -0.1374 <= 0 |
-| no_side_bias | PASS | trained win-rate P0=0.4600 P1=0.4880 (gap 0.0280, limit 0.25) |
-| multi_arena_benefit | PASS | trained Student ahead on 3/5 arena families (need >1) |
-| distinct_students | PASS | base and trained Students have distinct policy weights: base=92fa9e43a09e2db0 trained=a06ac88715e2d8c0 |
+| ci_lower_above_zero | FAIL | paired-advantage mean +0.0300, 95% CI lower bound -0.3215 <= 0 |
+| no_side_bias | FAIL | trained win-rate P0=0.6280 P1=0.2680 (gap 0.3600, limit 0.25) — side-position dependency detected |
+| multi_arena_benefit | PASS | trained Student ahead on 4/5 arena families (need >1) |
+| distinct_students | PASS | base and trained Students have distinct policy weights: base=52bc844159f44ef1 trained=57b33ba292dade6f |
 | disjoint_held_out | PASS | 0 held-out arena(s) overlap a Teacher's curriculum (must be 0 — no training-on-the-test) |
 | enough_replicates | PASS | 5 independent curriculum replicate(s) (need >1 for a curriculum-level CI) |
 
@@ -40,30 +40,30 @@
 
 | replicate | trained win | base win | draw | paired adv | overlap |
 |---|---|---|---|---|---|
-| 0 | 0.420 | 0.410 | 0.170 | +0.0100 | 0 |
-| 1 | 0.430 | 0.310 | 0.260 | +0.1200 | 0 |
-| 2 | 0.540 | 0.290 | 0.170 | +0.2500 | 0 |
-| 3 | 0.590 | 0.190 | 0.220 | +0.4000 | 0 |
-| 4 | 0.390 | 0.540 | 0.070 | -0.1500 | 0 |
+| 0 | 0.260 | 0.630 | 0.110 | -0.3700 | 0 |
+| 1 | 0.650 | 0.280 | 0.070 | +0.3700 | 0 |
+| 2 | 0.380 | 0.430 | 0.190 | -0.0500 | 0 |
+| 3 | 0.410 | 0.430 | 0.160 | -0.0200 | 0 |
+| 4 | 0.540 | 0.320 | 0.140 | +0.2200 | 0 |
 
 ## Run
 
 - game: `fighter`  backend: `modal`
 - base handle: `modal:base` -> `modal:Qwen/Qwen3-4B`
-- trained handle: `modal:leagueB128/update3` -> `modal:Qwen/Qwen3-4B+leagueB128/update3`
-- config fingerprint: `7ba2fd4e9495` (replicates=5, curriculum_arenas=4, match_seeds/arena/side=10, ppo_episodes=1500)
+- trained handle: `modal:leagueB256/update3` -> `modal:Qwen/Qwen3-4B+leagueB256/update3`
+- config fingerprint: `c389af9adda4` (replicates=5, curriculum_arenas=4, match_seeds/arena/side=10, ppo_episodes=1500)
 
 ## Secondary transfer diagnostic (fixed-bot before→after)
 
 > Evidence only — a fresh PPO Player trains on each Teacher's arena and is scored on a fixed held-out reference set. Does NOT set the headline.
 
-- trained beats base on fixed-bot transfer: **False** (delta -0.0127)
+- trained beats base on fixed-bot transfer: **True** (delta +0.0570)
 - secondary anti-gaming passed: **False**
 
 | model | mean transfer | std | 95% CI | n |
 |---|---|---|---|---|
-| base | +0.2170 | 0.1661 | [+0.1484, +0.2855] | 25 |
-| trained | +0.2043 | 0.1000 | [+0.1630, +0.2455] | 25 |
+| base | +0.1831 | 0.1496 | [+0.1131, +0.2531] | 20 |
+| trained | +0.2401 | 0.1334 | [+0.1662, +0.3139] | 15 |
 
 ## Charts
 
