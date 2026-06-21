@@ -206,7 +206,12 @@ def _delete_deployment(fw, deployment_id: str) -> bool:
         print(f"==> Teardown: deleting deployment '{dep_id}' "
               f"(base={d.base_model}, state={d.state}) ...")
         try:
-            fw.deployments.delete(dep_id)
+            # ignore_checks=True forces deletion even though we JUST sent a test
+            # inference; without it Fireworks rejects the delete for an hour with
+            # "deployment has received inference requests in the last hour", which
+            # would leave the deployment UP and billing (~$7/hr). Teardown must
+            # always win over that guard.
+            fw.deployments.delete(dep_id, ignore_checks=True)
             print(f"    deleted: {dep_id}")
             ok = True
         except Exception as e:  # noqa: BLE001 - report honestly, keep going
@@ -416,8 +421,11 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
                    help="max seconds to wait for READY (default: 600)")
     p.add_argument("--min-replicas", type=int, default=1,
                    help="min replica count; 1 keeps it warm (default: 1)")
-    p.add_argument("--accelerator", default="",
-                   help="accelerator type, e.g. NVIDIA_H100_80GB (default: Fireworks default)")
+    p.add_argument("--accelerator", default="NVIDIA_H100_80GB",
+                   help="accelerator type (default: NVIDIA_H100_80GB). Fireworks now "
+                        "REQUIRES accelerator_type for non-embeddings engines, so an "
+                        "empty value is rejected at create time; pass '' to force the "
+                        "(now-rejected) Fireworks default shape.")
     p.add_argument("--no-teardown", action="store_true",
                    help="do NOT delete the deployment at the end (it keeps billing)")
     p.add_argument("--teardown-only", metavar="ID", default=None,
