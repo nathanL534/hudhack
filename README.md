@@ -1,4 +1,4 @@
-# Crucible
+# Dojo
 
 An LLM **Teacher** learns to generate *learnable* gridworld RL environments.
 The Teacher is rewarded by the **strong-vs-weak score gap** on the envs it
