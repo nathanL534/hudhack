@@ -114,6 +114,33 @@ def test_real_init_contract_accepts_and_finishes_background_rollout():
     assert reports[0][1]["teacher_params"]["arena_width"] == 30.0
 
 
+def test_debug_result_exposes_reward_without_request_or_credentials():
+    app = create_ep_app(
+        bounds=BOUNDS,
+        scorer=lambda params: params["opponent_strength"],
+        client_factory=fake_client_factory,
+        reporter=lambda *_: None,
+        live_tracing=False,
+    )
+    with TestClient(app) as client:
+        client.post("/init", json=make_request().model_dump(mode="json"))
+        for _ in range(50):
+            response = client.get("/debug/result/rollout-1")
+            if response.json()["status"] == "finished":
+                break
+            import time
+
+            time.sleep(0.01)
+
+    body = response.json()
+    assert body == {
+        "status": "finished",
+        "rollout_id": "rollout-1",
+        "reward": 0.4,
+        "params": {"opponent_strength": 0.4, "arena_width": 30.0},
+    }
+
+
 def test_eval_protocol_evaluator_reads_hud_reward():
     row = EvaluationRow()
     row.execution_metadata.extra = {"hud_reward": 0.73}

@@ -1,12 +1,12 @@
 {
   "meta": {
     "game": "ring-out-duel",
-    "config": "A",
-    "winner": "p2",
-    "frames": 18,
-    "p1_policy": "trained_ppo",
-    "p2_policy": "scripted",
-    "seed": 101,
+    "config": "d0.4",
+    "winner": "p1",
+    "frames": 20,
+    "p1_policy": "scripted",
+    "p2_policy": "parametric@0.4",
+    "seed": 15,
     "schema": 1
   },
   "platform": {
@@ -17,107 +17,91 @@
   "frames": [
     {
       "p1": {
-        "x": 6.2248,
-        "y": 0.0,
-        "facing": 1,
-        "action": "idle"
-      },
-      "p2": {
-        "x": 2.3377,
+        "x": 8.4659,
         "y": 0.0,
         "facing": -1,
         "action": "idle"
       },
+      "p2": {
+        "x": 5.0804,
+        "y": 0.0,
+        "facing": -1,
+        "action": "idle"
+      },
       "events": []
     },
     {
       "p1": {
-        "x": 6.2248,
+        "x": 8.1159,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.4304,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.7659,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 5.7804,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.4159,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 6.1304,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 7.4159,
         "y": 0.0,
         "facing": -1,
         "action": "punch"
       },
       "p2": {
-        "x": 2.6877,
-        "y": 0.0,
-        "facing": 1,
-        "action": "right"
-      },
-      "events": [
-        "p1_punch"
-      ]
-    },
-    {
-      "p1": {
-        "x": 5.8748,
-        "y": 0.0,
-        "facing": -1,
-        "action": "left"
-      },
-      "p2": {
-        "x": 3.0377,
-        "y": 0.0,
-        "facing": 1,
-        "action": "right"
-      },
-      "events": []
-    },
-    {
-      "p1": {
-        "x": 5.5248,
-        "y": 0.0,
-        "facing": -1,
-        "action": "left"
-      },
-      "p2": {
-        "x": 3.3877,
-        "y": 0.0,
-        "facing": 1,
-        "action": "right"
-      },
-      "events": []
-    },
-    {
-      "p1": {
-        "x": 5.1748,
-        "y": 0.0,
-        "facing": -1,
-        "action": "left"
-      },
-      "p2": {
-        "x": 3.7377,
-        "y": 0.0,
-        "facing": 1,
-        "action": "right"
-      },
-      "events": []
-    },
-    {
-      "p1": {
-        "x": 7.3248,
-        "y": 0.0,
-        "facing": -1,
-        "action": "left"
-      },
-      "p2": {
-        "x": 3.7377,
+        "x": 3.6304,
         "y": 0.0,
         "facing": 1,
         "action": "punch"
       },
       "events": [
+        "p1_punch",
         "p2_punch"
       ]
     },
     {
       "p1": {
-        "x": 6.9748,
+        "x": 7.0659,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 4.0877,
+        "x": 3.9804,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -126,13 +110,28 @@
     },
     {
       "p1": {
-        "x": 6.6248,
+        "x": 6.7159,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 4.4377,
+        "x": 3.6304,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 6.3659,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 3.9804,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -141,13 +140,28 @@
     },
     {
       "p1": {
-        "x": 6.2748,
+        "x": 6.0159,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 4.7877,
+        "x": 3.6304,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 5.6659,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 3.9804,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -156,30 +170,31 @@
     },
     {
       "p1": {
-        "x": 8.4248,
+        "x": 5.6659,
         "y": 0.0,
         "facing": -1,
-        "action": "left"
+        "action": "punch"
       },
       "p2": {
-        "x": 4.7877,
+        "x": 1.4804,
         "y": 0.0,
         "facing": 1,
         "action": "punch"
       },
       "events": [
+        "p1_punch",
         "p2_punch"
       ]
     },
     {
       "p1": {
-        "x": 8.0748,
+        "x": 5.3159,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 5.1377,
+        "x": 1.8304,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -188,13 +203,13 @@
     },
     {
       "p1": {
-        "x": 7.7248,
+        "x": 4.9659,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 5.4877,
+        "x": 2.1804,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -203,13 +218,13 @@
     },
     {
       "p1": {
-        "x": 7.3748,
+        "x": 4.6159,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 5.8377,
+        "x": 2.5304,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -218,30 +233,46 @@
     },
     {
       "p1": {
-        "x": 9.5248,
+        "x": 4.2659,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 5.8377,
+        "x": 2.8804,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 4.2659,
+        "y": 0.0,
+        "facing": -1,
+        "action": "punch"
+      },
+      "p2": {
+        "x": 0.3804,
         "y": 0.0,
         "facing": 1,
         "action": "punch"
       },
       "events": [
+        "p1_punch",
         "p2_punch"
       ]
     },
     {
       "p1": {
-        "x": 9.1748,
+        "x": 3.9159,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 6.1877,
+        "x": 0.7304,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -250,13 +281,13 @@
     },
     {
       "p1": {
-        "x": 8.8248,
+        "x": 3.5659,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 6.5377,
+        "x": 1.0804,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -265,13 +296,13 @@
     },
     {
       "p1": {
-        "x": 8.4748,
+        "x": 3.2159,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 6.8877,
+        "x": 1.4304,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -280,20 +311,20 @@
     },
     {
       "p1": {
-        "x": 10.6248,
+        "x": 3.2159,
         "y": 0.0,
         "facing": -1,
-        "action": "left"
-      },
-      "p2": {
-        "x": 6.8877,
-        "y": 0.0,
-        "facing": 1,
         "action": "punch"
       },
+      "p2": {
+        "x": -0.7196,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
       "events": [
-        "p2_punch",
-        "p1_ringout"
+        "p1_punch",
+        "p2_ringout"
       ]
     }
   ]

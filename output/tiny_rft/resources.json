@@ -1,21 +1,7 @@
 {
   "account": "raghav-aggarwal-ovya",
-  "dataset_id": "rft-evaluator-test-teacher-rft-dataset-20260621012015",
-  "dataset_resource": "accounts/raghav-aggarwal-ovya/datasets/rft-evaluator-test-teacher-rft-dataset-20260621012015",
+  "dataset_id": "rft-evaluator-test-teacher-rft-dataset-20260621015555",
+  "dataset_resource": "accounts/raghav-aggarwal-ovya/datasets/rft-evaluator-test-teacher-rft-dataset-20260621015555",
   "evaluator_id": "rft-evaluator-test-teacher-rft",
-  "evaluator_resource": "accounts/raghav-aggarwal-ovya/evaluators/rft-evaluator-test-teacher-rft",
-  "evaluator_state": "BUILD_FAILED",
-  "evaluator_build_error": "INTERNAL — Fireworks-side evaluator container build failure (entryPoint source-build path); reproduced 3x across subdir+slim and root+inlined variants. Not a launcher/requirements/code issue. Blocks RFT job creation (create rft gates on evaluator ACTIVE).",
-  "note": "dataset created OK; evaluator entryPoint build fails server-side. The only ACTIVE evaluator on the account (gsm8k-evaluator) uses the inline codeSnippets path, not entryPoint container builds.",
-  "preflight": {
-    "dataset_exists": true,
-    "bridge_health_ok": true,
-    "reward_trace_end_to_end": true,
-    "reward_trace_value": 0.0729,
-    "reward_trace_params": {"difficulty": 0.5, "platform_width": 18.0, "gravity": 0.8, "knockback": 3.0, "spawn_gap": 5.0},
-    "reward_trace_wall_seconds": 150,
-    "crucible_player_containers_spun_up": 3,
-    "evaluator_active": false,
-    "overall": "FAIL — only the evaluator-ACTIVE gate is unmet; all runtime paths (bridge -> Qwen -> Modal PPO -> reward) verified working"
-  }
+  "evaluator_resource": "accounts/raghav-aggarwal-ovya/evaluators/rft-evaluator-test-teacher-rft"
 }

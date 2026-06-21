@@ -1,12 +1,12 @@
 {
   "meta": {
     "game": "ring-out-duel",
-    "config": "A",
+    "config": "d0.6",
     "winner": "p1",
-    "frames": 3,
+    "frames": 5,
     "p1_policy": "scripted",
-    "p2_policy": "scripted",
-    "seed": 3,
+    "p2_policy": "parametric@0.6",
+    "seed": 17,
     "schema": 1
   },
   "platform": {
@@ -17,13 +17,13 @@
   "frames": [
     {
       "p1": {
-        "x": 4.2884,
+        "x": 5.0449,
         "y": 0.0,
         "facing": 1,
         "action": "idle"
       },
       "p2": {
-        "x": 2.1171,
+        "x": 1.3547,
         "y": 0.0,
         "facing": 1,
         "action": "idle"
@@ -32,13 +32,13 @@
     },
     {
       "p1": {
-        "x": 3.9384,
+        "x": 4.6949,
         "y": 0.0,
         "facing": -1,
         "action": "left"
       },
       "p2": {
-        "x": 2.4671,
+        "x": 1.7047,
         "y": 0.0,
         "facing": 1,
         "action": "right"
@@ -47,13 +47,43 @@
     },
     {
       "p1": {
-        "x": 3.9384,
+        "x": 4.3449,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 2.0547,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 3.9949,
+        "y": 0.0,
+        "facing": -1,
+        "action": "left"
+      },
+      "p2": {
+        "x": 2.4047,
+        "y": 0.0,
+        "facing": 1,
+        "action": "right"
+      },
+      "events": []
+    },
+    {
+      "p1": {
+        "x": 3.9949,
         "y": 0.0,
         "facing": -1,
         "action": "punch"
       },
       "p2": {
-        "x": -0.0329,
+        "x": -0.0953,
         "y": 0.0,
         "facing": 1,
         "action": "punch"

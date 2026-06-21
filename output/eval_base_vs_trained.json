@@ -1,0 +1,135 @@
+{
+  "experiment": "eval_base_vs_trained",
+  "backend": "modal",
+  "base_handle": "accounts/fireworks/models/qwen3-4b#accounts/raghav-aggarwal-ovya/deployments/qwen3-4b-dedicated",
+  "trained_handle": "accounts/fireworks/models/qwen3-4b#accounts/raghav-aggarwal-ovya/deployments/qwen3-4b-dedicated",
+  "trained_label": "base(smoke)",
+  "arenas_per_model": 2,
+  "seeds": [
+    1,
+    2
+  ],
+  "episodes": 300,
+  "eval_seeds": 10,
+  "n_held_out_arenas": 15,
+  "n_jobs": 8,
+  "wall_clock_s": 40.21,
+  "per_model": [
+    {
+      "model": "base",
+      "mean_transfer": 0.1767,
+      "std_transfer": 0.1839,
+      "n_jobs": 4,
+      "arenas": [
+        {
+          "difficulty": 0.7,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.7,
+          "platform_width": 15.0,
+          "gravity": 1.0,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        }
+      ],
+      "per_job": [
+        {
+          "arena_index": 0,
+          "seed": 1,
+          "held_out_improvement": 0.06,
+          "before": 0.1,
+          "after": 0.16,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 0,
+          "seed": 2,
+          "held_out_improvement": 0.4467,
+          "before": 0.02,
+          "after": 0.4667,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 1,
+          "seed": 1,
+          "held_out_improvement": 0.06,
+          "before": 0.1,
+          "after": 0.16,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 1,
+          "seed": 2,
+          "held_out_improvement": 0.14,
+          "before": 0.02,
+          "after": 0.16,
+          "train_arena_winrate": 0.0
+        }
+      ]
+    },
+    {
+      "model": "base(smoke)",
+      "mean_transfer": 0.2533,
+      "std_transfer": 0.2232,
+      "n_jobs": 4,
+      "arenas": [
+        {
+          "difficulty": 0.7,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        },
+        {
+          "difficulty": 0.7,
+          "platform_width": 15.0,
+          "gravity": 0.8,
+          "knockback": 3.0,
+          "spawn_gap": 5.0
+        }
+      ],
+      "per_job": [
+        {
+          "arena_index": 0,
+          "seed": 1,
+          "held_out_improvement": 0.06,
+          "before": 0.1,
+          "after": 0.16,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 0,
+          "seed": 2,
+          "held_out_improvement": 0.4467,
+          "before": 0.02,
+          "after": 0.4667,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 1,
+          "seed": 1,
+          "held_out_improvement": 0.06,
+          "before": 0.1,
+          "after": 0.16,
+          "train_arena_winrate": 0.0
+        },
+        {
+          "arena_index": 1,
+          "seed": 2,
+          "held_out_improvement": 0.4467,
+          "before": 0.02,
+          "after": 0.4667,
+          "train_arena_winrate": 0.0
+        }
+      ]
+    }
+  ],
+  "base_mean_transfer": 0.1767,
+  "trained_mean_transfer": 0.2533,
+  "trained_beats_base": true,
+  "delta": 0.0766
+}

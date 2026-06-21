@@ -1,0 +1,112 @@
+{
+  "model": "base qwen3-4b (untrained)",
+  "handle": "accounts/fireworks/models/qwen3-4b#accounts/raghav-aggarwal-ovya/deployments/qwen3-4b-dedicated",
+  "n_arenas": 5,
+  "n_valid": 5,
+  "mean_reward": 0.16595555555555555,
+  "reward_std_across_arenas": 0.014920629517054067,
+  "per_arena_rewards": [
+    0.17644444444444443,
+    0.17644444444444443,
+    0.13822222222222222,
+    0.17644444444444443,
+    0.1622222222222222
+  ],
+  "arenas": [
+    {
+      "arena": 1,
+      "params": {
+        "difficulty": 0.7,
+        "platform_width": 15.0,
+        "gravity": 0.8,
+        "knockback": 3.0,
+        "spawn_gap": 5.0
+      },
+      "n_clamped": 0,
+      "reward": 0.17644444444444443,
+      "per_seed_improvement": [
+        0.0067,
+        0.284,
+        0.2387
+      ],
+      "seed_std": 0.1215,
+      "wall_s": 160.2
+    },
+    {
+      "arena": 2,
+      "params": {
+        "difficulty": 0.7,
+        "platform_width": 15.0,
+        "gravity": 0.8,
+        "knockback": 3.0,
+        "spawn_gap": 5.0
+      },
+      "n_clamped": 0,
+      "reward": 0.17644444444444443,
+      "per_seed_improvement": [
+        0.0067,
+        0.284,
+        0.2387
+      ],
+      "seed_std": 0.1215,
+      "wall_s": 119.3
+    },
+    {
+      "arena": 3,
+      "params": {
+        "difficulty": 0.7,
+        "platform_width": 15.0,
+        "gravity": 0.8,
+        "knockback": 2.5,
+        "spawn_gap": 5.0
+      },
+      "n_clamped": 0,
+      "reward": 0.13822222222222222,
+      "per_seed_improvement": [
+        0.064,
+        0.112,
+        0.2387
+      ],
+      "seed_std": 0.0737,
+      "wall_s": 97.6
+    },
+    {
+      "arena": 4,
+      "params": {
+        "difficulty": 0.7,
+        "platform_width": 15.0,
+        "gravity": 0.8,
+        "knockback": 3.0,
+        "spawn_gap": 5.0
+      },
+      "n_clamped": 0,
+      "reward": 0.17644444444444443,
+      "per_seed_improvement": [
+        0.0067,
+        0.284,
+        0.2387
+      ],
+      "seed_std": 0.1215,
+      "wall_s": 121.1
+    },
+    {
+      "arena": 5,
+      "params": {
+        "difficulty": 0.7,
+        "platform_width": 15.0,
+        "gravity": 1.0,
+        "knockback": 3.0,
+        "spawn_gap": 5.0
+      },
+      "n_clamped": 0,
+      "reward": 0.1622222222222222,
+      "per_seed_improvement": [
+        0.0067,
+        0.3413,
+        0.1387
+      ],
+      "seed_std": 0.1376,
+      "wall_s": 109.1
+    }
+  ]
+}

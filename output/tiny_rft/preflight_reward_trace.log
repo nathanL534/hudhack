@@ -1,0 +1,5 @@
+/Users/nathaniellee/claude/project_harness/projects/project_ideas/hud_hackathon/hudhack/.venv/lib/python3.12/site-packages/eval_protocol/models.py:1156: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class TaskDefinitionModel(BaseModel):
+  [preflight] /init accepted rollout preflight-1782030684-e13c68; polling /debug/result (this runs 3 real PPO seeds on crucible-player, ~minutes) ...
+
+RESULT ok=True detail=reward=0.0729 params={'difficulty': 0.5, 'platform_width': 18.0, 'gravity': 0.8, 'knockback': 3.0, 'spawn_gap': 5.0}  (wall 150s)

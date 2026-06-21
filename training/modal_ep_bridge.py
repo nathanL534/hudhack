@@ -115,6 +115,15 @@ def nested_reward_scorer(params: dict[str, float]) -> float:
     image=image,
     secrets=[modal.Secret.from_name("crucible-fireworks")],
     timeout=1800,
+    # The async reward results live in ``app.state.results`` (in-memory). On a
+    # horizontally-scaled serverless deploy, ``/init`` and the ``/debug/result``
+    # poll can hit DIFFERENT containers -> result not found -> poll-error; an idle
+    # container can also be recycled mid-computation, killing the ~2-min reward
+    # task. Pin to ONE always-warm container so every request shares the same
+    # memory and the background task survives. (Fine for the tiny RFT: ~2 rollouts;
+    # for scale, swap the in-memory store for a modal.Dict.)
+    min_containers=1,
+    max_containers=1,
 )
 # One Teacher rollout = one full nested reward (3 PPO seeds, ~minutes). Keep the
 # per-container input concurrency low so each rollout's seed fan-out gets its own

@@ -1,0 +1,4 @@
+[bridge-validate] POST /init rollout_id=bridge-validate-1782027110
+[bridge-validate] /init -> 202 {"status":"accepted","rollout_id":"bridge-validate-1782027110"}
+[bridge-validate] status=pending
+[bridge-validate] status=poll-error
