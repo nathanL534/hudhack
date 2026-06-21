@@ -110,10 +110,13 @@
     <div id="banner"></div>
     <div class="hint">
       Tip: keyboard — <code>space</code> play/pause, <code>←</code>/<code>→</code> step.
-      Example dropdown needs a server (browsers block <code>fetch()</code> on <code>file://</code>):
-      run <code>cd viewer &amp;&amp; python -m http.server</code> then open
-      <code>http://localhost:8000/viewer.html</code>. The <b>Load file…</b> / drag-drop path
-      always works, even from <code>file://</code>.
+      A default fight loads inline, so this page works even opened directly via
+      <code>file://</code>. To use the <b>Example</b> dropdown (live files in
+      <code>replays/</code>), serve from the <b>repo root</b> — NOT from
+      <code>viewer/</code> — so both <code>/viewer/</code> and <code>/replays/</code>
+      resolve: run <code>python3 -m http.server 8000</code> at the repo root, then open
+      <code>http://localhost:8000/viewer/viewer.html</code>. The <b>Load file…</b> /
+      drag-drop path always works too.
     </div>
   </div>
 </main>
@@ -129,6 +132,13 @@ const EXAMPLES = [
   "trained_vs_scripted.json",
 ];
 const REPLAY_BASE = "../replays/";
+
+// ------------------------------------------------------------------ inline default
+// A full replay embedded as a JS constant so opening this file directly via
+// file:// ALWAYS shows a fight — no server, no fetch(), no CORS. The http
+// dropdown still fetches the live files in ../replays/; this is only the
+// zero-dependency fallback. (Source: replays/scripted_vs_scripted.json.)
+const DEFAULT_REPLAY = {"meta":{"game":"ring-out-duel","config":"A","winner":"p1","frames":15,"p1_policy":"scripted","p2_policy":"scripted","seed":3,"schema":1},"platform":{"x_left":0.0,"x_right":10.0,"y":0.0},"frames":[{"p1":{"x":2.9586,"y":0.0,"facing":1,"action":"idle"},"p2":{"x":6.9737,"y":0.0,"facing":-1,"action":"idle"},"events":[]},{"p1":{"x":3.3086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.6237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":3.6586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":6.2737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.0086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.9237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":5.5737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":4.3586,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":8.0737,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":4.7086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.7237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.0586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.3737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":7.0237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":5.4086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":9.5237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch"]},{"p1":{"x":5.7586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":9.1737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.1086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.8237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.4586,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.4737,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"right"},"p2":{"x":8.1237,"y":0.0,"facing":-1,"action":"left"},"events":[]},{"p1":{"x":6.8086,"y":0.0,"facing":1,"action":"punch"},"p2":{"x":10.6237,"y":0.0,"facing":-1,"action":"punch"},"events":["p1_punch","p2_punch","p2_ringout"]}]};
 
 // ------------------------------------------------------------------ state
 const canvas = document.getElementById("canvas");
@@ -166,8 +176,8 @@ async function loadExample(filename) {
   } catch (e) {
     loadErr.textContent =
       "Couldn't fetch " + filename + " (" + e.message +
-      "). If you opened this via file://, use Load file… / drag-drop, " +
-      "or serve with: cd viewer && python -m http.server";
+      "). Serve from the REPO ROOT (python3 -m http.server 8000) and open " +
+      "http://localhost:8000/viewer/viewer.html — or use Load file… / drag-drop.";
   }
 }
 
@@ -382,12 +392,19 @@ document.addEventListener("keydown", (e) => {
 
 // ------------------------------------------------------------------ boot
 populateDropdown();
-// Try to auto-load the first example (works when served over http).
+// Show the inlined default replay immediately, so the canvas is never blank —
+// this works even from file:// with no server. Then try to upgrade to the
+// live first example over http; if that fetch fails (file:// / 404) we just
+// keep the inlined fight and clear the scary error text.
+setReplay(DEFAULT_REPLAY);
 (async () => {
   try {
     const res = await fetch(REPLAY_BASE + EXAMPLES[0], { cache: "no-store" });
     if (res.ok) { sel.value = EXAMPLES[0]; setReplay(await res.json()); }
-  } catch (_) { /* file:// — wait for user to pick/drop */ }
+  } catch (_) {
+    // file:// — keep the inlined default; not an error worth surfacing.
+    loadErr.textContent = "";
+  }
 })();
 </script>
 </body>
