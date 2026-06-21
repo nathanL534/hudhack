@@ -642,13 +642,20 @@ def preflight(account: str, resources: dict, bridge_url: str, *, reward_timeout_
     except Exception as e:
         return False, f"  [FAIL] dataset '{resources.get('dataset_id')}' not found: {e}"
 
-    # 2. evaluator exists
+    # 2. evaluator exists AND is ACTIVE (a BUILD_FAILED/BUILDING evaluator cannot
+    #    serve rollouts, and create rft itself gates on ACTIVE — so must we).
     try:
         ev = fw.evaluators.get(resources["evaluator_id"], account_id=account)
-        state = getattr(ev, "state", None)
-        lines.append(f"  [ok] evaluator exists: {resources['evaluator_id']} (state={state})")
+        state = str(getattr(ev, "state", None) or "")
     except Exception as e:
         return False, f"  [FAIL] evaluator '{resources.get('evaluator_id')}' not found: {e}"
+    if state != "ACTIVE":
+        status = getattr(ev, "status", None)
+        return False, "\n".join(lines + [
+            f"  [FAIL] evaluator '{resources['evaluator_id']}' is not ACTIVE "
+            f"(state={state}, status={status})"
+        ])
+    lines.append(f"  [ok] evaluator ACTIVE: {resources['evaluator_id']}")
 
     # 3. bridge health
     if not _bridge_healthy(bridge_url):
