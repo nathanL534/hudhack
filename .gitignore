@@ -27,3 +27,9 @@ output/tk_dry_loop/
 
 # Root-level agent git worktrees (embedded repos) — never commit
 .worktrees/
+
+# run logs / backups / internal audits
+*.log
+*.bak
+BLOAT_AUDIT.md
+research/bloat-check/
