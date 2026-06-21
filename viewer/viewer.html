@@ -19,6 +19,7 @@
     --paper:     #ece1c8;
     --lacquer:   #8a2a20;     /* deep red lacquer */
     --gold:      #c8972e;
+    --orange:    #e08c3f;     /* warm brand orange — the kanji + "Match" label */
     /* the two students — belt colors (muted, never neon) */
     --trained:   #c4453c;     /* muted red — trained student (good sensei) */
     --base:      #4a63b0;     /* muted blue — base student (base sensei) */
@@ -38,45 +39,61 @@
     display: flex; flex-direction: column;
   }
 
-  /* full-width header band, generous side margins matching the reference (~1.3% gutter) */
+  /* full-width header band — single dark row, comfortable padding, thin divider below.
+     Left: large orange kanji + title stack. Right: inline two-item legend. */
   header {
-    padding: 24px 32px 20px;
+    padding: 22px 40px 20px;
     display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line2);
+    box-shadow: 0 1px 0 rgba(0,0,0,.5);
   }
   .brand {
-    display: flex; align-items: center; gap: 18px;
+    display: flex; align-items: center; gap: 20px; min-width: 0;
   }
   .kanji {
     font-family: "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif;
-    font-size: 44px; line-height: 1;
-    color: var(--lacquer);
+    font-size: 50px; line-height: .92;
+    color: var(--orange);
     font-weight: 600;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 0 rgba(0,0,0,.35);
+    flex: none;
   }
+  .headtxt { display: flex; flex-direction: column; min-width: 0; }
   header h1 {
-    font-size: 26px; margin: 0; font-weight: 700; letter-spacing: .3px;
+    font-size: 28px; margin: 0; line-height: 1.06; letter-spacing: .2px;
+    font-weight: 800; color: var(--ink); white-space: nowrap;
   }
-  header h1 .dim { color: var(--muted2); font-weight: 600; margin: 0 4px; }
-  header .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
-  .headtxt { display: flex; flex-direction: column; }
-  .legend { margin-left: auto; display: flex; gap: 36px; align-items: center; font-size: 14px; flex-wrap: wrap; color: var(--muted); }
-  .legend .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 10px; box-shadow: 0 0 0 3px rgba(0,0,0,.25); }
-  .legend b { font-weight: 650; color: var(--ink); }
-  .legend .sep { color: var(--muted2); margin: 0 2px; }
+  header h1 .lite { font-weight: 500; color: var(--ink); }
+  header h1 .dim  { color: var(--muted2); font-weight: 400; margin: 0 8px; }
+  header .sub { color: var(--muted); font-size: 14.5px; margin-top: 5px; letter-spacing: .1px; }
+
+  .legend {
+    margin-left: auto; display: flex; gap: 40px; align-items: center;
+    font-size: 14.5px; flex-wrap: wrap; color: var(--muted);
+  }
+  .legend > span { display: inline-flex; align-items: center; white-space: nowrap; }
+  .legend .dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+    margin-right: 11px; flex: none;
+    box-shadow: 0 0 0 3px rgba(0,0,0,.25);
+  }
+  .legend b { font-weight: 600; color: var(--ink); margin-right: 7px; }
+  .legend .sep { color: var(--muted2); margin: 0 7px 0 0; }
 
   /* main fills the remaining viewport height so there is no dead void below the arena */
   main {
     flex: 1;
     width: 100%;
     margin: 0 auto;
-    padding: 4px 32px 24px;
+    padding: 20px 40px 26px;
     display: flex; flex-direction: column;
   }
 
   .controls-bar {
     display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
   }
-  .controls-bar .lbl { color: var(--accent); font-weight: 700; font-size: 14px; letter-spacing: .2px; }
+  .controls-bar .lbl { color: var(--orange); font-weight: 700; font-size: 15px; letter-spacing: .2px; }
 
   select, button, label.file {
     background: #181410; color: var(--ink);
@@ -85,6 +102,9 @@
     transition: border-color .15s, background .15s, color .15s, transform .05s;
   }
   select { min-width: 300px; }
+  /* speed selector is tiny ("1.5x") — must NOT inherit the 300px match-dropdown width,
+     or it overflows the controls row and wraps to its own line. */
+  #speed { min-width: 0; width: auto; flex: none; padding-left: 12px; padding-right: 12px; }
   select optgroup { color: var(--gold); font-style: normal; font-weight: 700; background: #100d0a; }
   select option { color: var(--ink); background: #181410; font-weight: 400; }
   button:hover, label.file:hover, select:hover { border-color: var(--line2); background: #211b15; }
@@ -182,23 +202,22 @@
   .spec-panel.left::before  { left: 0;  background: linear-gradient(180deg, var(--trained), #7c2a23); }
   .spec-panel.right::before { right: 0; background: linear-gradient(180deg, var(--base), #2f3f72); }
 
-  /* the name/avatar header: name block left, circular portrait floated right (mirrored R) */
-  .panel-head { position: relative; min-height: 96px; }
-  .spec-panel.right .panel-head { text-align: left; }
+  /* the name/avatar header: role + name + sensei stacked, portrait floated to the
+     inner edge and dropped to the pill line (so the name keeps a full-width line). */
+  .panel-head { position: relative; min-height: 116px; padding-right: 8px; }
   .spec-panel .role {
     font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
     font-weight: 700; display: flex; align-items: center; gap: 8px;
   }
   .spec-panel.left  .role { color: #d68a82; }
   .spec-panel.right .role { color: #8fa3da; }
-  .spec-panel.right .role { justify-content: flex-start; }
-  .spec-panel .name { font-size: 22px; font-weight: 700; margin-top: 10px; letter-spacing: .2px; line-height: 1.15; max-width: 150px; }
+  .spec-panel .name { font-size: 21px; font-weight: 700; margin-top: 12px; letter-spacing: .2px; line-height: 1.18; white-space: nowrap; }
   .spec-panel .sensei { font-size: 13px; color: var(--muted); margin-top: 5px; }
 
-  /* circular gi avatar portrait — floated to the outer/inner corner like the reference */
+  /* circular gi avatar portrait — pinned to the inner corner, dropped to the pill row */
   .avatar {
     width: 92px; height: 92px; border-radius: 50%;
-    position: absolute; top: 28px; right: 0;
+    position: absolute; bottom: -10px; right: 0;
     background:
       radial-gradient(70% 70% at 50% 32%, #241c14 0%, #15110c 100%);
     border: 1px solid var(--line2);
@@ -302,13 +321,31 @@
      DOM but never shown, so legacy show/hideVerdict calls are harmless no-ops. */
   #banner { display: none !important; }
 </style>
+<!-- premium dojo theme — layers on top of the inline <style> above -->
+<link rel="stylesheet" href="theme.css" />
+<!-- game-feel + procedural fighter modules (verified drop-ins).
+     effects.js is a classic script (sets window.DojoFX). sprite_anim.js carries
+     ES `export`s so it must load as a module; its IIFE also sets window.SpriteAnim
+     synchronously. We mark when both are live so the render loop can switch to the
+     animated figures and repaint. -->
+<script src="effects.js"></script>
+<script type="module">
+  import { SpriteAnimator, selectAction } from "./sprite_anim.js";
+  // surface the procedural engine to the classic inline script
+  window.SpriteAnim = window.SpriteAnim || {};
+  window.SpriteAnim.SpriteAnimator = SpriteAnimator;
+  window.SpriteAnim.selectAction = selectAction;
+  window.__spritesModuleReady = true;
+  // repaint now that the animated figures are available
+  if (typeof window.requestRender === "function") window.requestRender();
+</script>
 </head>
 <body>
 <header>
   <div class="brand">
     <span class="kanji">道場</span>
     <div class="headtxt">
-      <h1>DOJO <span class="dim">·</span> Sensei vs Sensei</h1>
+      <h1>DOJO<span class="dim">·</span><span class="lite">Sensei vs Sensei</span></h1>
       <span class="sub">Two students. One trained by a sharper sensei.</span>
     </div>
   </div>
@@ -333,14 +370,14 @@
       <button id="playBtn" class="tb play" title="Play / pause"><span class="gl gl-play"></span> <span id="playLbl">Play</span></button>
       <button id="stepFwd" class="tb" title="Next frame">Next <span class="gl gl-chev gl-next"></span></button>
       <button id="lastBtn" class="tb" title="Last frame">Last <span class="gl-bar" style="margin-right:-4px"></span><span class="gl gl-chev gl-next"></span></button>
+      <select id="speed" title="playback speed">
+        <option value="33">2x</option>
+        <option value="50" selected>1.5x</option>
+        <option value="66">1x</option>
+        <option value="100">0.75x</option>
+        <option value="200">0.5x</option>
+      </select>
     </div>
-    <select id="speed" title="playback speed">
-      <option value="33">2x</option>
-      <option value="50" selected>1.5x</option>
-      <option value="66">1x</option>
-      <option value="100">0.75x</option>
-      <option value="200">0.5x</option>
-    </select>
   </div>
   <div id="loadErr"></div>
 
@@ -540,6 +577,29 @@ let dojoImgReady = false;
 const tagState = { p1: null, p2: null };   // {x, y} screen-space, smoothed
 let lastRenderTs = 0;
 let rafPending = false;
+
+// ---- procedural fighter animators + game-feel FX (drop-in modules) ----
+// One SpriteAnimator per slot, rebuilt only when its team color flips, so each
+// fighter keeps its own non-looping clip clock (a punch plays start->end even
+// though render() passes a fresh action every frame). FX is a single instance.
+const animators = { p1: null, p2: null };   // { anim, team }
+const fx = (window.DojoFX && window.DojoFX.create) ? window.DojoFX.create() : null;
+
+function getAnimator(slot, team) {
+  const SA = window.SpriteAnim && window.SpriteAnim.SpriteAnimator;
+  if (!SA) return null;                       // module not live yet — fall back
+  const cur = animators[slot];
+  if (cur && cur.team === team) return cur.anim;
+  // force the procedural karate figure (white gi, team headband/belt), not sheets
+  const anim = SA.procedural({ team, baseHeight: 150 });
+  animators[slot] = { anim, team };
+  return anim;
+}
+
+// per-slot FX edge-detection: fire impact/knockback once per contact, not every
+// repaint frame (render() runs continuously for the idle/walk cycles).
+const fxState = { p1: { lastPunchFrame: -1, lastKO: false }, p2: { lastPunchFrame: -1, lastKO: false } };
+let lastRingOutFrame = -1;
 
 const $ = (id) => document.getElementById(id);
 const sel = $("replaySel"), scrub = $("scrub");
@@ -1621,80 +1681,41 @@ function drawShadow(b, geo, plat) {
 // clock motion for idle/run liveliness. Falls back to the procedural drawGi if
 // the sheets haven't loaded (keeps file:// + first-paint from going blank).
 function drawFighter(b, slot, team, color, geo, plat, now, hit, ko) {
-  const char = TEAM_CHAR[team] || "samuraiMack";
-  const store = spriteStore[char];
-
-  // pick animation from the replay action + state
-  const off = isOffEdge(b, plat) || ko;
-  const action = b.action || "idle";
-  const falling = action === "jump" && (b.__lastY != null && b.y < b.__lastY);
-  // alternate punch sheets per replay-frame so repeated punches don't look static
-  const attack2 = (frame % 2) === 1;
-  const animName = animForAction(action, { ko: off, hit, attack2, falling });
-  b.__lastY = b.y;
-
-  const rec = store && store[animName];
-  if (!rec || !rec.base) {
-    // sheets not ready (or this anim missing) — keep the viewer alive.
-    drawGi(b, color, geo, plat, now, hit, ko);
-    return;
-  }
-
-  // pick the frame index within the animation
-  const nFrames = rec.frames;
-  let fi;
-  if (off && animName === "Death") {
-    // play the death sheet ONCE and hold the last (fallen) frame as it sinks
-    const t = Math.min(1, ((now % 100000) - (b.__koStart || (b.__koStart = now))) / 700);
-    fi = Math.min(nFrames - 1, Math.floor(t * nFrames));
-  } else if (animName === "Attack1" || animName === "Attack2" || animName === "TakeHit") {
-    // one-shot poses: drive the strike pose from wall-clock so it visibly swings
-    fi = Math.floor((now / 80)) % nFrames;
-  } else {
-    // looping anims (Idle/Run/Jump/Fall): wall-clock cycle, fast enough to read
-    const speed = animName === "Run" ? 70 : animName === "Idle" ? 130 : 110;
-    fi = Math.floor(now / speed) % nFrames;
-  }
-  if (!off) b.__koStart = undefined;
-
-  const sheet = rec.tinted[team] || rec.base;
-
-  // ---- placement: bottom-centre the character on the deck at its world x ----
   const { sx, sy, groundY } = geo;
-  const dir = (b.facing < 0) ? -1 : 1;
-  const cx = sx(b.x);
-  // sprite draw box: the 200px source frame scaled to a readable fighter height.
-  const DRAW = 200;                       // on-canvas frame size (px)
-  // In these LuizMelo sheets the character's feet sit ~13% above the frame's
-  // bottom edge (transparent pad below). Subtract that so the feet land on the
-  // deck surface (sy(0) = groundY) instead of floating.
-  const footPad = DRAW * 0.13;            // transparent pad below the feet
-  let footY = off
-    ? Math.min(groundY + 150, sy(b.y) + (now % 1000) / 1000 * 80)  // sink on KO
-    : sy(b.y);
-  const dx = cx - DRAW / 2;
-  const dy = footY - DRAW + footPad;
+  const off = isOffEdge(b, plat) || ko;
 
+  // procedural karate figure (white gi, team headband/belt). Falls back to the
+  // inline chibi only while the ES module is still loading (first paint).
+  const anim = getAnimator(slot, team);
+  if (!anim) { drawGi(b, color, geo, plat, now, hit, ko); return; }
+
+  // map the replay frame -> animation state + facing. Feed the previous frame so
+  // the engine can read knockback/fall, and explicit hit/ko so contact reads.
+  const prev = (replay && frame > 0) ? replay.frames[frame - 1][slot] : null;
+  const st = window.SpriteAnim.selectAction(b, prev, {
+    groundY: (plat.y != null ? plat.y : 0),
+    gotHit: !!hit && !(b.action === "punch"),   // attacker isn't the one recoiling
+    ko: !!off,
+  });
+
+  // feet land on the deck surface; on KO they sink into the void below the edge.
+  const feetX = sx(b.x);
+  let feetY = off
+    ? Math.min(groundY + 150, sy(b.y) + (now % 1000) / 1000 * 80)
+    : sy(b.y);
+
+  // 150px-tall figure reads at parity with the old sprites without crowding.
+  const scale = 1.0;
   ctx.save();
   if (off) ctx.globalAlpha = 0.92;
-  // horizontal flip about the sprite centre when facing left
-  if (dir < 0) {
-    ctx.translate(cx, 0);
-    ctx.scale(-1, 1);
-    ctx.translate(-cx, 0);
-  }
-  ctx.imageSmoothingEnabled = true;
-  ctx.drawImage(
-    sheet,
-    fi * SPRITE_FRAME, 0, SPRITE_FRAME, SPRITE_FRAME,  // src frame
-    dx, dy, DRAW, DRAW                                  // dest box
-  );
+  anim.draw(ctx, st.action, st.facing, feetX, feetY, scale, now);
   ctx.restore();
 
   // remember the figure's "core" screen position for the tag follow (above head).
-  // head sits roughly 30% down from the top of the drawn box.
-  b.__sx = cx;
-  b.__sy = dy + DRAW * 0.30;
+  // the procedural rig's head centre sits ~0.88*H above the feet.
+  b.__sx = feetX;
+  b.__sy = feetY - anim.baseHeight * scale * 0.88;
+  b.__lastY = b.y;
 }
 
 // The CHIBI gi fighter — a stylized karate kid: big expressive head, small body,
