@@ -37,8 +37,8 @@ from games.fighter import (
     STAGE1_ACTIONS,
     FighterArena,
     FighterEnv,
+    parametric_fighter,
     play_match,
-    scripted_fighter,
 )
 from harness.interfaces import Arena, PlayerTrainer, TrainingJob
 
@@ -94,7 +94,7 @@ class _MultiArenaFighterEnv(gym.Env):
         self._seed = seed
         self._inner = FighterEnv(
             arenas[0],
-            opponent_factory=lambda a: scripted_fighter(a, ego=1),
+            opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=seed),
             seed=seed,
         )
         self.action_space = self._inner.action_space
@@ -103,10 +103,14 @@ class _MultiArenaFighterEnv(gym.Env):
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         arena = self._arenas[int(self._rng.integers(len(self._arenas)))]
+        # The opponent is the PARAMETRIC one (strength scales with
+        # arena.difficulty via epsilon-mixing), seeded per-episode so its random
+        # choices are reproducible — the whole run replays for a fixed base seed.
+        ep_seed = int(self._rng.integers(1_000_000))
         self._inner = FighterEnv(
             arena,
-            opponent_factory=lambda a: scripted_fighter(a, ego=1),
-            seed=int(self._rng.integers(1_000_000)),
+            opponent_factory=lambda a: parametric_fighter(a, ego=1, seed=ep_seed),
+            seed=ep_seed,
         )
         return self._inner.reset(seed=seed, options=options)
 
@@ -209,9 +213,12 @@ class PPOPlayerTrainer(PlayerTrainer):
         return _PPOTrainingJob(result, policy)
 
     def _winrate(self, arena: FighterArena, policy: Callable[[np.ndarray], int]) -> float:
-        opponent = scripted_fighter(arena, ego=1)
+        # Score against the SAME parametric opponent the Player trained on, with
+        # a per-seed opponent seed so the random mix is reproducible. This is the
+        # in-distribution number that fills MatchResult.
         wins = 0
         for s in range(self._eval_seeds):
+            opponent = parametric_fighter(arena, ego=1, seed=10_000 + s)
             if play_match(arena, policy, opponent, seed=s) == 0:
                 wins += 1
         return wins / self._eval_seeds

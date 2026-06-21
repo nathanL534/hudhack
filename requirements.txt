@@ -9,6 +9,8 @@ torch               # SB3 backend (CPU)
 
 # --- For later phases (real Teacher / eval / scale) ---
 # matplotlib        # demo plots (p*(1-p) histogram, anti-gaming co-rise)
+# fastapi           # optional HTTP wrapper for training/reward_service.py
+# uvicorn           # local reward-service server
 # hud-python        # HUD harness / RemoteRolloutProcessor wiring
 # fireworks-ai      # Fireworks RFT API (Qwen3-4B Teacher)
 # modal             # parallel Player PPO jobs (one job / seed)

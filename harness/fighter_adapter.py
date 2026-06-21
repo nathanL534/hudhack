@@ -31,6 +31,7 @@ from contracts import ArenaSpec, CurriculumSpec
 from games.fighter import (
     FighterArena,
     Policy,
+    parametric_fighter,
     play_match,
     random_policy,
     scripted_fighter,
@@ -75,6 +76,10 @@ def _arena_from_spec(spec: ArenaSpec) -> FighterArena:
         gravity=round(gravity, 3),
         knockback=round(knockback, 3),
         spawn_gap=round(spawn_gap, 3),
+        # The difficulty dial also scales the PARAMETRIC opponent's strength
+        # (high difficulty -> low epsilon -> full scripted). Same direction as
+        # the physical knobs above, so the dial is monotone in hardness overall.
+        difficulty=spec.difficulty,
     )
 
 
@@ -139,8 +144,16 @@ class FighterGameAdapter(GameAdapter):
     # -- evaluation / scoring ----------------------------------------------
 
     def evaluate(self, policy: Policy, arenas: list[Arena]) -> dict:
-        """Run ``policy`` (as fighter 0) vs the fixed scripted opponent (fighter
-        1) over each arena, averaging win-rate across a fixed seed set.
+        """Run ``policy`` (as fighter 0) vs the PARAMETRIC opponent (fighter 1)
+        over each arena, averaging win-rate across a fixed seed set.
+
+        The opponent's strength scales with ``arena.difficulty`` (epsilon-mixing:
+        weak/mostly-random at low difficulty, full scripted at high). Scoring
+        ALL policies — the trained Player AND both references — against this same
+        difficulty-scaled opponent is what turns the gap proxy into a graded
+        signal: ``random_policy``'s win-rate (the solvability proxy ``p``) slides
+        smoothly with difficulty instead of pinning at 0. The opponent is seeded
+        per eval-seed so the random mix is reproducible.
 
         Returns the ScoreBundle the ONE scorer expects:
             {"<label>": {"mean_score": float, "per_arena": [float, ...]}}
@@ -153,9 +166,9 @@ class FighterGameAdapter(GameAdapter):
         for handle in arenas:
             arena = handle.arena
             agent = _resolve_policy(policy, arena, ego=0)
-            opponent = scripted_fighter(arena, ego=1)
             wins = 0
             for s in range(self._eval_seeds):
+                opponent = parametric_fighter(arena, ego=1, seed=10_000 + s)
                 winner = play_match(arena, agent, opponent, seed=s)
                 if winner == 0:
                     wins += 1

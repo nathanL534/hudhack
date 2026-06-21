@@ -111,6 +111,14 @@ class FighterArena:
     spawn_gap: float = 4.0        # initial horizontal distance between fighters
     max_steps: int = 200          # step budget; no ring-out by then => draw
 
+    # Difficulty dial in [0, 1] for the PARAMETRIC opponent. This is the single
+    # knob the Teacher (via ArenaSpec.difficulty) turns to make the opponent
+    # weaker (low) or stronger (high). It feeds opponent epsilon-mixing only — it
+    # does NOT touch physics, so a fixed difficulty replays identically. At
+    # difficulty=1.0 the parametric opponent is the full scripted heuristic
+    # (epsilon 0); at 0.0 it is mostly random (a weak opponent the Player beats).
+    difficulty: float = 1.0
+
     # Fixed Stage-1 constants (not varied per arena, but grouped here so the
     # sim has a single source of truth and a later stage could promote any of
     # them to an arena dial without changing call sites).
@@ -393,6 +401,138 @@ def scripted_fighter(arena: FighterArena, ego: int = 0) -> Policy:
 
         # 3. Otherwise close the distance toward the opponent.
         return int(Action.RIGHT) if opp_x > me_x else int(Action.LEFT)
+
+    return act
+
+
+# ---------------------------------------------------------------------------
+# Parametric opponent (difficulty -> strength)
+# ---------------------------------------------------------------------------
+
+# --- Primary lever: epsilon-mixing -----------------------------------------
+# ``eps`` is the per-step probability the opponent DROPS its skilled behaviour
+# and plays a *self-defeating* move — it steps toward its OWN nearest edge,
+# drifting toward a ring-out. ``eps`` is HIGH at low difficulty (the opponent
+# keeps walking off the platform, so the Player wins easily) and 0 at high
+# difficulty. A self-edging fail-branch (not uniform-random, not charge-the-
+# Player) is what keeps the curve monotone and draw-free: it resolves the match
+# as a Player win on its own, so the low-difficulty win-rate tracks ``eps``
+# directly instead of falling into the time-out draw trap an idle/erratic
+# opponent creates.
+EPS_MAX = 0.85  # self-edge prob at difficulty = 0.0  (weakest opponent)
+EPS_MIN = 0.0   # self-edge prob at difficulty = 1.0  (no self-sabotage)
+
+# --- Secondary lever: defensive competence ---------------------------------
+# Epsilon alone is not enough because the *base* scripted heuristic is fully
+# exploitable: a trained Player learns to lure it to the edge and punch it off,
+# so even at eps=0 a converged Player wins ~1.0 and the HIGH-difficulty end has
+# no gradient (the cliff just moves). The second lever closes that: as difficulty
+# rises the opponent's competent branch gets a WIDER edge-margin and STOPS
+# over-pursuing (it holds toward centre instead of chasing into the Player's
+# trap). A high-difficulty opponent therefore can't be forced off and out-trades
+# the Player at the edge, dropping the Player's win-rate at the top of the dial.
+# Margins are in platform-width fractions; pursuit-hold turns on past this
+# difficulty.
+DEF_MARGIN_FRAC_LOW = 0.12   # edge-margin fraction at difficulty 0 (= base scripted)
+DEF_MARGIN_FRAC_HIGH = 0.25  # edge-margin fraction at difficulty 1 (fortress)
+
+
+def epsilon_for_difficulty(difficulty: float) -> float:
+    """Map difficulty in [0, 1] -> opponent epsilon, monotonically DECREASING.
+
+    HIGH epsilon at LOW difficulty (the opponent self-defeats often, easy to
+    beat) and LOW epsilon (-> 0) at HIGH difficulty. Linear in difficulty so the
+    Player's achievable win-rate is a smooth function of the dial rather than a
+    cliff. Clamped so out-of-range dials are well-defined.
+    """
+    d = float(min(1.0, max(0.0, difficulty)))
+    return EPS_MAX + (EPS_MIN - EPS_MAX) * d
+
+
+def parametric_fighter(
+    arena: FighterArena,
+    ego: int = 0,
+    *,
+    difficulty: Optional[float] = None,
+    seed: Optional[int] = None,
+) -> Policy:
+    """Difficulty-scaled opponent: two levers turn one dial into smooth strength.
+
+    PRIMARY (epsilon-mixing): each step, with probability ``eps`` the opponent
+    drops its skill and steps toward its OWN nearest edge (a self-inflicted
+    ring-out that hands the Player a win). ``eps`` is HIGH at low difficulty and
+    0 at high, so the LOW end of the dial slides the Player's win-rate up.
+
+    SECONDARY (defensive competence): on the (1-eps) competent branch, the
+    opponent's edge-margin widens and its pursuit shuts off as difficulty rises
+    — at high difficulty it guards a fat edge zone and refuses to chase past
+    centre, so a trained Player can neither lure it off nor out-position it, and
+    the HIGH end of the dial slides the Player's win-rate down. Without this the
+    base scripted heuristic is fully exploitable and the high end pins at 1.0.
+
+    Together the two levers make the Player's win-rate a smooth, monotone
+    function of ``difficulty`` (high -> low) with a real learnable band in the
+    middle, instead of the 1.0/0.0 cliff a fixed-strength opponent produces.
+
+    ``difficulty`` defaults to ``arena.difficulty`` so wiring is a single field
+    on the arena. The fail-branch is driven by a SEEDED RNG, so a fixed seed
+    replays identically — determinism is preserved.
+
+    At ``difficulty=1.0`` epsilon is 0; the competent branch is a hardened
+    (fortress) scripted defender. ``scripted_fighter`` (the unmodified, fully
+    aggressive heuristic) remains the strong reference for the gap proxy.
+    """
+    d = float(min(1.0, max(0.0, arena.difficulty if difficulty is None else difficulty)))
+    eps = epsilon_for_difficulty(d)
+    w = arena.platform_width
+    reach = arena.punch_range + arena.fighter_half_width
+    # Defensive competence scales with difficulty.
+    margin_frac = DEF_MARGIN_FRAC_LOW + (DEF_MARGIN_FRAC_HIGH - DEF_MARGIN_FRAC_LOW) * d
+    edge_margin = max(1.0, margin_frac * w)
+    # Pursuit-discipline ramps in smoothly over the upper dial. ``hold_prob`` is
+    # the per-step probability the opponent REFUSES the bait (holds toward centre
+    # instead of chasing the Player to an edge). 0 below d=0.4 (base scripted
+    # "always chase"), ramping to 1 at d=1.0. A *probability* (not a hard switch
+    # at d=0.5) is what removes the mid-dial cliff: the opponent's positional
+    # discipline — and the Player's win-rate against it — slides instead of snaps.
+    hold_prob = max(0.0, (d - 0.4) / 0.6)
+    rng = np.random.default_rng(seed)
+
+    def _step_toward_own_edge(obs: np.ndarray) -> int:
+        # Walk toward whichever platform edge is nearer to ME — a self-inflicted
+        # ring-out that resolves the match as a Player win regardless of what the
+        # Player does. Keeps the low-difficulty curve monotone and draw-free.
+        me_x = obs[0] * w
+        return int(Action.LEFT) if me_x <= (w / 2.0) else int(Action.RIGHT)
+
+    def _competent(obs: np.ndarray) -> int:
+        me_x = obs[0] * w
+        opp_x = obs[3] * w
+        rel = obs[10] * w  # opp.x - me.x
+        # 1. Self-preservation: away from my own nearest edge (margin scales up
+        #    with difficulty -> fortress at the top of the dial).
+        if me_x <= edge_margin:
+            return int(Action.RIGHT)
+        if me_x >= w - edge_margin:
+            return int(Action.LEFT)
+        # 2. In range and facing -> punch.
+        if abs(rel) <= reach:
+            return int(Action.PUNCH)
+        # 3. Pursuit. With probability ``hold_prob`` (rising with difficulty)
+        #    hold toward centre instead of chasing the Player to the edge
+        #    (refusing the bait); otherwise chase like the base scripted heuristic.
+        if hold_prob > 0.0 and rng.random() < hold_prob:
+            if me_x < (w / 2.0) - 1.0:
+                return int(Action.RIGHT)
+            if me_x > (w / 2.0) + 1.0:
+                return int(Action.LEFT)
+            return int(Action.IDLE)
+        return int(Action.RIGHT) if opp_x > me_x else int(Action.LEFT)
+
+    def act(obs: np.ndarray) -> int:
+        if eps > 0.0 and rng.random() < eps:
+            return _step_toward_own_edge(obs)
+        return _competent(obs)
 
     return act
 

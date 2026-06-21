@@ -11,6 +11,18 @@ adapters around stable, frozen contracts.
 > reward**. No real Fireworks / Modal / PPO / UI yet — those are later phases,
 > reserved (not implemented) in the contracts.
 
+Stage 2–4 scaffolding is also present and credential-free:
+
+- `eval/proxy_sweep.py` compares the cheap Teacher proxy with actual Player
+  learning gain and persists correlation results.
+- `training/fireworks_teacher.py` calls Fireworks' OpenAI-compatible endpoint,
+  validates strict JSON, and supports an injected offline transport.
+- `training/reward_service.py` exposes a rollout-id-safe reward core and optional
+  `/init` FastAPI wrapper.
+- `harness/modal_fanout.py` provides ordered local/Modal seed fan-out.
+- `modal_player.py` is a deployable smoke worker whose body can be replaced by
+  the final serialized PPO job.
+
 ---
 
 ## Run it
