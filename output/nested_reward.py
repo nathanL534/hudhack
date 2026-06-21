@@ -68,7 +68,9 @@ DEFAULT_EVAL_SEEDS = 50
 
 
 def _arena_payload(spec: ArenaSpec, *, episodes: int, eval_seeds: int, curriculum_id: str,
-                   capture_replay_id: str | None = None) -> dict:
+                   capture_replay_id: str | None = None,
+                   held_out_arenas: list[dict] | None = None,
+                   geometry_override: dict | None = None) -> dict:
     """Translate one ArenaSpec into the transfer-worker payload.
 
     The fighter knobs the worker reads are ``difficulty`` (the Teacher's primary
@@ -77,6 +79,16 @@ def _arena_payload(spec: ArenaSpec, *, episodes: int, eval_seeds: int, curriculu
     is a valid arena; map_size widens the platform (mirrors fighter_adapter's
     deterministic gridworld->geometry mapping) so the candidates differ in more
     than just difficulty.
+
+    ``geometry_override`` (optional): when the caller has the full FIGHTER knob set
+    (``platform_width`` / ``gravity`` / ``knockback`` / ``spawn_gap``) it is threaded
+    straight into the worker payload instead of being derived from ``map_size`` — so
+    the Teacher's emitted geometry trains the Player verbatim (the FIGHTER game path).
+
+    ``held_out_arenas`` (optional): a list of full arena-spec dicts (the BROAD,
+    structurally-diverse held-out population from ``output/broad_eval_set.py``). The
+    worker (``modal_player._held_out_reference_arenas``) honors this key and scores
+    transfer on it instead of the two narrow default-geometry turtle references.
     """
     payload: dict = {
         "difficulty": float(spec.difficulty),
@@ -86,6 +98,12 @@ def _arena_payload(spec: ArenaSpec, *, episodes: int, eval_seeds: int, curriculu
         "curriculum_id": curriculum_id,
         "architecture": "mlp",
     }
+    if geometry_override:
+        for k in ("platform_width", "gravity", "knockback", "spawn_gap"):
+            if k in geometry_override and geometry_override[k] is not None:
+                payload[k] = float(geometry_override[k])
+    if held_out_arenas:
+        payload["held_out_arenas"] = held_out_arenas
     if capture_replay_id:
         payload["capture_replay_id"] = capture_replay_id
     return payload
@@ -125,6 +143,8 @@ def teacher_reward(
     episodes: int = DEFAULT_EPISODES,
     eval_seeds: int = DEFAULT_EVAL_SEEDS,
     capture_replay: bool = False,
+    held_out_arenas: list[dict] | None = None,
+    geometry_override: dict | None = None,
     _detail_sink: dict | None = None,
 ) -> float:
     """The nested-RL Teacher reward in [0, 1] for a curriculum spec.
@@ -159,6 +179,8 @@ def teacher_reward(
                 eval_seeds=eval_seeds,
                 curriculum_id=f"{curriculum_spec.curriculum_id}-a{ai}",
                 capture_replay_id=(replay_id if (replay_id and si == 0) else None),
+                held_out_arenas=held_out_arenas,
+                geometry_override=geometry_override,
             )
             for si in range(len(seed_list))
         ]

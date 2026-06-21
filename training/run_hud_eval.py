@@ -57,13 +57,15 @@ from training.hud_teacher_env import (
     params_to_curriculum,
 )
 
-# The Teacher curricula this smoke submits. Each is a parameter set that lands in
-# the learnable band, so the recorded reward is a real, non-trivial gap proxy
-# (not 0.0 from the band gate). difficulty is the dial the reward responds to.
+# The Teacher curricula this smoke submits. Each is a full FIGHTER param set (the
+# five knobs in FIGHTER_BOUNDS) that lands in the learnable band, so the recorded
+# reward is a real, non-trivial gap proxy (not 0.0 from the band gate). difficulty
+# is the dial the gap-proxy reward responds to; the geometry knobs are the arena
+# physics the Player trains under.
 SMOKE_CURRICULA: list[dict[str, float]] = [
-    {"difficulty": 0.22, "map_size": 16.0},
-    {"difficulty": 0.25, "map_size": 16.0},
-    {"difficulty": 0.30, "map_size": 16.0},
+    {"difficulty": 0.22, "platform_width": 12.0, "gravity": 0.6, "knockback": 2.5, "spawn_gap": 4.0},
+    {"difficulty": 0.25, "platform_width": 12.0, "gravity": 0.6, "knockback": 2.5, "spawn_gap": 4.0},
+    {"difficulty": 0.30, "platform_width": 12.0, "gravity": 0.6, "knockback": 2.5, "spawn_gap": 4.0},
 ]
 
 ENV_SOURCE = os.path.join(_REPO_ROOT, "training", "hud_teacher_env.py")

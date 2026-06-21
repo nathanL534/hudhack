@@ -36,13 +36,25 @@ TeacherScorer = Callable[[dict[str, float]], float]
 
 env = Environment("crucible-teacher")
 
-# The Teacher parameter set the fighter task grades. Bounds are the safe ranges
-# the boundary validator clamps to; ``difficulty`` is the dial the band-gated
-# reward is actually sensitive to (see fighter_adapter._arena_from_spec).
+# The FIGHTER Teacher parameter set the task grades. These are the FIVE fighter
+# knobs the Modal PPO worker (``modal_player._arena_from_payload``) reads verbatim
+# to build the training arena: opponent strength (``difficulty``) plus the four
+# physics/geometry dials (``platform_width`` / ``gravity`` / ``knockback`` /
+# ``spawn_gap``). Bounds are the safe ranges the boundary validator clamps to;
+# they match the schema the deploy/test path (scripts/deploy_qwen_test.py) and the
+# Modal EP bridge advertise, so the Teacher emits ONE coherent schema everywhere.
 FIGHTER_BOUNDS: dict[str, tuple[float, float]] = {
     "difficulty": (0.0, 1.0),
-    "map_size": (3.0, 64.0),
+    "platform_width": (8.0, 30.0),
+    "gravity": (0.2, 1.2),
+    "knockback": (0.5, 6.0),
+    "spawn_gap": (1.0, 12.0),
 }
+
+# Fighter geometry knobs (everything except the opponent-strength ``difficulty``
+# dial). Used to split a validated FIGHTER param set into the difficulty dial vs
+# the physics override the worker payload carries verbatim.
+FIGHTER_GEOMETRY_KEYS: tuple[str, ...] = ("platform_width", "gravity", "knockback", "spawn_gap")
 
 
 def clamp_reward(value: float) -> float:
@@ -88,15 +100,30 @@ HUD_EVAL_SEEDS = 16
 def params_to_curriculum(params: dict[str, float], *, curriculum_id: str = "hud-teacher"):
     """Map a validated Teacher parameter set onto a frozen ``CurriculumSpec``.
 
-    The Teacher emits dials (``difficulty``, ``map_size``); the fighter adapter
-    (``_arena_from_spec``) turns them into platform geometry + opponent strength.
-    Imported lazily so the decorative ``from hud_teacher_env import ...`` path
-    (and credential-free template smoke) never pulls the fighter engine.
+    The FIGHTER Teacher emits ``difficulty`` plus the four physics knobs
+    (``platform_width`` / ``gravity`` / ``knockback`` / ``spawn_gap``). The frozen
+    ``ArenaSpec`` only carries ``map_size`` + ``difficulty``, so this derives a
+    ``map_size`` from ``platform_width`` (the inverse of the adapter's
+    ``width = 6.0 + 0.5*map_size`` mapping) and keeps ``difficulty`` verbatim. The
+    full geometry is threaded separately into the Modal worker payload (see
+    ``geometry_override`` in the reward path), so nothing is lost — the
+    ``CurriculumSpec`` is the contract object, the geometry override is the verbatim
+    physics. ``map_size`` is still accepted directly for the legacy two-dial path.
+
+    Imported lazily so the decorative ``from hud_teacher_env import ...`` path (and
+    credential-free template smoke) never pulls the fighter engine.
     """
     from contracts import ArenaSpec, CurriculumSpec
 
     difficulty = float(params["difficulty"])
-    map_size = int(round(float(params["map_size"])))
+    if "map_size" in params:
+        map_size = int(round(float(params["map_size"])))
+    elif "platform_width" in params:
+        # Invert the adapter geometry map (width = 6.0 + 0.5*map_size).
+        map_size = int(round((float(params["platform_width"]) - 6.0) / 0.5))
+    else:
+        map_size = 10
+    map_size = max(3, min(64, map_size))
     return CurriculumSpec(
         game_id="fighter",
         curriculum_id=curriculum_id,
@@ -110,6 +137,16 @@ def params_to_curriculum(params: dict[str, float], *, curriculum_id: str = "hud-
             )
         ],
     )
+
+
+def fighter_geometry_override(params: dict[str, float]) -> dict[str, float]:
+    """Extract the verbatim FIGHTER physics knobs from a validated param set.
+
+    Returns only the geometry keys present in ``params`` (``platform_width`` /
+    ``gravity`` / ``knockback`` / ``spawn_gap``). The Modal worker reads these
+    directly so the Teacher's emitted physics trains the Player exactly as emitted.
+    """
+    return {k: float(params[k]) for k in FIGHTER_GEOMETRY_KEYS if k in params}
 
 
 def fighter_scorer(params: dict[str, float]) -> float:
@@ -155,11 +192,34 @@ def _unconfigured_scorer(_: dict[str, float]) -> float:
     raise RuntimeError("configure_scorer() must be called before serving the HUD environment")
 
 
+def _default_served_scorer() -> TeacherScorer:
+    """Pick the scorer a freshly-served env uses.
+
+    ``hud.eval.LocalRuntime`` re-imports THIS module in a child subprocess, so a
+    ``configure_scorer`` call in the parent never reaches the served grader. The
+    env var ``CRUCIBLE_HUD_SCORER`` is the cross-process switch the child reads at
+    import time:
+
+      * ``nested`` -> the REAL nested-RL PPO held-out-transfer reward, served via
+        the dry-loop sidecar (``training.dry_loop_sidecar.served_nested_scorer``).
+        This is what makes the FIGHTER dry run's HUD-recorded reward BE the nested
+        PPO improvement (not the gap proxy) while keeping HUD load-bearing.
+      * unset / anything else -> the gap-proxy ``fighter_scorer`` (default), so the
+        existing ``run_hud_eval`` smoke and tests are untouched.
+    """
+    if os.getenv("CRUCIBLE_HUD_SCORER", "").strip().lower() == "nested":
+        from training.dry_loop_sidecar import served_nested_scorer
+
+        return served_nested_scorer
+    return fighter_scorer
+
+
 # Default to the REAL fighter reward so a served env (LocalRuntime / hosted) is
-# load-bearing out of the box: every HUD trace records the genuine gap proxy.
-# Callers that need a different scorer (Modal PPO, a test fake) still override
-# via ``configure_scorer``.
-_configured_scorer: TeacherScorer = fighter_scorer
+# load-bearing out of the box: every HUD trace records a genuine fighter reward.
+# When CRUCIBLE_HUD_SCORER=nested, the served grader uses the nested-RL PPO reward
+# instead. Callers that need a different scorer (a test fake) still override via
+# ``configure_scorer``.
+_configured_scorer: TeacherScorer = _default_served_scorer()
 
 
 def configure_scorer(scorer: TeacherScorer) -> None:

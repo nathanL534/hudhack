@@ -17,3 +17,5 @@ venv/
 *.png
 training/rft_log.json
 results/
+# Dry-loop sidecar cache + per-run artifacts (regenerated every run)
+output/dry_loop/
